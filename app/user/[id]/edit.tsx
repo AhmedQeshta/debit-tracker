@@ -1,14 +1,17 @@
 
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useEditUser } from '@/hooks/user/useEditUser';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function EditUser() {
   const { name, setName, bio, setBio, handleSave, user, router } = useEditUser();
+  const insets = useSafeAreaInsets();
 
   if (!user) {
     return (
@@ -23,8 +26,12 @@ export default function EditUser() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Edit User</Text>
-      <View style={styles.form}>
+      <TouchableOpacity  style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={25} style={styles.ArrowLeft} color={Colors.text} />
+          <Text style={styles.title}>Edit User</Text>
+        </TouchableOpacity> 
+  
+      <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
         <Input label="Full Name" value={name} onChangeText={setName} placeholder="e.g. John Doe" />
         <Input
           label="Bio / Notes"
@@ -65,6 +72,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: Spacing.lg,
   },
+  backButton:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  ArrowLeft:{
+    marginBottom: Spacing.md,
+  }
 });
 
 

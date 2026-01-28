@@ -19,6 +19,7 @@ const STACK_OPTIONS = {
   contentStyle: {
     backgroundColor: Colors.background,
   },
+  headerShown: false
 };
 
 export default function RootLayout() {
