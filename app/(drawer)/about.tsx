@@ -4,10 +4,10 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
 import { Menu } from 'lucide-react-native';
-import { useDrawer } from './_layout';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 
 export default function About() {
-  const { openDrawer } = useDrawer();
+  const { openDrawer } = useDrawerContext();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 

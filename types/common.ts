@@ -30,3 +30,17 @@ export interface IScreenContainerProps {
   children: React.ReactNode;
   scrollable?: boolean;
 }
+
+
+export interface IDrawerContextType {
+  openDrawer: () => void;
+  closeDrawer: () => void;
+  toggleDrawer: () => void;
+};
+
+
+export interface IEmptySectionProps{
+  title:string;
+  description:string;
+  icon?:'transactions' | 'users' | '';
+}

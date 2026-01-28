@@ -26,12 +26,27 @@ export const useUsersList = () => {
     });
   }, [users, search]);
 
+
+  const { pinUser, unpinUser } = useUsersStore();
+
+  const handlePinToggle = (userId: string) => {
+    const user = filteredUsers.find((u) => u.id === userId);
+    if (user) {
+      if (user.pinned) {
+        unpinUser(userId);
+      } else {
+        pinUser(userId);
+      }
+    }
+  };
+
   return {
     filteredUsers,
     isGrid,
     setSearch,
     setIsGrid,
     getUserBalance,
-    search
+    search,
+    handlePinToggle
   };
 };

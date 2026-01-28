@@ -1,19 +1,28 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Wifi, WifiOff, Pin, PinOff } from 'lucide-react-native';
+import { Wifi, WifiOff, Pin, PinOff, Menu } from 'lucide-react-native';
 import { useDashboard } from '@/hooks/useDashboard';
-import { TouchableOpacity } from 'react-native';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 
 export default function Dashboard() {
   const { users, queueSize, isOnline, globalDebit, totalPaidBack, pinnedUsers, pinnedCount, getUserBalance , router,handleUnpin} = useDashboard();
+  const { openDrawer } = useDrawerContext();
  
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
         <View style={styles.statusHeader}>
-          <Text style={styles.title}>Dashboard</Text>
+          <View style={styles.titleRow}>
+            <TouchableOpacity
+              onPress={openDrawer}
+              style={styles.menuButton}
+              activeOpacity={0.7}>
+              <Menu size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.title}>Dashboard</Text>
+          </View>
           <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
             {isOnline ? <Wifi size={14} stroke="#000" /> : <WifiOff size={14} stroke="#fff" />}
             <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
@@ -126,6 +135,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuButton: {
+    marginRight: Spacing.md,
+    padding: Spacing.xs,
   },
   title: {
     fontSize: 28,

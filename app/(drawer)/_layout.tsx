@@ -1,127 +1,90 @@
-import { useState, createContext, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { DrawerLayout } from 'react-native-drawer-layout';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useSegments, Slot } from 'expo-router';
-import { Colors } from '../../theme/colors';
-import { Spacing } from '../../theme/spacing';
-import { Home, Info, X } from 'lucide-react-native';
+import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import {  Slot } from 'expo-router';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { DRAWER_WIDTH, useDrawer } from '@/hooks/drawer/useDrawer';
+import { DrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { DrawerContent } from '@/components/DrawerContent';
 
-type DrawerContextType = {
-  openDrawer: () => void;
-  closeDrawer: () => void;
-  toggleDrawer: () => void;
-};
 
-const DrawerContext = createContext<DrawerContextType | null>(null);
-
-export const useDrawer = () => {
-  const context = useContext(DrawerContext);
-  if (!context) {
-    throw new Error('useDrawer must be used within DrawerLayoutWrapper');
-  }
-  return context;
-};
 
 export default function DrawerLayoutWrapper() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const router = useRouter();
-  const segments = useSegments();
-  const insets = useSafeAreaInsets();
+  const {closeDrawer,insets,isActive,navigateTo,openDrawer,toggleDrawer,drawerOpen,overlayAnim,slideAnim} = useDrawer();
 
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  const closeDrawer = () => {
-    setDrawerOpen(false);
-  };
-
-  const openDrawer = () => {
-    setDrawerOpen(true);
-  };
-
-  const navigateTo = (path: string) => {
-    // Use relative paths for Expo Router
-    if (path === '/(drawer)/(tabs)') {
-      router.push('/(drawer)/(tabs)' as any);
-    } else if (path === '/(drawer)/about') {
-      router.push('/(drawer)/about' as any);
-    }
-    closeDrawer();
-  };
-
-  const isActive = (path: string) => {
-    const currentPath = '/' + segments.join('/');
-    // Check if current path matches or starts with the target path
-    if (path === '/(drawer)/(tabs)') {
-      // For tabs, check if we're in the tabs section
-      return segments[0] === '(drawer)' && segments[1] === '(tabs)';
-    }
-    if (path === '/(drawer)/about') {
-      return segments[0] === '(drawer)' && segments[1] === 'about';
-    }
-    return currentPath === path || currentPath.startsWith(path + '/');
-  };
-
-  const drawerContent = () => (
-    <View style={[styles.drawerContent, { paddingTop: insets.top }]}>
-      <View style={styles.drawerHeader}>
-        <Text style={styles.drawerTitle}>Menu</Text>
-        <TouchableOpacity onPress={closeDrawer} style={styles.closeButton}>
-          <X size={24} color={Colors.text} />
-        </TouchableOpacity>
-      </View>
-      <ScrollView style={styles.drawerMenu}>
-        <TouchableOpacity
-          style={[styles.menuItem, isActive('/(drawer)/(tabs)') && styles.menuItemActive]}
-          onPress={() => navigateTo('/(drawer)/(tabs)')}>
-          <Home size={20} color={isActive('/(drawer)/(tabs)') ? Colors.primary : Colors.textSecondary} />
-          <Text style={[styles.menuItemText, isActive('/(drawer)/(tabs)') && styles.menuItemTextActive]}>
-            Home
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.menuItem, isActive('/(drawer)/about') && styles.menuItemActive]}
-          onPress={() => navigateTo('/(drawer)/about')}>
-          <Info size={20} color={isActive('/(drawer)/about') ? Colors.primary : Colors.textSecondary} />
-          <Text style={[styles.menuItemText, isActive('/(drawer)/about') && styles.menuItemTextActive]}>
-            About Me
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
-
+  
   return (
     <DrawerContext.Provider value={{ openDrawer, closeDrawer, toggleDrawer }}>
-      <DrawerLayout
-        drawerPosition="left"
-        drawerType="slide"
-        drawerStyle={styles.drawer}
-        open={drawerOpen}
-        onOpen={() => setDrawerOpen(true)}
-        onClose={() => setDrawerOpen(false)}
-        renderDrawerContent={drawerContent}
-        overlayStyle={styles.overlay}>
+      <View style={styles.container}>
         <View style={styles.content}>
           <Slot />
         </View>
-      </DrawerLayout>
+        
+        {drawerOpen && (
+          <>
+            <TouchableOpacity
+              style={styles.overlay}
+              activeOpacity={1}
+              onPress={closeDrawer}>
+              <Animated.View
+                style={[
+                  styles.overlayAnimated,
+                  {
+                    opacity: overlayAnim,
+                  },
+                ]}
+              />
+            </TouchableOpacity>
+            <Animated.View
+              style={[
+                styles.drawer,
+                {
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}>
+              <DrawerContent insets={insets} closeDrawer={closeDrawer} isActive={isActive} navigateTo={navigateTo} />
+            </Animated.View>
+          </>
+        )}
+      </View>
     </DrawerContext.Provider>
   );
 }
 
 const styles = StyleSheet.create({
-  drawer: {
-    backgroundColor: Colors.surface,
-    width: 280,
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  container: {
+    flex: 1,
   },
   content: {
     flex: 1,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  overlayAnimated: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  drawer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: DRAWER_WIDTH,
+    zIndex: 1000,
+    backgroundColor: Colors.surface,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 0,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   drawerContent: {
     flex: 1,

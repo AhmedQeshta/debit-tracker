@@ -3,9 +3,12 @@ import { Home, Users, LayoutDashboard } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../../theme/colors';
 import { Spacing } from '../../../theme/spacing';
+import { useUsersStore } from '@/store/usersStore';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const users = useUsersStore((state) => state.users);
+  const hasUsers = users.length > 0;
 
   return (
     <Tabs
@@ -38,6 +41,7 @@ export default function TabsLayout() {
         options={{
           title: 'Users',
           tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          href: hasUsers ? '/(drawer)/(tabs)/users' : null,
         }}
       />
       <Tabs.Screen
