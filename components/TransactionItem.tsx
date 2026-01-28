@@ -1,19 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors } from '../theme/colors';
-import { Spacing } from '../theme/spacing';
-import { Transaction } from '../types/models';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 import { Trash2, Pencil } from 'lucide-react-native';
+import { ITransactionItemProps } from '@/types/transaction';
+import { getBalanceText } from '@/lib/utils';
 
-interface Props {
-  transaction: Transaction;
-  onDelete?: (id: string) => void;
-  onEdit?: (id: string) => void;
-}
-
-export const TransactionItem = ({ transaction, onDelete, onEdit }: Props) => {
-  const isNegative = transaction.amount < 0;
-
+export const TransactionItem = ({ transaction, onDelete, onEdit }: ITransactionItemProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -21,8 +14,8 @@ export const TransactionItem = ({ transaction, onDelete, onEdit }: Props) => {
         <Text style={styles.date}>{new Date(transaction.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={styles.rightSide}>
-        <Text style={[styles.amount, isNegative ? styles.negative : styles.positive]}>
-          {isNegative ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
+        <Text style={[styles.amount, transaction.amount < 0 ? styles.negative : styles.positive]}>
+          {getBalanceText(transaction.amount)}
         </Text>
         {!transaction.synced && <Text style={styles.syncStatus}>Pending Sync</Text>}
       </View>

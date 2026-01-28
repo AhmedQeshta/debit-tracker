@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '../theme/colors';
 import { useSplash } from '@/hooks/useSplash';
 
@@ -23,10 +24,12 @@ const STACK_OPTIONS = {
 export default function RootLayout() {
   useSplash();
   return (
-    <SafeAreaProvider>
-      <Stack screenOptions={STACK_OPTIONS}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <Stack screenOptions={STACK_OPTIONS}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

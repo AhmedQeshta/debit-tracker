@@ -6,7 +6,17 @@ import { useUsersStore } from "@/store/usersStore";
 import { useShallow } from "zustand/react/shallow";
 
 export const useHome = () => {
-  const latestUsers = useUsersStore(useShallow((state) => state.users.slice(0, 5)));
+  const allUsers = useUsersStore(useShallow((state) => state.users));
+  
+  const latestUsers = useMemo(() => {
+    // Sort: pinned first, then by createdAt (most recent first)
+    const sorted = [...allUsers].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.createdAt - a.createdAt;
+    });
+    return sorted.slice(0, 5);
+  }, [allUsers]);
 
   const allTransactions = useTransactionsStore(useShallow((state) => state.transactions));
 

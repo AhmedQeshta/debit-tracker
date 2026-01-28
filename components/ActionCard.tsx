@@ -2,15 +2,10 @@ import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../theme/colors';
 import { Spacing } from '../theme/spacing';
+import { IActionCardProps } from '@/types/common';
 
-interface Props {
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-  title: string;
-  onPress: () => void;
-  disabled?: boolean;
-}
 
-export const ActionCard = ({ icon: Icon, title, onPress, disabled }: Props) => {
+export const ActionCard = ({ icon: Icon, title, onPress, disabled }: IActionCardProps) => {
   return (
     <TouchableOpacity
       style={[styles.container, disabled && styles.disabled]}

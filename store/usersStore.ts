@@ -2,17 +2,10 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types/models';
+import { IUsersState } from '@/types/store';
 
-interface UsersState {
-  users: User[];
-  addUser: (user: User) => void;
-  updateUser: (user: User) => void;
-  deleteUser: (id: string) => void;
-  setUsers: (users: User[]) => void;
-  markAsSynced: (id: string) => void;
-}
 
-export const useUsersStore = create<UsersState>()(
+export const useUsersStore = create<IUsersState>()(
   persist(
     (set) => ({
       users: [],
@@ -29,6 +22,14 @@ export const useUsersStore = create<UsersState>()(
       markAsSynced: (id) =>
         set((state) => ({
           users: state.users.map((u) => (u.id === id ? { ...u, synced: true } : u)),
+        })),
+      pinUser: (id) =>
+        set((state) => ({
+          users: state.users.map((u) => (u.id === id ? { ...u, pinned: true } : u)),
+        })),
+      unpinUser: (id) =>
+        set((state) => ({
+          users: state.users.map((u) => (u.id === id ? { ...u, pinned: false } : u)),
         })),
     }),
     {

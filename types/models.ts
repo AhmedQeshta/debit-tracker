@@ -5,6 +5,7 @@ export interface User {
   imageUri: string | null;
   createdAt: number;
   synced: boolean;
+  pinned: boolean;
 }
 
 export interface Transaction {

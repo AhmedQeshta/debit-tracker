@@ -1,18 +1,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SyncQueueItem } from '../types/models';
+import { ISyncState } from '@/types/store';
 
-interface SyncState {
-  queue: SyncQueueItem[];
-  isSyncing: boolean;
-  addToQueue: (item: SyncQueueItem) => void;
-  removeFromQueue: (id: string) => void;
-  setSyncing: (status: boolean) => void;
-  clearQueue: () => void;
-}
 
-export const useSyncStore = create<SyncState>()(
+
+export const useSyncStore = create<ISyncState>()(
   persist(
     (set) => ({
       queue: [],

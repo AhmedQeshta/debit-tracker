@@ -1,3 +1,4 @@
+import { Colors } from "@/theme/colors";
 import { Transaction, User } from "@/types/models";
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
@@ -43,4 +44,23 @@ export const getBalanceText = (balance: number)=>{
 
 export const getBalanceStatus = (balance: number)=>{
   return balance < 0 ? 'They owe you' : balance > 0 ? 'You owe them' : 'Settled';
+};
+
+
+export const getButtonStyle = (variant: 'primary' | 'secondary' | 'error' | 'outline', styles: any) => {
+  switch (variant) {
+    case 'secondary':
+      return [styles.button, { backgroundColor: Colors.secondary }];
+    case 'error':
+      return [styles.button, { backgroundColor: Colors.error }];
+    case 'outline':
+      return [styles.button, styles.outlineButton];
+    default:
+      return styles.button;
+  }
+};
+
+export const getTextStyle = (variant: 'primary' | 'secondary' | 'error' | 'outline', styles: any) => {
+  if (variant === 'outline') return [styles.text, { color: Colors.primary }];
+  return styles.text;
 };
