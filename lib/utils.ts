@@ -24,3 +24,9 @@ export const getTotalPaidBack = (transactions: Transaction[]) => {
   return transactions.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
 };
 
+export const getFinalAmount = (amount: string, isNegative: boolean) => {
+  if (!amount || isNaN(Number(amount))) {
+    return 0;
+  }
+  return isNegative ? -Math.abs(Number(amount)) : Math.abs(Number(amount));
+};
