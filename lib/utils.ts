@@ -14,3 +14,13 @@ export const getBalance = (userId: string, allTransactions: Transaction[]) => {
 export const filterUsers = (users: User[], search: string) => {
   return users.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()));
 };
+
+
+export const getGlobalDebit = (transactions: Transaction[]) => {
+  return transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+};
+
+export const getTotalPaidBack = (transactions: Transaction[]) => {
+  return transactions.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+};
+
