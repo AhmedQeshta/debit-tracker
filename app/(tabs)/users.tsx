@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
   gridItem: {
     flex: 0.5,
     marginHorizontal: 4,
+    marginBottom: Spacing.sm,
   },
   listItem: {
     marginBottom: Spacing.sm,
