@@ -1,29 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, StyleSheet,  TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TransactionItem } from '@/components/TransactionItem';
 import { Button } from '@/components/Button';
-import { useUsersStore } from '@/store/usersStore';
-import { useTransactionsStore } from '@/store/transactionsStore';
-import { useSyncStore } from '@/store/syncStore';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Pencil, Trash2 } from 'lucide-react-native';
 
-import { useShallow } from 'zustand/react/shallow';
+import { useUserDetails } from '@/hooks/user/useUserDetails';
+import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 
 export default function UserDetails() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-
-  const user = useUsersStore((state) => state.users.find((u) => u.id === id));
-  const { deleteUser } = useUsersStore();
-  const transactions = useTransactionsStore(
-    useShallow((state) => state.transactions.filter((t) => t.userId === id)),
-  );
-  const { deleteTransaction } = useTransactionsStore();
-  const { addToQueue } = useSyncStore();
+  const { user, transactions, balance, handleEditUser, handleDeleteUser, handleEditTransaction, handleDeleteTransaction, router,id} = useUserDetails();
 
   if (!user) {
     return (
@@ -36,70 +24,6 @@ export default function UserDetails() {
     );
   }
 
-  const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
-
-  const handleEditUser = () => {
-    if (!id) return;
-    router.push(`/user/${id}/edit`);
-  };
-
-  const handleDeleteUser = () => {
-    if (!user || !id) return;
-
-    Alert.alert('Delete User', 'Are you sure you want to delete this user and all records?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          // Delete all transactions for this user
-          transactions.forEach((t) => {
-            deleteTransaction(t.id);
-            addToQueue({
-              id: Math.random().toString(36).substring(7),
-              type: 'transaction',
-              action: 'delete',
-              payload: { id: t.id },
-            });
-          });
-
-          // Delete the user
-          deleteUser(id);
-          addToQueue({
-            id: Math.random().toString(36).substring(7),
-            type: 'user',
-            action: 'delete',
-            payload: { id },
-          });
-
-          router.back();
-        },
-      },
-    ]);
-  };
-
-  const handleEditTransaction = (transactionId: string) => {
-    router.push(`/transaction/${transactionId}/edit`);
-  };
-
-  const handleDeleteTransaction = (transactionId: string) => {
-    Alert.alert('Delete Transaction', 'Are you sure you want to delete this transaction?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          deleteTransaction(transactionId);
-          addToQueue({
-            id: Math.random().toString(36).substring(7),
-            type: 'transaction',
-            action: 'delete',
-            payload: { id: transactionId },
-          });
-        },
-      },
-    ]);
-  };
 
   return (
     <ScreenContainer>
@@ -128,10 +52,10 @@ export default function UserDetails() {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
           <Text style={[styles.balance, balance < 0 ? styles.negative : styles.positive]}>
-            {balance < 0 ? '-' : '+'}${Math.abs(balance).toFixed(2)}
+           {getBalanceText(balance)}
           </Text>
           <Text style={styles.balanceStatus}>
-            {balance < 0 ? 'They owe you' : balance > 0 ? 'You owe them' : 'Settled'}
+            {getBalanceStatus(balance)}
           </Text>
         </View>
       </View>
@@ -146,17 +70,18 @@ export default function UserDetails() {
       </View>
 
       <View style={styles.list}>
-        {transactions.map((item) => (
+        {transactions.length === 0 ? (
+          <Text style={styles.emptyText}>No transaction history found.</Text>
+        ) : (
+          transactions.map((item) => (
           <TransactionItem
             key={item.id}
             transaction={item}
             onEdit={handleEditTransaction}
             onDelete={handleDeleteTransaction}
           />
-        ))}
-        {transactions.length === 0 && (
-          <Text style={styles.emptyText}>No transaction history found.</Text>
-        )}
+        )))}
+
       </View>
     </ScreenContainer>
   );

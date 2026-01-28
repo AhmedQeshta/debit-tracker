@@ -1,86 +1,25 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ScreenContainer } from '../../components/ScreenContainer';
-import { Input } from '../../components/Input';
-import { Button } from '../../components/Button';
-import { useUsersStore } from '../../store/usersStore';
-import { useTransactionsStore } from '../../store/transactionsStore';
-import { useSyncStore } from '../../store/syncStore';
-import { syncData } from '../../services/sync';
-import { Colors } from '../../theme/colors';
-import { Spacing } from '../../theme/spacing';
-
-import { useShallow } from 'zustand/react/shallow';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { Input } from '@/components/Input';
+import { Button } from '@/components/Button';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { useTransaction } from '@/hooks/transaction/useTransaction';
 
 export default function AddTransaction() {
-  const { userId: initialUserId } = useLocalSearchParams<{ userId: string }>();
-  const [userId, setUserId] = useState(initialUserId || '');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [isNegative, setIsNegative] = useState(true);
-
-  const users = useUsersStore(useShallow((state) => state.users));
-  const { addTransaction } = useTransactionsStore();
-  const { addToQueue } = useSyncStore();
-  const router = useRouter();
-
-  const handleSave = () => {
-    if (!userId) {
-      Alert.alert('Error', 'Please select a user');
-      return;
-    }
-    if (!amount || isNaN(Number(amount))) {
-      Alert.alert('Error', 'Please enter a valid amount');
-      return;
-    }
-    if (!description.trim()) {
-      Alert.alert('Error', 'Description is required');
-      return;
-    }
-
-    const finalAmount = isNegative ? -Math.abs(Number(amount)) : Math.abs(Number(amount));
-
-    const newTransaction = {
-      id: Math.random().toString(36).substring(7),
-      userId,
-      amount: finalAmount,
-      description,
-      createdAt: Date.now(),
-      synced: false,
-    };
-
-    addTransaction(newTransaction);
-    addToQueue({
-      id: Math.random().toString(36).substring(7),
-      type: 'transaction',
-      action: 'create',
-      payload: newTransaction,
-    });
-
-    syncData();
-    router.back();
-  };
-
+  const {users, userId, setUserId, isNegative, setIsNegative, amount, setAmount, description, setDescription, handleSave} = useTransaction();
   return (
     <ScreenContainer>
       <Text style={styles.title}>Add Transaction</Text>
       <View style={styles.form}>
         <Text style={styles.label}>Select User</Text>
         <View style={styles.userPicker}>
-          {users.map((u) => (
-            <TouchableOpacity
-              key={u.id}
-              style={[styles.userChip, userId === u.id && styles.userChipSelected]}
-              onPress={() => setUserId(u.id)}>
-              <Text style={[styles.userChipText, userId === u.id && styles.userChipTextSelected]}>
-                {u.name}
-              </Text>
+          {users.length === 0 ? <Text style={styles.errorText}>No users available. Create one first.</Text> : users.map((u) => (
+            <TouchableOpacity key={u.id} style={[styles.userChip, userId === u.id && styles.userChipSelected]} onPress={() => setUserId(u.id)}>
+              <Text style={[styles.userChipText, userId === u.id && styles.userChipTextSelected]}>{u.name}</Text>
             </TouchableOpacity>
           ))}
-          {users.length === 0 && (
-            <Text style={styles.errorText}>No users available. Create one first.</Text>
-          )}
+
         </View>
 
         <View style={styles.amountHeader}>
@@ -106,6 +45,7 @@ export default function AddTransaction() {
           value={description}
           onChangeText={setDescription}
           placeholder="e.g. Lunch, Borrowed cash..."
+          multiline
         />
 
         <View style={styles.infoBox}>
@@ -170,9 +110,12 @@ const styles = StyleSheet.create({
   },
   signToggle: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.input,
     borderRadius: Spacing.borderRadius.md,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
   },
   signButton: {
     width: 60,

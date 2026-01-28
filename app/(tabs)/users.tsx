@@ -1,27 +1,15 @@
-import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '../../components/ScreenContainer';
-import { Input } from '../../components/Input';
-import { UserCard } from '../../components/UserCard';
-import { useUsersStore } from '../../store/usersStore';
-import { useTransactionsStore } from '../../store/transactionsStore';
-import { Colors } from '../../theme/colors';
-import { Spacing } from '../../theme/spacing';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { Input } from '@/components/Input';
+import { UserCard } from '@/components/UserCard';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 import { LayoutGrid, List } from 'lucide-react-native';
 
-import { useShallow } from 'zustand/react/shallow';
+import { useUsersList } from '@/hooks/useUsersList';
 
 export default function UsersList() {
-  const [search, setSearch] = useState('');
-  const [isGrid, setIsGrid] = useState(false);
-  const users = useUsersStore(useShallow((state) => state.users));
-  const transactions = useTransactionsStore(useShallow((state) => state.transactions));
-
-  const filteredUsers = users.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()));
-
-  const getBalance = (userId: string) => {
-    return transactions.filter((t) => t.userId === userId).reduce((sum, t) => sum + t.amount, 0);
-  };
+  const { filteredUsers, isGrid, setSearch, setIsGrid, getUserBalance, search } = useUsersList();
 
   return (
     <View style={styles.wrapper}>
@@ -46,7 +34,7 @@ export default function UsersList() {
           numColumns={isGrid ? 2 : 1}
           key={isGrid ? 'grid' : 'list'}
           renderItem={({ item }) => {
-            const balance = getBalance(item.id);
+            const balance = getUserBalance(item.id);
 
             if (isGrid) {
               return (
@@ -106,6 +94,7 @@ const styles = StyleSheet.create({
   gridItem: {
     flex: 0.5,
     marginHorizontal: 4,
+    marginBottom: Spacing.sm,
   },
   listItem: {
     marginBottom: Spacing.sm,

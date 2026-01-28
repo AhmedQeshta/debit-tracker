@@ -1,37 +1,12 @@
-import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ScreenContainer } from '../../components/ScreenContainer';
-import { useUsersStore } from '../../store/usersStore';
-import { useTransactionsStore } from '../../store/transactionsStore';
-import { useSyncStore } from '../../store/syncStore';
-import { subscribeToNetwork } from '../../services/net';
-import { Colors } from '../../theme/colors';
-import { Spacing } from '../../theme/spacing';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 import { Wifi, WifiOff } from 'lucide-react-native';
-
-import { useShallow } from 'zustand/react/shallow';
+import { useDashboard } from '@/hooks/useDashboard';
 
 export default function Dashboard() {
-  const users = useUsersStore(useShallow((state) => state.users));
-  const transactions = useTransactionsStore(useShallow((state) => state.transactions));
-  const queueSize = useSyncStore((state) => state.queue.length);
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = subscribeToNetwork((connected) => {
-      setIsOnline(connected);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const globalDebit = transactions
-    .filter((t) => t.amount < 0)
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-
-  const totalPaidBack = transactions
-    .filter((t) => t.amount > 0)
-    .reduce((sum, t) => sum + t.amount, 0);
-
+  const { users, queueSize, isOnline, globalDebit, totalPaidBack } = useDashboard();
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
