@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ActionCard } from '@/components/ActionCard';
 import { UserCard } from '@/components/UserCard';
@@ -6,12 +6,14 @@ import { TransactionItem } from '@/components/TransactionItem';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { UserPlus, PlusCircle, Users } from 'lucide-react-native';
+import { UserPlus, PlusCircle, Users, Menu } from 'lucide-react-native';
 import { useHome } from '@/hooks/useHome';
 import { useUsersStore } from '@/store/usersStore';
+import { useDrawer } from '../_layout';
 
 export default function Home() {
   const router = useRouter();
+  const { openDrawer } = useDrawer();
   // Get latest transactions sorted by date (most recent first), limit to 5
   const { latestTransactions, getUserBalance, latestUsers } = useHome();
   const { pinUser, unpinUser } = useUsersStore();
@@ -30,8 +32,15 @@ export default function Home() {
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-
-      <Text style={styles.actionsTitle}>Actions</Text>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={openDrawer}
+            style={styles.menuButton}
+            activeOpacity={0.7}>
+            <Menu size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.actionsTitle}>Actions</Text>
+        </View>
         <View style={styles.actions}>
           <ActionCard
             icon={UserPlus}
@@ -118,12 +127,20 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     marginTop: Spacing.md,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  menuButton: {
+    marginRight: Spacing.md,
+    padding: Spacing.xs,
+  },
   actionsTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.sm,
   },
 });
 
