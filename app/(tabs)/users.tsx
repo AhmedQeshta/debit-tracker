@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { UserCard } from '../../components/UserCard';
-import { BottomNav } from '../../components/BottomNav';
 import { useUsersStore } from '../../store/usersStore';
 import { useTransactionsStore } from '../../store/transactionsStore';
 import { Colors } from '../../theme/colors';
@@ -27,6 +26,7 @@ export default function UsersList() {
   return (
     <View style={styles.wrapper}>
       <ScreenContainer scrollable={false}>
+        <Text style={styles.title}>Users</Text>
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Input value={search} onChangeText={setSearch} placeholder="Search users..." />
@@ -45,16 +45,39 @@ export default function UsersList() {
           keyExtractor={(item) => item.id}
           numColumns={isGrid ? 2 : 1}
           key={isGrid ? 'grid' : 'list'}
-          renderItem={({ item }) => (
-            <View style={isGrid ? styles.gridItem : styles.listItem}>
-              <UserCard user={item} balance={getBalance(item.id)} />
-            </View>
-          )}
+          renderItem={({ item }) => {
+            const balance = getBalance(item.id);
+
+            if (isGrid) {
+              return (
+                <View style={styles.gridItem}>
+                  <View style={styles.gridCard}>
+                    <View style={styles.gridAvatar}>
+                      <Text style={styles.gridAvatarText}>{item.name.charAt(0)}</Text>
+                    </View>
+                    <Text style={styles.gridName}>{item.name}</Text>
+                    <Text
+                      style={[
+                        styles.gridAmount,
+                        balance < 0 ? styles.negative : styles.positive,
+                      ]}>
+                      ${Math.abs(balance).toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              );
+            }
+
+            return (
+              <View style={styles.listItem}>
+                <UserCard user={item} balance={balance} />
+              </View>
+            );
+          }}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={<Text style={styles.emptyText}>No users found.</Text>}
         />
       </ScreenContainer>
-      <BottomNav />
     </View>
   );
 }
@@ -65,22 +88,19 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
   },
   toggle: {
-    padding: Spacing.md,
+    width: 58,
+    height: 58,
     backgroundColor: Colors.surface,
     borderRadius: Spacing.borderRadius.md,
-    marginBottom: Spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
-    height: 58, // Match input height roughly
+    marginBottom: Spacing.md,
   },
   listContent: {
-    padding: Spacing.md,
     paddingBottom: 100,
   },
   gridItem: {
@@ -90,9 +110,56 @@ const styles = StyleSheet.create({
   listItem: {
     marginBottom: Spacing.sm,
   },
+  gridCard: {
+    backgroundColor: Colors.card,
+    padding: Spacing.md,
+    borderRadius: Spacing.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  gridAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  gridAvatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',
+  },
+  gridName: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  gridAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
   emptyText: {
     color: Colors.textSecondary,
     textAlign: 'center',
     marginTop: Spacing.xl,
   },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  positive: {
+    color: Colors.success,
+  },
+  negative: {
+    color: Colors.error,
+  },
 });
+

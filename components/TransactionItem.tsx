@@ -3,14 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors } from '../theme/colors';
 import { Spacing } from '../theme/spacing';
 import { Transaction } from '../types/models';
-import { Trash2 } from 'lucide-react-native';
+import { Trash2, Pencil } from 'lucide-react-native';
 
 interface Props {
   transaction: Transaction;
   onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
-export const TransactionItem = ({ transaction, onDelete }: Props) => {
+export const TransactionItem = ({ transaction, onDelete, onEdit }: Props) => {
   const isNegative = transaction.amount < 0;
 
   return (
@@ -25,11 +26,18 @@ export const TransactionItem = ({ transaction, onDelete }: Props) => {
         </Text>
         {!transaction.synced && <Text style={styles.syncStatus}>Pending Sync</Text>}
       </View>
-      {onDelete && (
-        <TouchableOpacity onPress={() => onDelete(transaction.id)} style={styles.deleteButton}>
-          <Trash2 size={20} stroke={Colors.error} />
-        </TouchableOpacity>
-      )}
+      <View style={styles.actions}>
+        {onEdit && (
+          <TouchableOpacity onPress={() => onEdit(transaction.id)} style={styles.editButton}>
+            <Pencil size={20} stroke={Colors.primary} />
+          </TouchableOpacity>
+        )}
+        {onDelete && (
+          <TouchableOpacity onPress={() => onDelete(transaction.id)} style={styles.deleteButton}>
+            <Trash2 size={20} stroke={Colors.error} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -75,6 +83,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: 10,
     fontStyle: 'italic',
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editButton: {
+    padding: Spacing.sm,
   },
   deleteButton: {
     padding: Spacing.sm,

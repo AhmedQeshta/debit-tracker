@@ -12,7 +12,7 @@ interface Props {
 
 export const ScreenContainer = ({ children, scrollable = true }: Props) => {
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
       <ExpoStatusBar style="light" />
       {scrollable ? (
         <ScrollView

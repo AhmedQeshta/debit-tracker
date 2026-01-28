@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ScreenContainer } from '../../components/ScreenContainer';
-import { TransactionItem } from '../../components/TransactionItem';
-import { Button } from '../../components/Button';
-import { useUsersStore } from '../../store/usersStore';
-import { useTransactionsStore } from '../../store/transactionsStore';
-import { useSyncStore } from '../../store/syncStore';
-import { Colors } from '../../theme/colors';
-import { Spacing } from '../../theme/spacing';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { TransactionItem } from '@/components/TransactionItem';
+import { Button } from '@/components/Button';
+import { useUsersStore } from '@/store/usersStore';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { useSyncStore } from '@/store/syncStore';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { Pencil, Trash2 } from 'lucide-react-native';
 
 import { useShallow } from 'zustand/react/shallow';
 
@@ -17,6 +18,7 @@ export default function UserDetails() {
   const router = useRouter();
 
   const user = useUsersStore((state) => state.users.find((u) => u.id === id));
+  const { deleteUser } = useUsersStore();
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => t.userId === id)),
   );
@@ -35,6 +37,50 @@ export default function UserDetails() {
   }
 
   const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+  const handleEditUser = () => {
+    if (!id) return;
+    router.push(`/user/${id}/edit`);
+  };
+
+  const handleDeleteUser = () => {
+    if (!user || !id) return;
+
+    Alert.alert('Delete User', 'Are you sure you want to delete this user and all records?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          // Delete all transactions for this user
+          transactions.forEach((t) => {
+            deleteTransaction(t.id);
+            addToQueue({
+              id: Math.random().toString(36).substring(7),
+              type: 'transaction',
+              action: 'delete',
+              payload: { id: t.id },
+            });
+          });
+
+          // Delete the user
+          deleteUser(id);
+          addToQueue({
+            id: Math.random().toString(36).substring(7),
+            type: 'user',
+            action: 'delete',
+            payload: { id },
+          });
+
+          router.back();
+        },
+      },
+    ]);
+  };
+
+  const handleEditTransaction = (transactionId: string) => {
+    router.push(`/transaction/${transactionId}/edit`);
+  };
 
   const handleDeleteTransaction = (transactionId: string) => {
     Alert.alert('Delete Transaction', 'Are you sure you want to delete this transaction?', [
@@ -57,12 +103,27 @@ export default function UserDetails() {
 
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <View style={styles.avatarPlaceholder}>
-          <Text style={styles.avatarText}>{user.name.charAt(0)}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>User Details</Text>
+        <View style={styles.userActions}>
+          <TouchableOpacity onPress={handleEditUser} style={styles.iconButton}>
+            <Pencil size={20} color={Colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDeleteUser} style={styles.iconButton}>
+            <Trash2 size={20} color={Colors.error} />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.bio}>{user.bio}</Text>
+      </View>
+      <View style={styles.header}>
+        <View style={styles.userRow}>
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarText}>{user.name.charAt(0)}</Text>
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.name}>{user.name}</Text>
+            <Text style={styles.bio}>{user.bio}</Text>
+          </View>
+        </View>
 
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
@@ -86,7 +147,12 @@ export default function UserDetails() {
 
       <View style={styles.list}>
         {transactions.map((item) => (
-          <TransactionItem key={item.id} transaction={item} onDelete={handleDeleteTransaction} />
+          <TransactionItem
+            key={item.id}
+            transaction={item}
+            onEdit={handleEditTransaction}
+            onDelete={handleDeleteTransaction}
+          />
         ))}
         {transactions.length === 0 && (
           <Text style={styles.emptyText}>No transaction history found.</Text>
@@ -97,9 +163,27 @@ export default function UserDetails() {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  header: {
     paddingVertical: Spacing.lg,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  userInfo: {
+    flex: 1,
   },
   avatarPlaceholder: {
     width: 80,
@@ -123,9 +207,18 @@ const styles = StyleSheet.create({
   bio: {
     color: Colors.textSecondary,
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: Spacing.xs,
-    paddingHorizontal: Spacing.xl,
+  },
+  userActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  iconButton: {
+    padding: Spacing.sm,
+    borderRadius: Spacing.borderRadius.round,
+    backgroundColor: Colors.surface,
   },
   balanceCard: {
     backgroundColor: Colors.surface,
@@ -192,3 +285,4 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
 });
+

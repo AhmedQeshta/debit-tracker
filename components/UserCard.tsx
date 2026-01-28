@@ -12,7 +12,7 @@ interface Props {
 
 export const UserCard = ({ user, balance }: Props) => {
   return (
-    <Link href={`/users/${user.id}`} asChild>
+    <Link href={`/user/${user.id}`} asChild>
       <TouchableOpacity style={styles.container}>
         <View style={styles.imageContainer}>
           {user.imageUri ? (

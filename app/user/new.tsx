@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
-import { ScreenContainer } from '../../components/ScreenContainer';
-import { Input } from '../../components/Input';
-import { Button } from '../../components/Button';
-import { useUsersStore } from '../../store/usersStore';
-import { useSyncStore } from '../../store/syncStore';
+import { View, StyleSheet, Alert, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { syncData } from '../../services/sync';
-import { Spacing } from '../../theme/spacing';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { Input } from '@/components/Input';
+import { Button } from '@/components/Button';
+import { useUsersStore } from '@/store/usersStore';
+import { useSyncStore } from '@/store/syncStore';
+import { syncData } from '@/services/sync';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 
 export default function AddUser() {
   const [name, setName] = useState('');
@@ -27,7 +28,7 @@ export default function AddUser() {
       id: userId,
       name,
       bio,
-      imageUri: null, // TODO: Implement image picker
+      imageUri: null,
       createdAt: Date.now(),
       synced: false,
     };
@@ -40,12 +41,13 @@ export default function AddUser() {
       payload: newUser,
     });
 
-    syncData(); // Attempt background sync
+    await syncData();
     router.back();
   };
 
   return (
     <ScreenContainer>
+      <Text style={styles.title}>Add User</Text>
       <View style={styles.form}>
         <Input label="Full Name" value={name} onChangeText={setName} placeholder="e.g. John Doe" />
         <Input
@@ -56,14 +58,6 @@ export default function AddUser() {
           multiline
         />
 
-        <View style={styles.imageSection}>
-          <Button
-            title="Pick Profile Image"
-            variant="outline"
-            onPress={() => Alert.alert('Notice', 'Image picking feature coming soon.')}
-          />
-        </View>
-
         <View style={styles.actionSection}>
           <Button title="Save User" onPress={handleSave} />
         </View>
@@ -73,13 +67,17 @@ export default function AddUser() {
 }
 
 const styles = StyleSheet.create({
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
   form: {
     paddingVertical: Spacing.md,
-  },
-  imageSection: {
-    marginVertical: Spacing.lg,
   },
   actionSection: {
     marginTop: Spacing.md,
   },
 });
+

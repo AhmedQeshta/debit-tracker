@@ -64,6 +64,7 @@ export default function AddTransaction() {
 
   return (
     <ScreenContainer>
+      <Text style={styles.title}>Add Transaction</Text>
       <View style={styles.form}>
         <Text style={styles.label}>Select User</Text>
         <View style={styles.userPicker}>
@@ -120,6 +121,12 @@ export default function AddTransaction() {
 }
 
 const styles = StyleSheet.create({
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
   form: {
     paddingVertical: Spacing.md,
   },

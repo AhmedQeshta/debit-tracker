@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { BottomNav } from '../../components/BottomNav';
 import { useUsersStore } from '../../store/usersStore';
 import { useTransactionsStore } from '../../store/transactionsStore';
 import { useSyncStore } from '../../store/syncStore';
@@ -83,7 +82,6 @@ export default function Dashboard() {
           <View style={[styles.barPlaceholder, { width: '40%' }]} />
         </View>
       </ScreenContainer>
-      <BottomNav />
     </View>
   );
 }
@@ -186,3 +184,4 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
 });
+
