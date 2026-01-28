@@ -1,9 +1,11 @@
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
-import { subscribeToNetwork } from '../services/net';
-import { syncData } from '../services/sync';
+import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../theme/colors';
+import { useSplash } from '@/hooks/useSplash';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 const STACK_OPTIONS = {
   headerStyle: {
@@ -19,20 +21,7 @@ const STACK_OPTIONS = {
 };
 
 export default function RootLayout() {
-  useEffect(() => {
-    // Initial sync attempt
-    syncData();
-
-    // Subscribe to network changes to trigger sync
-    const unsubscribe = subscribeToNetwork((isConnected) => {
-      if (isConnected) {
-        syncData();
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
+  useSplash();
   return (
     <SafeAreaProvider>
       <Stack screenOptions={STACK_OPTIONS}>
