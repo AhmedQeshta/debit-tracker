@@ -1,58 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Text } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { View, StyleSheet, Text } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
-import { useUsersStore } from '@/store/usersStore';
-import { useSyncStore } from '@/store/syncStore';
-import { syncData } from '@/services/sync';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { useEditUser } from '@/hooks/user/useEditUser';
 
 export default function EditUser() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-
-  const user = useUsersStore((state) => state.users.find((u) => u.id === id));
-  const { updateUser, deleteUser } = useUsersStore();
-  const { addToQueue } = useSyncStore();
-
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-
-  useEffect(() => {
-    if (user) {
-      setName(user.name);
-      setBio(user.bio);
-    }
-  }, [user]);
-
-  const handleSave = async () => {
-    if (!user || !id) return;
-    if (!name.trim()) {
-      Alert.alert('Error', 'Name is required');
-      return;
-    }
-
-    const updatedUser = {
-      ...user,
-      name,
-      bio,
-      synced: false,
-    };
-
-    updateUser(updatedUser);
-    addToQueue({
-      id: Math.random().toString(36).substring(2, 15),
-      type: 'user',
-      action: 'update',
-      payload: updatedUser,
-    });
-
-    await syncData();
-    router.back();
-  };
+  const { name, setName, bio, setBio, handleSave, user, router } = useEditUser();
 
   if (!user) {
     return (

@@ -30,3 +30,17 @@ export const getFinalAmount = (amount: string, isNegative: boolean) => {
   }
   return isNegative ? -Math.abs(Number(amount)) : Math.abs(Number(amount));
 };
+
+
+export const getUserBalance = (transactions: Transaction[]) => {
+  return transactions.reduce((sum, t) => sum + t.amount, 0);
+};
+
+
+export const getBalanceText = (balance: number)=>{
+  return   `${balance < 0 ? `-` : '+'} ${Math.abs(balance).toFixed(2)}`
+};
+
+export const getBalanceStatus = (balance: number)=>{
+  return balance < 0 ? 'They owe you' : balance > 0 ? 'You owe them' : 'Settled';
+};
