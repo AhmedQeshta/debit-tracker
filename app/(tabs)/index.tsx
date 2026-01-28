@@ -8,11 +8,24 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { UserPlus, PlusCircle, Users } from 'lucide-react-native';
 import { useHome } from '@/hooks/useHome';
+import { useUsersStore } from '@/store/usersStore';
 
 export default function Home() {
   const router = useRouter();
   // Get latest transactions sorted by date (most recent first), limit to 5
   const { latestTransactions, getUserBalance, latestUsers } = useHome();
+  const { pinUser, unpinUser } = useUsersStore();
+
+  const handlePinToggle = (userId: string) => {
+    const user = latestUsers.find((u) => u.id === userId);
+    if (user) {
+      if (user.pinned) {
+        unpinUser(userId);
+      } else {
+        pinUser(userId);
+      }
+    }
+  };
   
   return (
     <View style={styles.wrapper}>
@@ -41,7 +54,12 @@ export default function Home() {
             <Text style={styles.emptyText}>No users yet. Add one to get started!</Text>
           ) : (
             latestUsers.map((user) => (
-              <UserCard key={user.id} user={user} balance={getUserBalance(user.id)} />
+              <UserCard 
+                key={user.id} 
+                user={user} 
+                balance={getUserBalance(user.id)} 
+                onPinToggle={handlePinToggle}
+              />
             ))
           )}
         </View>

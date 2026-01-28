@@ -7,9 +7,22 @@ import { Spacing } from '@/theme/spacing';
 import { LayoutGrid, List } from 'lucide-react-native';
 
 import { useUsersList } from '@/hooks/useUsersList';
+import { useUsersStore } from '@/store/usersStore';
 
 export default function UsersList() {
   const { filteredUsers, isGrid, setSearch, setIsGrid, getUserBalance, search } = useUsersList();
+  const { pinUser, unpinUser } = useUsersStore();
+
+  const handlePinToggle = (userId: string) => {
+    const user = filteredUsers.find((u) => u.id === userId);
+    if (user) {
+      if (user.pinned) {
+        unpinUser(userId);
+      } else {
+        pinUser(userId);
+      }
+    }
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -58,7 +71,7 @@ export default function UsersList() {
 
             return (
               <View style={styles.listItem}>
-                <UserCard user={item} balance={balance} />
+                <UserCard user={item} balance={balance} onPinToggle={handlePinToggle} />
               </View>
             );
           }}

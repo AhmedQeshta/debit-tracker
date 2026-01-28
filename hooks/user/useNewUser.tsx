@@ -25,6 +25,7 @@ export const useNewUser = () => {
       imageUri: null,
       createdAt: Date.now(),
       synced: false,
+      pinned: false,
     };
 
     addUser(newUser);

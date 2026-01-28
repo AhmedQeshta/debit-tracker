@@ -6,12 +6,13 @@ const STACK_OPTIONS = {
     backgroundColor: Colors.background,
   },
   headerTintColor: Colors.text,
-  headerTitleStyle: {
-    fontWeight: '700' as const,
-  },
+  // hide header and back araw
+  // headerShown: false,
+  // headerBackVisible: false,
   contentStyle: {
     backgroundColor: Colors.background,
   },
+
 };
 
 export default function UserLayout() {

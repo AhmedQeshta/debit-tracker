@@ -2,44 +2,21 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Colors } from '../theme/colors';
 import { Spacing } from '../theme/spacing';
+import { getButtonStyle, getTextStyle } from '@/lib/utils';
+import { IButtonProps } from '@/types/common';
 
-interface Props {
-  title: string;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'error' | 'outline';
-  loading?: boolean;
-  disabled?: boolean;
-}
 
-export const Button = ({ title, onPress, variant = 'primary', loading, disabled }: Props) => {
-  const getButtonStyle = () => {
-    switch (variant) {
-      case 'secondary':
-        return [styles.button, { backgroundColor: Colors.secondary }];
-      case 'error':
-        return [styles.button, { backgroundColor: Colors.error }];
-      case 'outline':
-        return [styles.button, styles.outlineButton];
-      default:
-        return styles.button;
-    }
-  };
-
-  const getTextStyle = () => {
-    if (variant === 'outline') return [styles.text, { color: Colors.primary }];
-    return styles.text;
-  };
-
+export const Button = ({ title, onPress, variant = 'primary', loading, disabled }: IButtonProps) => {
   return (
     <TouchableOpacity
-      style={[getButtonStyle(), disabled || loading ? styles.disabled : {}]}
+      style={[getButtonStyle(variant,styles), disabled || loading ? styles.disabled : {}]}
       onPress={onPress}
       disabled={!!(disabled || loading)}
       activeOpacity={0.7}>
       {loading ? (
         <ActivityIndicator color={variant === 'outline' ? Colors.primary : Colors.text} />
       ) : (
-        <Text style={getTextStyle()}>{title}</Text>
+        <Text style={getTextStyle(variant,styles)}>{title}</Text>
       )}
     </TouchableOpacity>
   );

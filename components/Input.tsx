@@ -2,16 +2,7 @@ import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
 import { Colors } from '../theme/colors';
 import { Spacing } from '../theme/spacing';
-
-interface Props {
-  label?: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-  keyboardType?: 'default' | 'numeric' | 'email-address';
-  error?: string;
-  multiline?: boolean;
-}
+import { IInputProps } from '@/types/common';
 
 export const Input = ({
   label,
@@ -21,7 +12,7 @@ export const Input = ({
   keyboardType = 'default',
   error,
   multiline = false,
-}: Props) => {
+}: IInputProps) => {
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}

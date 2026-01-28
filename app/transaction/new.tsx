@@ -5,12 +5,17 @@ import { Button } from '@/components/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useTransaction } from '@/hooks/transaction/useTransaction';
+import { router } from 'expo-router';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function AddTransaction() {
   const {users, userId, setUserId, isNegative, setIsNegative, amount, setAmount, description, setDescription, handleSave} = useTransaction();
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Add Transaction</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={25} style={styles.ArrowLeft}  color={Colors.text} />
+          <Text style={styles.title}>Add Transaction</Text>
+        </TouchableOpacity> 
       <View style={styles.form}>
         <Text style={styles.label}>Select User</Text>
         <View style={styles.userPicker}>
@@ -150,4 +155,12 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: 14,
   },
+  backButton:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  ArrowLeft:{
+    marginBottom: Spacing.md,
+  }
 });

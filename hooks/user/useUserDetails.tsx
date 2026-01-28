@@ -12,7 +12,7 @@ export const useUserDetails = () => {
   const router = useRouter();
 
   const user = useUsersStore((state) => state.users.find((u) => u.id === id));
-  const { deleteUser } = useUsersStore();
+  const { deleteUser, pinUser, unpinUser } = useUsersStore();
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => t.userId === id)),
   );
@@ -85,6 +85,15 @@ export const useUserDetails = () => {
     ]);
   };
 
+  const handlePinToggle = () => {
+    if (!user || !id) return;
+    if (user.pinned) {
+      unpinUser(id);
+    } else {
+      pinUser(id);
+    }
+  };
+
   return {
     user,
     transactions,
@@ -93,6 +102,7 @@ export const useUserDetails = () => {
     handleDeleteUser,
     handleEditTransaction,
     handleDeleteTransaction,
+    handlePinToggle,
     router,
     id
   };

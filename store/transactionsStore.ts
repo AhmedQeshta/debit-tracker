@@ -1,18 +1,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Transaction } from '../types/models';
+import { ITransactionsState } from '@/types/store';
 
-interface TransactionsState {
-  transactions: Transaction[];
-  addTransaction: (transaction: Transaction) => void;
-  updateTransaction: (transaction: Transaction) => void;
-  deleteTransaction: (id: string) => void;
-  setTransactions: (transactions: Transaction[]) => void;
-  markAsSynced: (id: string) => void;
-}
 
-export const useTransactionsStore = create<TransactionsState>()(
+
+export const useTransactionsStore = create<ITransactionsState>()(
   persist(
     (set) => ({
       transactions: [],

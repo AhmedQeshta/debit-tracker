@@ -16,10 +16,15 @@ export const useUsersList = () => {
     [transactions]
   );
 
-  const filteredUsers = useMemo(
-    () => filterUsers(users, search),
-    [users, search]
-  );
+  const filteredUsers = useMemo(() => {
+    const filtered = filterUsers(users, search);
+    // Sort: pinned first, then by createdAt (most recent first)
+    return [...filtered].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.createdAt - a.createdAt;
+    });
+  }, [users, search]);
 
   return {
     filteredUsers,
