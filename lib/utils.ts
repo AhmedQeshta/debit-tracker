@@ -1,4 +1,4 @@
-import { Transaction } from "@/types/models";
+import { Transaction, User } from "@/types/models";
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
   return [...allTransactions]
@@ -8,4 +8,9 @@ export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
 
 export const getBalance = (userId: string, allTransactions: Transaction[]) => {
   return allTransactions.filter((t) => t.userId === userId).reduce((sum, t) => sum + t.amount, 0);
+};
+
+
+export const filterUsers = (users: User[], search: string) => {
+  return users.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()));
 };
