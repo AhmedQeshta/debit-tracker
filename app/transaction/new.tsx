@@ -8,23 +8,28 @@ import { useTransaction } from '@/hooks/transaction/useTransaction';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 
-export default function AddTransaction() {
-  const {users, userId, setUserId, isNegative, setIsNegative, amount, setAmount, description, setDescription, handleSave} = useTransaction();
+export default function AddTransaction()
+{
+  const { users, userId, setUserId, isNegative, setIsNegative, amount, setAmount, description, setDescription, handleSave, selectedUser } = useTransaction();
   return (
     <ScreenContainer>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={25} style={styles.ArrowLeft}  color={Colors.text} />
-          <Text style={styles.title}>Add Transaction</Text>
-        </TouchableOpacity> 
+        <ArrowLeft size={25} style={styles.ArrowLeft} color={Colors.text} />
+        <Text style={styles.title}>Add Transaction</Text>
+      </TouchableOpacity>
       <View style={styles.form}>
         <Text style={styles.label}>Select User</Text>
         <View style={styles.userPicker}>
           {users.length === 0 ? <Text style={styles.errorText}>No users available. Create one first.</Text> : users.map((u) => (
             <TouchableOpacity key={u.id} style={[styles.userChip, userId === u.id && styles.userChipSelected]} onPress={() => setUserId(u.id)}>
               <Text style={[styles.userChipText, userId === u.id && styles.userChipTextSelected]}>{u.name}</Text>
+              {userId === u.id && u.currency && (
+                <View style={styles.currencyBadgeInline}>
+                  <Text style={styles.currencySymbolInline}>{u.currency}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           ))}
-
         </View>
 
         <View style={styles.amountHeader}>
@@ -88,6 +93,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   userChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Spacing.borderRadius.round,
@@ -105,6 +113,18 @@ const styles = StyleSheet.create({
   },
   userChipTextSelected: {
     color: '#000',
+    fontWeight: 'bold',
+  },
+  currencyBadgeInline: {
+    backgroundColor: '#000',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Spacing.borderRadius.round,
+    marginLeft: Spacing.xs,
+  },
+  currencySymbolInline: {
+    color: Colors.primary,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   amountHeader: {
@@ -155,12 +175,12 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: 14,
   },
-  backButton:{
+  backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  ArrowLeft:{
+  ArrowLeft: {
     marginBottom: Spacing.md,
-  }
+  },
 });
