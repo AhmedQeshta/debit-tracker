@@ -44,3 +44,16 @@ export interface IEmptySectionProps{
   description:string;
   icon?:'transactions' | 'users' | 'budgets' | '';
 }
+
+export interface IMenuItem {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}
+
+export interface IActionsProps {
+  menuVisible: boolean;
+  setMenuVisible: (visible: boolean) => void;
+  menuItems: IMenuItem[];
+}

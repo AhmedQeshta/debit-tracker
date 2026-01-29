@@ -13,11 +13,3 @@ export interface IBudgetCardProps {
   getTotalSpent: (id: string) => number;
   getRemainingBudget: (id: string) => number;
 }
-
-export interface IActionsProps{
-  menuVisible: boolean;
-  setMenuVisible: (visible: boolean) => void;
-  budget: Budget;
-  handlePinToggle: (id: string) => void;
-  handleDeleteBudget: (id: string, title: string) => void;
-}

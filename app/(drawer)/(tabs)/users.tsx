@@ -1,19 +1,21 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { Input } from '@/components/ui/Input';
-import { UserCard } from '@/components/UserCard';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { LayoutGrid, List, Menu, Users as UsersIcon } from 'lucide-react-native';
+import { LayoutGrid, List, Menu } from 'lucide-react-native';
 import { useUsersList } from '@/hooks/useUsersList';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { EmptySection } from '@/components/ui/EmptySection';
+import { FilteredUsers } from '@/components/user/FilteredUsers';
 
 
-export default function UsersList() {
-  const { filteredUsers, isGrid, setSearch, setIsGrid, getUserBalance, search,handlePinToggle } = useUsersList();
+
+export default function UsersList()
+{
+  const { filteredUsers, isGrid, setSearch, setIsGrid, search, handleUserEdit, handleUserDelete, handlePinToggle } = useUsersList();
   const { openDrawer } = useDrawerContext();
- 
+
 
   return (
     <View style={styles.wrapper}>
@@ -45,40 +47,12 @@ export default function UsersList() {
           keyExtractor={(item) => item.id}
           numColumns={isGrid ? 2 : 1}
           key={isGrid ? 'grid' : 'list'}
-          renderItem={({ item }) => {
-            const balance = getUserBalance(item.id);
-
-            if (isGrid) {
-              return (
-                <View style={styles.gridItem}>
-                  <View style={styles.gridCard}>
-                    <View style={styles.gridAvatar}>
-                      <Text style={styles.gridAvatarText}>{item.name.charAt(0)}</Text>
-                    </View>
-                    <Text style={styles.gridName}>{item.name}</Text>
-                    <Text
-                      style={[
-                        styles.gridAmount,
-                        balance < 0 ? styles.negative : styles.positive,
-                      ]}>
-                      ${Math.abs(balance).toFixed(2)}
-                    </Text>
-                  </View>
-                </View>
-              );
-            }
-
-            return (
-              <View style={styles.listItem}>
-                <UserCard user={item} balance={balance} onPinToggle={handlePinToggle} />
-              </View>
-            );
-          }}
+          renderItem={({ item }) => <FilteredUsers key={item.id} item={item} isGrid={isGrid} handleUserEdit={handleUserEdit} handleUserDelete={handleUserDelete} handlePinToggle={handlePinToggle} />}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <EmptySection title={'No Users Found'}
-            description={'Try adjusting your search or add a new user'}
-            icon={'users'}/>
+              description={'Try adjusting your search or add a new user'}
+              icon={'users'} />
           }
         />
       </ScreenContainer>
@@ -129,9 +103,24 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Spacing.borderRadius.lg,
     alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
+    position: 'relative',
+    minHeight: 160,
+  },
+  gridCardHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
+  },
+  gridActions: {
+    zIndex: 10,
+  },
+  gridAvatarContainer: {
+    position: 'relative',
+    marginBottom: Spacing.sm,
   },
   gridAvatar: {
     width: 56,
@@ -140,7 +129,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+  },
+  gridPinIndicator: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: Colors.card,
+    borderRadius: 10,
+    padding: 2,
+  },
+  gridNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
+  },
+  gridPinIcon: {
+    marginLeft: Spacing.xs,
   },
   gridAvatarText: {
     fontSize: 24,

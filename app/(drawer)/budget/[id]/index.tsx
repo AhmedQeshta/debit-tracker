@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { ArrowLeft, Trash2, Pin } from 'lucide-react-native';
+import { ArrowLeft, Trash2, Pin, PinOff, Pencil } from 'lucide-react-native';
+import { IMenuItem } from '@/types/common';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
 import { formatCurrency } from '@/lib/utils';
 import { useState } from 'react';
-import { Actions } from '@/components/budget/Actions';
+import { Actions } from '@/components/ui/Actions';
 
 
 export default function BudgetDetail() {
@@ -46,7 +47,38 @@ export default function BudgetDetail() {
               )}
               <Text style={styles.budgetInfoTitle}>{budget.title}</Text>
             </View>
-            <Actions menuVisible={menuVisible} setMenuVisible={setMenuVisible} budget={budget} handlePinToggle={handlePinToggle} handleDeleteBudget={handleDeleteBudget} />
+            {(() => {
+              const menuItems: IMenuItem[] = [
+                {
+                  icon: <Pencil size={18} color={Colors.text} />,
+                  label: 'Edit Budget',
+                  onPress: () => router.push(`/(drawer)/budget/${budget.id}/edit`),
+                },
+                {
+                  icon: budget.pinned ? (
+                    <PinOff size={18} color={Colors.text} />
+                  ) : (
+                    <Pin size={18} color={Colors.text} />
+                  ),
+                  label: budget.pinned ? 'Unpin Budget' : 'Pin Budget',
+                  onPress: () => handlePinToggle(),
+                },
+                {
+                  icon: <Trash2 size={18} color={Colors.error} />,
+                  label: 'Delete Budget',
+                  onPress: () => handleDeleteBudget(),
+                  danger: true,
+                },
+              ];
+
+              return (
+                <Actions
+                  menuVisible={menuVisible}
+                  setMenuVisible={setMenuVisible}
+                  menuItems={menuItems}
+                />
+              );
+            })()}
           </View>
           <View style={styles.budgetInfoStats}>
             <View style={styles.budgetInfoStat}>

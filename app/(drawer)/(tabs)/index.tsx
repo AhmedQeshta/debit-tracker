@@ -1,22 +1,23 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ActionCard } from '@/components/ActionCard';
-import { UserCard } from '@/components/UserCard';
+import { UserCard } from '@/components/user/UserCard';
 import { TransactionItem } from '@/components/TransactionItem';
 import { BudgetCard } from '@/components/BudgetCard';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { UserPlus, PlusCircle, Users, Menu, Users as UsersIcon, Receipt } from 'lucide-react-native';
+import { UserPlus, PlusCircle, Users, Menu, Users as UsersIcon, Receipt, Pencil, Trash2 } from 'lucide-react-native';
 import { useHome } from '@/hooks/useHome';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { EmptySection } from '@/components/ui/EmptySection';
 
-export default function Home() {
+export default function Home()
+{
   const router = useRouter();
   const { openDrawer } = useDrawerContext();
   // Get latest transactions sorted by date (most recent first), limit to 5
-  const { latestTransactions, getUserBalance, latestUsers, handlePinToggle, latestBudgets, getBudgetTotalSpent, getBudgetRemaining, handleBudgetPinToggle, handleBudgetDelete } = useHome();
+  const { latestTransactions, getUserBalance, latestUsers, handlePinToggle, latestBudgets, getBudgetTotalSpent, getBudgetRemaining, handleBudgetPinToggle, handleBudgetDelete, handleUserEdit, handleUserDelete } = useHome();
 
   return (
     <View style={styles.wrapper}>
@@ -28,7 +29,7 @@ export default function Home() {
             activeOpacity={0.7}>
             <Menu size={24} color={Colors.text} />
           </TouchableOpacity>
-      <Text style={styles.actionsTitle}>Actions</Text>
+          <Text style={styles.actionsTitle}>Actions</Text>
         </View>
         <View style={styles.actions}>
           <ActionCard
@@ -49,18 +50,23 @@ export default function Home() {
         <Text style={styles.title}>Latest Users</Text>
         <View style={styles.userList}>
           {latestUsers.length === 0 ? (
-             <EmptySection title={'No Users Yet'}
-             description={'Start tracking your debts by adding your first user'}
-             icon={'users'}/>
+            <EmptySection title={'No Users Yet'}
+              description={'Start tracking your debts by adding your first user'}
+              icon={'users'} />
           ) : (
-            latestUsers.map((user) => (
-              <UserCard 
-                key={user.id} 
-                user={user} 
-                balance={getUserBalance(user.id)} 
-                onPinToggle={handlePinToggle}
-              />
-            ))
+            latestUsers.map((user) =>
+            {
+              return (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  balance={getUserBalance(user.id)}
+                  showActions={true}
+                  handleUserDelete={handleUserDelete}
+                  handlePinToggle={handlePinToggle}
+                />
+              );
+            })
           )}
         </View>
 
@@ -90,8 +96,8 @@ export default function Home() {
         <View style={styles.transactionsList}>
           {latestTransactions.length === 0 ? (
             <EmptySection title={'No Transactions Yet'}
-            description={'Add your first transaction to start tracking debts'}
-            icon={'transactions'}/>
+              description={'Add your first transaction to start tracking debts'}
+              icon={'transactions'} />
           ) : (
             latestTransactions.map((transaction) => (
               <TransactionItem key={transaction.id} transaction={transaction} />
