@@ -20,6 +20,8 @@ export const useTransaction = () => {
   const { addToQueue } = useSyncStore();
   const router = useRouter();
 
+  const selectedUser = users.find((u) => u.id === userId);
+
   const handleSave = () => {
     if (!userId) {
       Alert.alert('Error', 'Please select a user');
@@ -67,5 +69,6 @@ export const useTransaction = () => {
     description, 
     setDescription, 
     handleSave,
+    selectedUser,
   };
 };

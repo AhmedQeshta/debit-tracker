@@ -38,8 +38,11 @@ export const getUserBalance = (transactions: Transaction[]) => {
 };
 
 
-export const getBalanceText = (balance: number)=>{
-  return   `${balance < 0 ? `-` : '+'} ${Math.abs(balance).toFixed(2)}`
+export const getBalanceText = (balance: number, currency?: string)=>{
+  if (currency) {
+    return `${balance < 0 ? `-` : '+'} ${formatCurrency(Math.abs(balance), currency)}`;
+  }
+  return `${balance < 0 ? `-` : '+'} ${Math.abs(balance).toFixed(2)}`;
 };
 
 export const getBalanceStatus = (balance: number)=>{
@@ -63,4 +66,16 @@ export const getButtonStyle = (variant: 'primary' | 'secondary' | 'error' | 'out
 export const getTextStyle = (variant: 'primary' | 'secondary' | 'error' | 'outline', styles: any) => {
   if (variant === 'outline') return [styles.text, { color: Colors.primary }];
   return styles.text;
+};
+
+
+export const CURRENCIES = [
+  { symbol: '$', label: 'USD' },
+  { symbol: '₪', label: 'ILS' },
+  { symbol: '€', label: 'EUR' },
+];
+
+
+export const formatCurrency = (amount: number, currency: string) => {
+  return `${currency || '$'} ${amount.toFixed(2)}`;
 };

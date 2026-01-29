@@ -1,21 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet,  TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TransactionItem } from '@/components/TransactionItem';
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/Button';
+import { Actions } from '@/components/ui/Actions';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Pencil, Trash2, Pin, PinOff, ArrowLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IMenuItem } from '@/types/common';
 
 import { useUserDetails } from '@/hooks/user/useUserDetails';
 import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 
-export default function UserDetails() {
-  const { user, transactions, balance, handleEditUser, handleDeleteUser, handleEditTransaction, handleDeleteTransaction, handlePinToggle, router, id} = useUserDetails();
+export default function UserDetails()
+{
+  const { user, transactions, balance, handleEditUser, handleDeleteUser, handleEditTransaction, handleDeleteTransaction, handlePinToggle, router, id } = useUserDetails();
   const insets = useSafeAreaInsets();
+  const [userMenuVisible, setUserMenuVisible] = useState(false);
 
-  if (!user) {
+  if (!user)
+  {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -33,24 +38,37 @@ export default function UserDetails() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={25} color={Colors.text} />
           <Text style={styles.title}>User Details</Text>
-        </TouchableOpacity> 
+        </TouchableOpacity>
         <View style={styles.userActions}>
-          <TouchableOpacity onPress={handlePinToggle} style={styles.iconButton}>
-            {user.pinned ? (
-              <PinOff size={20} color={Colors.primary} />
-            ) : (
-              <Pin size={20} color={Colors.textSecondary} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleEditUser} style={styles.iconButton}>
-            <Pencil size={20} color={Colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDeleteUser} style={styles.iconButton}>
-            <Trash2 size={20} color={Colors.error} />
-          </TouchableOpacity>
+          <Actions
+            menuVisible={userMenuVisible}
+            setMenuVisible={setUserMenuVisible}
+            menuItems={[
+              {
+                icon: user.pinned ? (
+                  <PinOff size={18} color={Colors.text} />
+                ) : (
+                  <Pin size={18} color={Colors.text} />
+                ),
+                label: user.pinned ? 'Unpin User' : 'Pin User',
+                onPress: handlePinToggle,
+              },
+              {
+                icon: <Pencil size={18} color={Colors.text} />,
+                label: 'Edit User',
+                onPress: handleEditUser,
+              },
+              {
+                icon: <Trash2 size={18} color={Colors.error} />,
+                label: 'Delete User',
+                onPress: handleDeleteUser,
+                danger: true,
+              },
+            ]}
+          />
         </View>
       </View>
-      
+
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatarPlaceholder}>
@@ -81,7 +99,7 @@ export default function UserDetails() {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
           <Text style={[styles.balance, balance < 0 ? styles.negative : styles.positive]}>
-            {getBalanceText(balance)}
+            {getBalanceText(balance, user.currency || '$')}
           </Text>
           <Text style={styles.balanceStatus}>
             {getBalanceStatus(balance)}
@@ -103,13 +121,14 @@ export default function UserDetails() {
           <Text style={styles.emptyText}>No transaction history found.</Text>
         ) : (
           transactions.map((item) => (
-          <TransactionItem
-            key={item.id}
-            transaction={item}
-            onEdit={handleEditTransaction}
-            onDelete={handleDeleteTransaction}
-          />
-        )))}
+            <TransactionItem
+              key={item.id}
+              transaction={item}
+              currency={user.currency || '$'}
+              onEdit={handleEditTransaction}
+              onDelete={handleDeleteTransaction}
+            />
+          )))}
 
       </View>
     </ScreenContainer>
@@ -282,7 +301,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: Spacing.lg,
   },
-  backButton:{
+  backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,

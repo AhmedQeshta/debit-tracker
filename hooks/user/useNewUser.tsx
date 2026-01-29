@@ -8,6 +8,7 @@ import { Alert } from "react-native";
 export const useNewUser = () => {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  const [currency, setCurrency] = useState('$');
   const { addUser } = useUsersStore();
   const { addToQueue } = useSyncStore();
   const router = useRouter();
@@ -23,6 +24,7 @@ export const useNewUser = () => {
       name,
       bio,
       imageUri: null,
+      currency,
       createdAt: Date.now(),
       synced: false,
       pinned: false,
@@ -46,6 +48,8 @@ export const useNewUser = () => {
     setName,
     bio,
     setBio,
+    currency,
+    setCurrency,
     handleSave,
     router
   };

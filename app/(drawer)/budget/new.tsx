@@ -4,35 +4,46 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useNewUser } from '@/hooks/user/useNewUser';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { CurrencyPicker } from '@/components/CurrencyPicker';
+import { useNewBudget } from '@/hooks/budget/useNewBudget';
 
-export default function AddUser()
-{
-  const { name, setName, bio, setBio, currency, setCurrency, handleSave, router } = useNewUser();
-  const insets = useSafeAreaInsets();
+export default function NewBudget() {
+  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave,router, setTitleError,setBudgetError } = useNewBudget();
   return (
     <ScreenContainer>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={25} style={styles.ArrowLeft} color={Colors.text} />
-        <Text style={styles.title}>Add User</Text>
+        <ArrowLeft size={25} color={Colors.text} />
+        <Text style={styles.title}>New Budget</Text>
       </TouchableOpacity>
-      <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
-        <Input label="Full Name" value={name} onChangeText={setName} placeholder="e.g. John Doe" />
+      <View style={styles.form}>
         <Input
-          label="Bio / Notes"
-          value={bio}
-          onChangeText={setBio}
-          placeholder="Brief description or relationship..."
-          multiline
+          label="Budget Title"
+          value={title}
+          onChangeText={(text) => {
+            setTitle(text);
+            setTitleError('');
+          }}
+          placeholder="e.g. Monthly Groceries"
+          error={titleError}
         />
-
+   
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
 
+        <Input
+          label="Total Budget"
+          value={totalBudget}
+          onChangeText={(text) => {
+            setTotalBudget(text);
+            setBudgetError('');
+          }}
+          placeholder="300"
+          keyboardType="numeric"
+          error={budgetError}
+        />
+
         <View style={styles.actionSection}>
-          <Button title="Save User" onPress={handleSave} />
+          <Button title="Create Budget" onPress={handleSave} />
         </View>
       </View>
     </ScreenContainer>
@@ -44,7 +55,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.md,
   },
   form: {
     paddingVertical: Spacing.md,
@@ -58,8 +68,5 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginBottom: Spacing.md,
   },
-  ArrowLeft: {
-    marginBottom: Spacing.md,
-  }
 });
 

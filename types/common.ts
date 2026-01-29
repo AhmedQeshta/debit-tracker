@@ -42,5 +42,18 @@ export interface IDrawerContextType {
 export interface IEmptySectionProps{
   title:string;
   description:string;
-  icon?:'transactions' | 'users' | '';
+  icon?:'transactions' | 'users' | 'budgets' | '';
+}
+
+export interface IMenuItem {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}
+
+export interface IActionsProps {
+  menuVisible: boolean;
+  setMenuVisible: (visible: boolean) => void;
+  menuItems: IMenuItem[];
 }

@@ -2,12 +2,18 @@ import { TouchableOpacity, View, Text, StyleSheet, Image, Pressable, Animated } 
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { PanGestureHandler } from 'react-native-gesture-handler';
-import { Pin, PinOff } from 'lucide-react-native';
+import { Pencil, Pin, Trash2, PinOff } from 'lucide-react-native';
 import { useUserCard } from '@/hooks/user/useUserCard';
 import { IUserCardProps } from '@/types/user';
+import { Actions } from '@/components/ui/Actions';
 
-export const UserCard = ({ user, balance, onPinToggle }: IUserCardProps) => {
-  const { animatedStyle, handleCardPress, handlePinToggle, onGestureEvent, onHandlerStateChange, isPinning } = useUserCard(user, onPinToggle || (() => {}));
+export const UserCard = ({ user, balance, showActions, handleUserDelete, handlePinToggle }: IUserCardProps) =>
+{
+  const { animatedStyle, handleCardPress, onGestureEvent, onHandlerStateChange, menuItems, menuVisible, setMenuVisible } = useUserCard(
+    user,
+    handlePinToggle || (() => { }),
+    handleUserDelete
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -47,14 +53,20 @@ export const UserCard = ({ user, balance, onPinToggle }: IUserCardProps) => {
               </View>
               <View style={styles.balanceContainer}>
                 <Text style={[styles.balance, balance < 0 ? styles.negative : styles.positive]}>
-                  ${Math.abs(balance).toFixed(2)}
+                  {user.currency || '$'}{Math.abs(balance).toFixed(2)}
                 </Text>
                 <Text style={styles.balanceLabel}>{balance < 0 ? 'Owes You' : 'You Owe'}</Text>
               </View>
-              {onPinToggle && (
+              {showActions && menuItems ? (
+                <Actions
+                  menuVisible={menuVisible}
+                  setMenuVisible={setMenuVisible}
+                  menuItems={menuItems}
+                />
+              ) : handlePinToggle ? (
                 <TouchableOpacity
                   style={styles.pinButton}
-                  onPress={handlePinToggle}
+                  onPress={() => handlePinToggle(user.id)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   {user.pinned ? (
@@ -63,7 +75,7 @@ export const UserCard = ({ user, balance, onPinToggle }: IUserCardProps) => {
                     <Pin size={20} color={Colors.textSecondary} />
                   )}
                 </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </Pressable>
         </Animated.View>

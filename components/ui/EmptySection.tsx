@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text,StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
-import { Users as UsersIcon,Receipt, Info } from 'lucide-react-native';
+import { Users as UsersIcon, Receipt, Info, Calculator } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
 import { IEmptySectionProps } from '@/types/common';
 
@@ -11,6 +11,7 @@ const getIcons = (icon:string)=>{
   const iconMap: Record<string, React.ReactElement> = {
     'users': <UsersIcon size={64} color={Colors.primary} strokeWidth={1.5} />,
     'transactions': <Receipt size={64} color={Colors.primary} strokeWidth={1.5} />,
+    'budgets': <Calculator size={64} color={Colors.primary} strokeWidth={1.5} />,
   };
   
   return iconMap[icon] || <Info size={64} color={Colors.primary} strokeWidth={1.5} />;

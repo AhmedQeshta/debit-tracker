@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
-import { Colors } from '../theme/colors';
-import { Spacing } from '../theme/spacing';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 import { IInputProps } from '@/types/common';
 
 export const Input = ({

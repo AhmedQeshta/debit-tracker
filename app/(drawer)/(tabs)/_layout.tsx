@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Users, LayoutDashboard } from 'lucide-react-native';
+import { Home, Users, LayoutDashboard, Calculator } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../../theme/colors';
 import { Spacing } from '../../../theme/spacing';
@@ -42,6 +42,13 @@ export default function TabsLayout() {
           title: 'Users',
           tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
           href: hasUsers ? '/(drawer)/(tabs)/users' : null,
+        }}
+      />
+      <Tabs.Screen
+        name="budget"
+        options={{
+          title: 'Budget',
+          tabBarIcon: ({ color, size }) => <Calculator size={size} color={color} />,
         }}
       />
       <Tabs.Screen

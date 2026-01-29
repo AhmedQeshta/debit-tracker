@@ -3,9 +3,15 @@ import { useTransactionsStore } from "@/store/transactionsStore";
 import { useUsersStore } from "@/store/usersStore";
 import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { Alert } from "react-native";
+import { useRouter } from "expo-router";
+import { useSyncStore } from "@/store/syncStore";
 
 export const useUsersList = () => {
-
+  const { pinUser, unpinUser, deleteUser } = useUsersStore();
+  const { deleteTransaction } = useTransactionsStore();
+  const { addToQueue } = useSyncStore();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [isGrid, setIsGrid] = useState(false);
   const users = useUsersStore(useShallow((state) => state.users));
@@ -27,8 +33,6 @@ export const useUsersList = () => {
   }, [users, search]);
 
 
-  const { pinUser, unpinUser } = useUsersStore();
-
   const handlePinToggle = (userId: string) => {
     const user = filteredUsers.find((u) => u.id === userId);
     if (user) {
@@ -40,6 +44,45 @@ export const useUsersList = () => {
     }
   };
 
+  const handleUserEdit = (userId: string) => {
+    router.push(`/user/${userId}/edit`);
+  };
+
+  const handleUserDelete = (userId: string, userName: string) => {
+    const userTransactions = useTransactionsStore.getState().transactions.filter(
+      (t) => t.userId === userId
+    );
+
+    Alert.alert('Delete User', `Are you sure you want to delete "${userName}" and all records?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          // Delete all transactions for this user
+          userTransactions.forEach((t) => {
+            deleteTransaction(t.id);
+            addToQueue({
+              id: Math.random().toString(36).substring(7),
+              type: 'transaction',
+              action: 'delete',
+              payload: { id: t.id },
+            });
+          });
+
+          // Delete the user
+          deleteUser(userId);
+          addToQueue({
+            id: Math.random().toString(36).substring(7),
+            type: 'user',
+            action: 'delete',
+            payload: { id: userId },
+          });
+        },
+      },
+    ]);
+  };
+
   return {
     filteredUsers,
     isGrid,
@@ -47,6 +90,8 @@ export const useUsersList = () => {
     setIsGrid,
     getUserBalance,
     search,
-    handlePinToggle
+    handlePinToggle,
+    handleUserEdit,
+    handleUserDelete,
   };
 };

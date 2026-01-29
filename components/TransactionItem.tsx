@@ -1,12 +1,35 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Trash2, Pencil } from 'lucide-react-native';
 import { ITransactionItemProps } from '@/types/transaction';
 import { getBalanceText } from '@/lib/utils';
+import { Actions } from '@/components/ui/Actions';
 
-export const TransactionItem = ({ transaction, onDelete, onEdit }: ITransactionItemProps) => {
+export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITransactionItemProps) =>
+{
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const menuItems = [];
+  if (onEdit)
+  {
+    menuItems.push({
+      icon: <Pencil size={18} color={Colors.text} />,
+      label: 'Edit Transaction',
+      onPress: () => onEdit(transaction.id),
+    });
+  }
+  if (onDelete)
+  {
+    menuItems.push({
+      icon: <Trash2 size={18} color={Colors.error} />,
+      label: 'Delete Transaction',
+      onPress: () => onDelete(transaction.id),
+      danger: true,
+    });
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -15,22 +38,19 @@ export const TransactionItem = ({ transaction, onDelete, onEdit }: ITransactionI
       </View>
       <View style={styles.rightSide}>
         <Text style={[styles.amount, transaction.amount < 0 ? styles.negative : styles.positive]}>
-          {getBalanceText(transaction.amount)}
+          {getBalanceText(transaction.amount, currency)}
         </Text>
         {!transaction.synced && <Text style={styles.syncStatus}>Pending Sync</Text>}
       </View>
-      <View style={styles.actions}>
-        {onEdit && (
-          <TouchableOpacity onPress={() => onEdit(transaction.id)} style={styles.editButton}>
-            <Pencil size={20} stroke={Colors.primary} />
-          </TouchableOpacity>
-        )}
-        {onDelete && (
-          <TouchableOpacity onPress={() => onDelete(transaction.id)} style={styles.deleteButton}>
-            <Trash2 size={20} stroke={Colors.error} />
-          </TouchableOpacity>
-        )}
-      </View>
+      {menuItems.length > 0 && (
+        <View style={styles.actions}>
+          <Actions
+            menuVisible={menuVisible}
+            setMenuVisible={setMenuVisible}
+            menuItems={menuItems}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -78,13 +98,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   actions: {
-    flexDirection: 'row',
     alignItems: 'center',
-  },
-  editButton: {
-    padding: Spacing.sm,
-  },
-  deleteButton: {
-    padding: Spacing.sm,
   },
 });

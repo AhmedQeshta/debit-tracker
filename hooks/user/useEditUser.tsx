@@ -5,7 +5,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
-export const useEditUser = () => {
+export const useEditUser = () =>
+{
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
@@ -15,17 +16,23 @@ export const useEditUser = () => {
 
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  const [currency, setCurrency] = useState('$');
 
-  useEffect(() => {
-    if (user) {
+  useEffect(() =>
+  {
+    if (user)
+    {
       setName(user.name);
       setBio(user.bio);
+      setCurrency(user.currency || '$');
     }
   }, [user]);
 
-  const handleSave = async () => {
+  const handleSave = async () =>
+  {
     if (!user || !id) return;
-    if (!name.trim()) {
+    if (!name.trim())
+    {
       Alert.alert('Error', 'Name is required');
       return;
     }
@@ -34,6 +41,7 @@ export const useEditUser = () => {
       ...user,
       name,
       bio,
+      currency,
       synced: false,
     };
 
@@ -53,6 +61,8 @@ export const useEditUser = () => {
     setName,
     bio,
     setBio,
+    currency,
+    setCurrency,
     handleSave,
     user,
     router
