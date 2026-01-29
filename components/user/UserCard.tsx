@@ -6,38 +6,14 @@ import { Pencil, Pin, Trash2, PinOff } from 'lucide-react-native';
 import { useUserCard } from '@/hooks/user/useUserCard';
 import { IUserCardProps } from '@/types/user';
 import { Actions } from '@/components/ui/Actions';
-import { useState } from 'react';
-import { IMenuItem } from '@/types/common';
-import { useRouter } from 'expo-router';
 
 export const UserCard = ({ user, balance, showActions, handleUserDelete, handlePinToggle }: IUserCardProps) =>
 {
-  const { animatedStyle, handleCardPress, onGestureEvent, onHandlerStateChange } = useUserCard(user, handlePinToggle || (() => { }));
-  const [menuVisible, setMenuVisible] = useState(false);
-  const router = useRouter();
-  const menuItems: IMenuItem[] = [
-    {
-      icon: user.pinned ? (
-        <PinOff size={18} color={Colors.text} />
-      ) : (
-        <Pin size={18} color={Colors.text} />
-      ),
-      label: user.pinned ? 'Unpin User' : 'Pin User',
-      onPress: () => handlePinToggle(user.id),
-    },
-    {
-      icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit User',
-      onPress: () => router.push(`/user/${user.id}/edit`),
-    },
-    {
-      icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete User',
-      onPress: () => handleUserDelete(user.id, user.name),
-      danger: true,
-    },
-  ];
-
+  const { animatedStyle, handleCardPress, onGestureEvent, onHandlerStateChange, menuItems, menuVisible, setMenuVisible } = useUserCard(
+    user,
+    handlePinToggle || (() => { }),
+    handleUserDelete
+  );
 
   return (
     <View style={styles.wrapper}>
