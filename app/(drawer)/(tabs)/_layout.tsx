@@ -49,7 +49,6 @@ export default function TabsLayout() {
         options={{
           title: 'Budget',
           tabBarIcon: ({ color, size }) => <Calculator size={size} color={color} />,
-          href: '/(drawer)/budget',
         }}
       />
       <Tabs.Screen
