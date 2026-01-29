@@ -1,13 +1,13 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { Input } from '@/components/Input';
+import { Input } from '@/components/ui/Input';
 import { UserCard } from '@/components/UserCard';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { LayoutGrid, List, Menu, Users as UsersIcon } from 'lucide-react-native';
 import { useUsersList } from '@/hooks/useUsersList';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { EmptySection } from '@/components/EmptySection';
+import { EmptySection } from '@/components/ui/EmptySection';
 
 
 export default function UsersList() {

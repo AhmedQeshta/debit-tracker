@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Colors } from '../theme/colors';
-import { Spacing } from '../theme/spacing';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 import { getButtonStyle, getTextStyle } from '@/lib/utils';
 import { IButtonProps } from '@/types/common';
 

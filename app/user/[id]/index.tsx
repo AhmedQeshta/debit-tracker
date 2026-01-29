@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet,  TouchableOpacity } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TransactionItem } from '@/components/TransactionItem';
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Pencil, Trash2, Pin, PinOff, ArrowLeft } from 'lucide-react-native';

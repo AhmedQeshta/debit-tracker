@@ -9,7 +9,7 @@ import { Spacing } from '@/theme/spacing';
 import { UserPlus, PlusCircle, Users, Menu, Users as UsersIcon, Receipt } from 'lucide-react-native';
 import { useHome } from '@/hooks/useHome';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { EmptySection } from '@/components/EmptySection';
+import { EmptySection } from '@/components/ui/EmptySection';
 
 export default function Home() {
   const router = useRouter();

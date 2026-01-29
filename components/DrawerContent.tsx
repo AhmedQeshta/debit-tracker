@@ -37,19 +37,19 @@ export const DrawerContent = ({insets,closeDrawer,isActive,navigateTo,}:any) => 
         </TouchableOpacity>
       )}
       <TouchableOpacity
-        style={[styles.menuItem, isActive('/(drawer)/(tabs)/dashboard') && styles.menuItemActive]}
-        onPress={() => navigateTo('/(drawer)/(tabs)/dashboard')}>
-        <LayoutDashboard size={20} color={isActive('/(drawer)/(tabs)/dashboard') ? Colors.primary : Colors.textSecondary} />
-        <Text style={[styles.menuItemText, isActive('/(drawer)/(tabs)/dashboard') && styles.menuItemTextActive]}>
-          Dashboard
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
         style={[styles.menuItem, isActive('/(drawer)/budget') && styles.menuItemActive]}
         onPress={() => navigateTo('/(drawer)/budget')}>
         <Calculator size={20} color={isActive('/(drawer)/budget') ? Colors.primary : Colors.textSecondary} />
         <Text style={[styles.menuItemText, isActive('/(drawer)/budget') && styles.menuItemTextActive]}>
           Budget Calculator
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.menuItem, isActive('/(drawer)/(tabs)/dashboard') && styles.menuItemActive]}
+        onPress={() => navigateTo('/(drawer)/(tabs)/dashboard')}>
+        <LayoutDashboard size={20} color={isActive('/(drawer)/(tabs)/dashboard') ? Colors.primary : Colors.textSecondary} />
+        <Text style={[styles.menuItemText, isActive('/(drawer)/(tabs)/dashboard') && styles.menuItemTextActive]}>
+          Dashboard
         </Text>
       </TouchableOpacity>
       <TouchableOpacity

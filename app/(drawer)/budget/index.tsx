@@ -3,7 +3,7 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Menu, Plus } from 'lucide-react-native';
-import { EmptySection } from '@/components/EmptySection';
+import { EmptySection } from '@/components/ui/EmptySection';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
 import { BudgetCard } from '@/components/BudgetCard';
 export default function BudgetList() {
