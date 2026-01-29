@@ -1,9 +1,13 @@
 import { useBudgetStore } from "@/store/budgetStore";
+import { Colors } from "@/theme/colors";
+import { IMenuItem } from "@/types/common";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Pencil, Pin, PinOff, Trash2 } from "lucide-react-native";
 import { useState } from "react";
 import { Alert } from "react-native";
 
-export const useBudgetDetail = () => { 
+export const useBudgetDetail = () =>
+{
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const budget = useBudgetStore((state) => state.getBudget(id || ''));
@@ -22,19 +26,22 @@ export const useBudgetDetail = () => {
   const [itemTitleError, setItemTitleError] = useState('');
   const [itemAmountError, setItemAmountError] = useState('');
 
- const totalSpent = getTotalSpent(budget?.id || '');
+  const totalSpent = getTotalSpent(budget?.id || '');
   const remaining = getRemainingBudget(budget?.id || '');
 
 
-  const handleAddItem = () => {
-    if (!itemTitle.trim()) {
+  const handleAddItem = () =>
+  {
+    if (!itemTitle.trim())
+    {
       setItemTitleError('Title is required');
       return;
     }
     setItemTitleError('');
 
     const amount = parseFloat(itemAmount);
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amount) || amount <= 0)
+    {
       setItemAmountError('Amount must be a valid number > 0');
       return;
     }
@@ -45,7 +52,8 @@ export const useBudgetDetail = () => {
     setItemAmount('');
   };
 
-  const handleDeleteItem = (itemId: string, title: string) => {
+  const handleDeleteItem = (itemId: string, title: string) =>
+  {
     Alert.alert('Delete Item', `Are you sure you want to delete "${title}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -56,16 +64,20 @@ export const useBudgetDetail = () => {
     ]);
   };
 
-  const handlePinToggle = () => {
+  const handlePinToggle = () =>
+  {
     if (!budget) return;
-    if (budget.pinned) {
+    if (budget.pinned)
+    {
       unpinBudget(budget.id);
-    } else {
+    } else
+    {
       pinBudget(budget.id);
     }
   };
 
-  const handleDeleteBudget = () => {
+  const handleDeleteBudget = () =>
+  {
     if (!budget) return;
     Alert.alert(
       'Delete Budget',
@@ -75,7 +87,8 @@ export const useBudgetDetail = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
+          onPress: () =>
+          {
             deleteBudget(budget.id);
             router.replace('/(drawer)/budget');
           },
@@ -83,6 +96,29 @@ export const useBudgetDetail = () => {
       ]
     );
   };
+
+  const menuItems: IMenuItem[] = [
+    {
+      icon: budget?.pinned ? (
+        <PinOff size={18} color={Colors.text} />
+      ) : (
+        <Pin size={18} color={Colors.text} />
+      ),
+      label: budget?.pinned ? 'Unpin Budget' : 'Pin Budget',
+      onPress: () => handlePinToggle(),
+    }, {
+      icon: budget ? <Pencil size={18} color={Colors.text} /> : <Pencil size={18} color={Colors.text} />,
+      label: 'Edit Budget',
+      onPress: () => router.push(`/(drawer)/budget/${budget?.id || ''}/edit`),
+    },
+    {
+      icon: <Trash2 size={18} color={Colors.error} />,
+      label: 'Delete Budget',
+      onPress: () => handleDeleteBudget(),
+      danger: true,
+    },
+  ];
+
 
   return {
     itemTitle,
@@ -106,5 +142,6 @@ export const useBudgetDetail = () => {
     getRemainingBudget,
     handlePinToggle,
     handleDeleteBudget,
+    menuItems,
   }
 }

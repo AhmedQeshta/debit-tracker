@@ -12,11 +12,15 @@ import { useState } from 'react';
 import { Actions } from '@/components/ui/Actions';
 
 
-export default function BudgetDetail() {
-  const { budget, router, itemTitle, setItemTitle, itemAmount, setItemAmount, itemTitleError, setItemTitleError, itemAmountError, setItemAmountError, handleAddItem, handleDeleteItem, totalSpent, remaining, handlePinToggle, handleDeleteBudget } = useBudgetDetail();
+export default function BudgetDetail()
+{
+  const { budget, router, itemTitle, setItemTitle, itemAmount, setItemAmount, itemTitleError, setItemTitleError, itemAmountError, setItemAmountError, handleAddItem, handleDeleteItem, totalSpent, remaining, handlePinToggle, handleDeleteBudget, menuItems } = useBudgetDetail();
   const [menuVisible, setMenuVisible] = useState(false);
- 
-  if (!budget) {
+
+
+
+  if (!budget)
+  {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -25,7 +29,7 @@ export default function BudgetDetail() {
         </View>
       </ScreenContainer>
     );
-  } 
+  }
 
 
   return (
@@ -34,7 +38,7 @@ export default function BudgetDetail() {
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <ArrowLeft size={25} color={Colors.text} />
-            <Text style={styles.title}>{budget.title}</Text>
+            <Text style={styles.title}>{budget.title} Budget Details</Text>
           </TouchableOpacity>
         </View>
 
@@ -47,38 +51,11 @@ export default function BudgetDetail() {
               )}
               <Text style={styles.budgetInfoTitle}>{budget.title}</Text>
             </View>
-            {(() => {
-              const menuItems: IMenuItem[] = [
-                {
-                  icon: <Pencil size={18} color={Colors.text} />,
-                  label: 'Edit Budget',
-                  onPress: () => router.push(`/(drawer)/budget/${budget.id}/edit`),
-                },
-                {
-                  icon: budget.pinned ? (
-                    <PinOff size={18} color={Colors.text} />
-                  ) : (
-                    <Pin size={18} color={Colors.text} />
-                  ),
-                  label: budget.pinned ? 'Unpin Budget' : 'Pin Budget',
-                  onPress: () => handlePinToggle(),
-                },
-                {
-                  icon: <Trash2 size={18} color={Colors.error} />,
-                  label: 'Delete Budget',
-                  onPress: () => handleDeleteBudget(),
-                  danger: true,
-                },
-              ];
-
-              return (
-                <Actions
-                  menuVisible={menuVisible}
-                  setMenuVisible={setMenuVisible}
-                  menuItems={menuItems}
-                />
-              );
-            })()}
+            <Actions
+              menuVisible={menuVisible}
+              setMenuVisible={setMenuVisible}
+              menuItems={menuItems}
+            />
           </View>
           <View style={styles.budgetInfoStats}>
             <View style={styles.budgetInfoStat}>
@@ -112,7 +89,8 @@ export default function BudgetDetail() {
           <Input
             label="Item Title"
             value={itemTitle}
-            onChangeText={(text) => {
+            onChangeText={(text) =>
+            {
               setItemTitle(text);
               setItemTitleError('');
             }}
@@ -122,7 +100,8 @@ export default function BudgetDetail() {
           <Input
             label="Amount"
             value={itemAmount}
-            onChangeText={(text) => {
+            onChangeText={(text) =>
+            {
               setItemAmount(text);
               setItemAmountError('');
             }}
