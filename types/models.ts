@@ -23,3 +23,20 @@ export interface SyncQueueItem {
   action: 'create' | 'update' | 'delete';
   payload: any;
 }
+
+export interface BudgetItem {
+  id: string;
+  title: string;
+  amount: number; // price (positive number)
+  createdAt: number;
+}
+
+export interface Budget {
+  id: string;
+  title: string;
+  currency: string;   // "$", "₪", "€"
+  totalBudget: number;
+  items: BudgetItem[];
+  pinned: boolean;
+  createdAt: number;
+}

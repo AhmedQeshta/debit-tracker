@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { Colors } from '@/theme/colors';
-import { Home, Info, X, Users, LayoutDashboard } from 'lucide-react-native';
+import { Home, Info, X, Users, LayoutDashboard, Calculator } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
 import { DRAWER_WIDTH } from '@/hooks/drawer/useDrawer';
 import { useUsersStore } from '@/store/usersStore';
@@ -42,6 +42,14 @@ export const DrawerContent = ({insets,closeDrawer,isActive,navigateTo,}:any) => 
         <LayoutDashboard size={20} color={isActive('/(drawer)/(tabs)/dashboard') ? Colors.primary : Colors.textSecondary} />
         <Text style={[styles.menuItemText, isActive('/(drawer)/(tabs)/dashboard') && styles.menuItemTextActive]}>
           Dashboard
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.menuItem, isActive('/(drawer)/budget') && styles.menuItemActive]}
+        onPress={() => navigateTo('/(drawer)/budget')}>
+        <Calculator size={20} color={isActive('/(drawer)/budget') ? Colors.primary : Colors.textSecondary} />
+        <Text style={[styles.menuItemText, isActive('/(drawer)/budget') && styles.menuItemTextActive]}>
+          Budget Calculator
         </Text>
       </TouchableOpacity>
       <TouchableOpacity

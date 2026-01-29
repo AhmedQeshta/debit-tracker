@@ -42,5 +42,5 @@ export interface IDrawerContextType {
 export interface IEmptySectionProps{
   title:string;
   description:string;
-  icon?:'transactions' | 'users' | '';
+  icon?:'transactions' | 'users' | 'budgets' | '';
 }

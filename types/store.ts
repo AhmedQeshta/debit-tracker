@@ -1,4 +1,4 @@
-import { SyncQueueItem, Transaction, User } from "@/types/models";
+import { SyncQueueItem, Transaction, User, BudgetItem, Budget } from "@/types/models";
 
 export interface ISyncState {
   queue: SyncQueueItem[];
@@ -29,5 +29,21 @@ export interface IUsersState {
   markAsSynced: (id: string) => void;
   pinUser: (id: string) => void;
   unpinUser: (id: string) => void;
+}
+
+export interface IBudgetState {
+  budgets: Budget[];
+  addBudget: (title: string, currency: string, totalBudget: number) => string;
+  updateBudget: (id: string, updates: Partial<Budget>) => void;
+  deleteBudget: (id: string) => void;
+  pinBudget: (id: string) => void;
+  unpinBudget: (id: string) => void;
+  setCurrency: (id: string, currency: string) => void;
+  setTotalBudget: (id: string, amount: number) => void;
+  addItem: (budgetId: string, title: string, amount: number) => void;
+  removeItem: (budgetId: string, itemId: string) => void;
+  getTotalSpent: (budgetId: string) => number;
+  getRemainingBudget: (budgetId: string) => number;
+  getBudget: (id: string) => Budget | undefined;
 }
 
