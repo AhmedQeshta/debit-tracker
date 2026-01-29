@@ -3,6 +3,7 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { ActionCard } from '@/components/ActionCard';
 import { UserCard } from '@/components/UserCard';
 import { TransactionItem } from '@/components/TransactionItem';
+import { BudgetCard } from '@/components/BudgetCard';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
@@ -15,7 +16,7 @@ export default function Home() {
   const router = useRouter();
   const { openDrawer } = useDrawerContext();
   // Get latest transactions sorted by date (most recent first), limit to 5
-  const { latestTransactions, getUserBalance, latestUsers, handlePinToggle } = useHome();
+  const { latestTransactions, getUserBalance, latestUsers, handlePinToggle, latestBudgets, getBudgetTotalSpent, getBudgetRemaining, handleBudgetPinToggle, handleBudgetDelete } = useHome();
 
   return (
     <View style={styles.wrapper}>
@@ -63,7 +64,27 @@ export default function Home() {
           )}
         </View>
 
-       
+        <Text style={styles.title}>Latest Budgets</Text>
+        <View style={styles.budgetsList}>
+          {latestBudgets.length === 0 ? (
+            <EmptySection
+              title="No Budgets"
+              description="Create your first budget to start tracking your spending"
+              icon="budgets"
+            />
+          ) : (
+            latestBudgets.map((budget) => (
+              <BudgetCard
+                key={budget.id}
+                item={budget}
+                handlePinToggle={handleBudgetPinToggle}
+                handleDelete={handleBudgetDelete}
+                getTotalSpent={getBudgetTotalSpent}
+                getRemainingBudget={getBudgetRemaining}
+              />
+            ))
+          )}
+        </View>
 
         <Text style={styles.transactionsTitle}>Latest Transactions</Text>
         <View style={styles.transactionsList}>
@@ -94,6 +115,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   userList: {
+    marginBottom: Spacing.sm,
+  },
+  budgetsList: {
     marginBottom: Spacing.sm,
   },
   emptyState: {
