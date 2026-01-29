@@ -21,7 +21,7 @@ export default function Dashboard() {
               activeOpacity={0.7}>
               <Menu size={24} color={Colors.text} />
             </TouchableOpacity>
-            <Text style={styles.title}>Dashboard</Text>
+          <Text style={styles.title}>Dashboard</Text>
           </View>
           <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
             {isOnline ? <Wifi size={14} stroke="#000" /> : <WifiOff size={14} stroke="#fff" />}

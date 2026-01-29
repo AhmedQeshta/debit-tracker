@@ -54,7 +54,7 @@ export const DrawerContent = ({insets,closeDrawer,isActive,navigateTo,}:any) => 
       </TouchableOpacity>
     </ScrollView>
   </View>
-  );
+);
 };
 
 

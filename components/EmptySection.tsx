@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text,StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Users as UsersIcon,Receipt, Info } from 'lucide-react-native';
@@ -7,14 +8,12 @@ import { IEmptySectionProps } from '@/types/common';
 
 export const EmptySection = ({title,description,icon}:IEmptySectionProps)=>{
 const getIcons = (icon:string)=>{
-  switch (icon) {
-    case 'users':
-      return <UsersIcon size={64} color={Colors.primary} strokeWidth={1.5} />
-    case 'transactions':
-      return <Receipt size={64} color={Colors.primary} strokeWidth={1.5} />
-    default:
-      return <Info size={64} color={Colors.primary} strokeWidth={1.5}/>
-  }
+  const iconMap: Record<string, React.ReactElement> = {
+    'users': <UsersIcon size={64} color={Colors.primary} strokeWidth={1.5} />,
+    'transactions': <Receipt size={64} color={Colors.primary} strokeWidth={1.5} />,
+  };
+  
+  return iconMap[icon] || <Info size={64} color={Colors.primary} strokeWidth={1.5} />;
 }
 
   return <View style={styles.emptyState}>
