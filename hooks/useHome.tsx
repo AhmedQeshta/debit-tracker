@@ -1,12 +1,12 @@
 import { calculateLatestTransactions, getBalance } from "@/lib/utils";
 import { useMemo } from "react";
-import { Transaction } from "@/types/models";
 import { useTransactionsStore } from "@/store/transactionsStore";
 import { useUsersStore } from "@/store/usersStore";
 import { useShallow } from "zustand/react/shallow";
 
 export const useHome = () => {
   const allUsers = useUsersStore(useShallow((state) => state.users));
+  const { pinUser, unpinUser } = useUsersStore();
   
   const latestUsers = useMemo(() => {
     // Sort: pinned first, then by createdAt (most recent first)
@@ -30,10 +30,22 @@ export const useHome = () => {
     [allTransactions]
   );
 
+  const handlePinToggle = (userId: string) => {
+    const user = latestUsers.find((u) => u.id === userId);
+    if (user) {
+      if (user.pinned) {
+        unpinUser(userId);
+      } else {
+        pinUser(userId);
+      }
+    }
+  };
+
   
   return {
     latestTransactions,
     getUserBalance,
     latestUsers,
+    handlePinToggle,
   };
 };

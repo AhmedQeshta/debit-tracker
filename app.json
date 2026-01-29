@@ -22,10 +22,16 @@
         "backgroundColor": "#121829"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.ahmedqeshta.debittracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a93f1a1c-ec4a-46a2-bcee-fd00b05f1c38"
+      }
     }
   }
 }
