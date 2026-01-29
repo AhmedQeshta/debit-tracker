@@ -33,7 +33,7 @@ export default function BudgetList() {
           data={sortedBudgets}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
-            return <BudgetCard item={item} handlePinToggle={handlePinToggle} handleDelete={handleDelete} router={router} getTotalSpent={getTotalSpent} getRemainingBudget={getRemainingBudget} />
+            return <BudgetCard item={item} handlePinToggle={handlePinToggle} handleDelete={handleDelete} getTotalSpent={getTotalSpent} getRemainingBudget={getRemainingBudget} />
            
           }}
           contentContainerStyle={styles.listContent}

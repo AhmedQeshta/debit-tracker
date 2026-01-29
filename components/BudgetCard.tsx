@@ -1,11 +1,16 @@
 import { View, Text, StyleSheet,  TouchableOpacity } from 'react-native';
 import { Colors } from '@/theme/colors';
-import { Pin, PinOff,  Trash2, Pencil } from 'lucide-react-native';
+import { Pin, Trash2, Pencil } from 'lucide-react-native';
 import { formatCurrency } from '@/lib/utils';
 import { Spacing } from '@/theme/spacing';
 import { IBudgetCardProps } from '@/types/budget';
+import { useRouter } from 'expo-router';
+import { Actions } from '@/components/budget/Actions';
+import { useState } from 'react';
 
-export const BudgetCard = ({item, handlePinToggle, handleDelete, router, getTotalSpent, getRemainingBudget}: IBudgetCardProps) => {
+export const BudgetCard = ({item, handlePinToggle, handleDelete, getTotalSpent, getRemainingBudget}: IBudgetCardProps) => {
+  const router = useRouter();
+  const [menuVisible, setMenuVisible] = useState(false);
   const totalSpent = getTotalSpent(item.id);
   const remaining = getRemainingBudget(item.id);
   const formatAmount = (amount: number) => formatCurrency(amount, item.currency);
@@ -25,19 +30,13 @@ export const BudgetCard = ({item, handlePinToggle, handleDelete, router, getTota
             {item.title}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.pinButton}
-          onPress={(e) => {
-            e.stopPropagation();
-            handlePinToggle(item.id);
-          }}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          {item.pinned ? (
-            <PinOff size={18} color={Colors.textSecondary} />
-          ) : (
-            <Pin size={18} color={Colors.textSecondary} />
-          )}
-        </TouchableOpacity>
+        <Actions
+          menuVisible={menuVisible}
+          setMenuVisible={setMenuVisible}
+          budget={item}
+          handlePinToggle={handlePinToggle}
+          handleDeleteBudget={handleDelete}
+        />
       </View>
 
       <View style={styles.budgetStats}>
@@ -65,26 +64,6 @@ export const BudgetCard = ({item, handlePinToggle, handleDelete, router, getTota
 
       <View style={styles.budgetFooter}>
         <Text style={styles.itemsCount}>{item.items.length} items</Text>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              router.push(`/(drawer)/budget/${item.id}/edit`);
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Pencil size={16} color={Colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleDelete(item.id, item.title);
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Trash2 size={16} color={Colors.error} />
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
   </TouchableOpacity>
@@ -121,9 +100,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: Colors.text,
-  },
-  pinButton: {
-    padding: Spacing.xs,
   },
   budgetStats: {
     flexDirection: 'row',

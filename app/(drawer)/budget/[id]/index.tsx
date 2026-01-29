@@ -7,10 +7,13 @@ import { Spacing } from '@/theme/spacing';
 import { ArrowLeft, Trash2, Pin } from 'lucide-react-native';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
 import { formatCurrency } from '@/lib/utils';
+import { useState } from 'react';
+import { Actions } from '@/components/budget/Actions';
 
 
 export default function BudgetDetail() {
-  const { budget, router, itemTitle, setItemTitle, itemAmount, setItemAmount, itemTitleError, setItemTitleError, itemAmountError, setItemAmountError, handleAddItem, handleDeleteItem, totalSpent, remaining } = useBudgetDetail();
+  const { budget, router, itemTitle, setItemTitle, itemAmount, setItemAmount, itemTitleError, setItemTitleError, itemAmountError, setItemAmountError, handleAddItem, handleDeleteItem, totalSpent, remaining, handlePinToggle, handleDeleteBudget } = useBudgetDetail();
+  const [menuVisible, setMenuVisible] = useState(false);
  
   if (!budget) {
     return (
@@ -43,6 +46,7 @@ export default function BudgetDetail() {
               )}
               <Text style={styles.budgetInfoTitle}>{budget.title}</Text>
             </View>
+            <Actions menuVisible={menuVisible} setMenuVisible={setMenuVisible} budget={budget} handlePinToggle={handlePinToggle} handleDeleteBudget={handleDeleteBudget} />
           </View>
           <View style={styles.budgetInfoStats}>
             <View style={styles.budgetInfoStat}>
@@ -157,12 +161,69 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   budgetInfoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: Spacing.md,
   },
   budgetInfoTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
+    flex: 1,
+  },
+  budgetActions: {
+    position: 'relative',
+    zIndex: 1000,
+  },
+  menuButton: {
+    padding: Spacing.xs,
+  },
+  menuOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 40,
+    right: 0,
+    backgroundColor: Colors.card,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1001,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  menuItemDanger: {
+    borderBottomWidth: 0,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  menuItemTextDanger: {
+    color: Colors.error,
   },
   budgetInfoTitle: {
     fontSize: 22,

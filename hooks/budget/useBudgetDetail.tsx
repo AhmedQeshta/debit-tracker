@@ -12,6 +12,9 @@ export const useBudgetDetail = () => {
     removeItem,
     getTotalSpent,
     getRemainingBudget,
+    pinBudget,
+    unpinBudget,
+    deleteBudget,
   } = useBudgetStore();
 
   const [itemTitle, setItemTitle] = useState('');
@@ -53,6 +56,34 @@ export const useBudgetDetail = () => {
     ]);
   };
 
+  const handlePinToggle = () => {
+    if (!budget) return;
+    if (budget.pinned) {
+      unpinBudget(budget.id);
+    } else {
+      pinBudget(budget.id);
+    }
+  };
+
+  const handleDeleteBudget = () => {
+    if (!budget) return;
+    Alert.alert(
+      'Delete Budget',
+      `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteBudget(budget.id);
+            router.replace('/(drawer)/budget');
+          },
+        },
+      ]
+    );
+  };
+
   return {
     itemTitle,
     setItemTitle,
@@ -73,5 +104,7 @@ export const useBudgetDetail = () => {
     removeItem,
     getTotalSpent,
     getRemainingBudget,
+    handlePinToggle,
+    handleDeleteBudget,
   }
 }
