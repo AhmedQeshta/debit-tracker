@@ -53,7 +53,7 @@ export const UserCard = ({ user, balance, showActions, handleUserDelete, handleP
               </View>
               <View style={styles.balanceContainer}>
                 <Text style={[styles.balance, balance < 0 ? styles.negative : styles.positive]}>
-                  ${Math.abs(balance).toFixed(2)}
+                  {user.currency || '$'}{Math.abs(balance).toFixed(2)}
                 </Text>
                 <Text style={styles.balanceLabel}>{balance < 0 ? 'Owes You' : 'You Owe'}</Text>
               </View>

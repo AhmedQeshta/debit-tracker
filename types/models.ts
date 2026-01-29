@@ -3,6 +3,7 @@ export interface User {
   name: string;
   bio: string;
   imageUri: string | null;
+  currency: string;   // "$", "₪", "€"
   createdAt: number;
   synced: boolean;
   pinned: boolean;

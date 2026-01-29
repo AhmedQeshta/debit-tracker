@@ -11,6 +11,8 @@ import { UserPlus, PlusCircle, Users, Menu, Users as UsersIcon, Receipt, Pencil,
 import { useHome } from '@/hooks/useHome';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { EmptySection } from '@/components/ui/EmptySection';
+import { useUsersStore } from '@/store/usersStore';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function Home()
 {
@@ -18,6 +20,7 @@ export default function Home()
   const { openDrawer } = useDrawerContext();
   // Get latest transactions sorted by date (most recent first), limit to 5
   const { latestTransactions, getUserBalance, latestUsers, handlePinToggle, latestBudgets, getBudgetTotalSpent, getBudgetRemaining, handleBudgetPinToggle, handleBudgetDelete, handleUserEdit, handleUserDelete } = useHome();
+  const users = useUsersStore(useShallow((state) => state.users));
 
   return (
     <View style={styles.wrapper}>
@@ -99,9 +102,16 @@ export default function Home()
               description={'Add your first transaction to start tracking debts'}
               icon={'transactions'} />
           ) : (
-            latestTransactions.map((transaction) => (
-              <TransactionItem key={transaction.id} transaction={transaction} />
-            ))
+            latestTransactions.map((transaction) => {
+              const user = users.find((u) => u.id === transaction.userId);
+              return (
+                <TransactionItem 
+                  key={transaction.id} 
+                  transaction={transaction} 
+                  currency={user?.currency || '$'}
+                />
+              );
+            })
           )}
         </View>
       </ScreenContainer>

@@ -6,7 +6,8 @@ import { Colors } from "@/theme/colors";
 import { Pin } from "lucide-react-native";
 import { Spacing } from "@/theme/spacing";
 
-export const GridUserCard = ({ user, balance, menuItems }: GridUserCardProps) => {
+export const GridUserCard = ({ user, balance, menuItems }: GridUserCardProps) =>
+{
   const [menuVisible, setMenuVisible] = useState(false);
 
   return (
@@ -42,7 +43,7 @@ export const GridUserCard = ({ user, balance, menuItems }: GridUserCardProps) =>
             styles.gridAmount,
             balance < 0 ? styles.negative : styles.positive,
           ]}>
-          ${Math.abs(balance).toFixed(2)}
+          {user.currency || '$'}{Math.abs(balance).toFixed(2)}
         </Text>
       </View>
     </View>
@@ -125,5 +126,5 @@ const styles = StyleSheet.create({
   gridPinIcon: {
     marginLeft: Spacing.xs,
   },
- 
+
 });   

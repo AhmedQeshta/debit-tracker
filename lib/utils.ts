@@ -38,8 +38,11 @@ export const getUserBalance = (transactions: Transaction[]) => {
 };
 
 
-export const getBalanceText = (balance: number)=>{
-  return   `${balance < 0 ? `-` : '+'} ${Math.abs(balance).toFixed(2)}`
+export const getBalanceText = (balance: number, currency?: string)=>{
+  if (currency) {
+    return `${balance < 0 ? `-` : '+'} ${formatCurrency(Math.abs(balance), currency)}`;
+  }
+  return `${balance < 0 ? `-` : '+'} ${Math.abs(balance).toFixed(2)}`;
 };
 
 export const getBalanceStatus = (balance: number)=>{

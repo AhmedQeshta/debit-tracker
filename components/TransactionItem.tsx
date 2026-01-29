@@ -6,7 +6,8 @@ import { Trash2, Pencil } from 'lucide-react-native';
 import { ITransactionItemProps } from '@/types/transaction';
 import { getBalanceText } from '@/lib/utils';
 
-export const TransactionItem = ({ transaction, onDelete, onEdit }: ITransactionItemProps) => {
+export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITransactionItemProps) =>
+{
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -15,7 +16,7 @@ export const TransactionItem = ({ transaction, onDelete, onEdit }: ITransactionI
       </View>
       <View style={styles.rightSide}>
         <Text style={[styles.amount, transaction.amount < 0 ? styles.negative : styles.positive]}>
-          {getBalanceText(transaction.amount)}
+          {getBalanceText(transaction.amount, currency)}
         </Text>
         {!transaction.synced && <Text style={styles.syncStatus}>Pending Sync</Text>}
       </View>
