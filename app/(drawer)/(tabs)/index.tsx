@@ -1,18 +1,18 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
-import { ActionCard } from '@/components/ActionCard';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { UserCard } from '@/components/user/UserCard';
 import { TransactionItem } from '@/components/TransactionItem';
-import { BudgetCard } from '@/components/BudgetCard';
+import { BudgetCard } from '@/components/budget/BudgetCard';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { UserPlus, PlusCircle, Users, Menu, Users as UsersIcon, Receipt, Pencil, Trash2 } from 'lucide-react-native';
+import { UserPlus, PlusCircle, Users, Menu } from 'lucide-react-native';
 import { useHome } from '@/hooks/useHome';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { EmptySection } from '@/components/ui/EmptySection';
 import { useUsersStore } from '@/store/usersStore';
 import { useShallow } from 'zustand/react/shallow';
+import { ActionCard } from '@/components/ui/ActionCard';
 
 export default function Home()
 {
@@ -102,12 +102,13 @@ export default function Home()
               description={'Add your first transaction to start tracking debts'}
               icon={'transactions'} />
           ) : (
-            latestTransactions.map((transaction) => {
+            latestTransactions.map((transaction) =>
+            {
               const user = users.find((u) => u.id === transaction.userId);
               return (
-                <TransactionItem 
-                  key={transaction.id} 
-                  transaction={transaction} 
+                <TransactionItem
+                  key={transaction.id}
+                  transaction={transaction}
                   currency={user?.currency || '$'}
                 />
               );

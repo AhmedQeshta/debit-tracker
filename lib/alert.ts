@@ -19,3 +19,5 @@ export const showSuccess = (
 ): void => Alert.alert(title, message, [
   { text: "OK", onPress },
 ]);
+
+export const showError = (title: string, message: string): void => Alert.alert(title, message);

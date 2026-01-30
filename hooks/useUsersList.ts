@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useRouter } from "expo-router";
 import { useShallow } from "zustand/react/shallow";
 import { useTransactionsStore } from "@/store/transactionsStore";
 import { useUsersStore } from "@/store/usersStore";
@@ -10,7 +9,6 @@ import { useUserSync } from "@/hooks/user/useUserSync";
 
 export const useUsersList = () =>
 {
-  const router = useRouter();
   const { pinUser, unpinUser, deleteUser } = useUsersStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToUserEdit } = useNavigation();
@@ -30,34 +28,18 @@ export const useUsersList = () =>
   const filteredUsers = useMemo(() =>
   {
     const filtered = filterUsers(users, search);
-    // Sort: pinned first, then by createdAt (most recent first)
     return [...filtered].sort((a, b) =>
-    {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return b.createdAt - a.createdAt;
-    });
+      a.pinned && !b.pinned ? -1 : !a.pinned && b.pinned ? 1 : b.createdAt - a.createdAt
+    );
   }, [users, search]);
 
   const handlePinToggle = (userId: string): void =>
   {
     const user = filteredUsers.find((u) => u.id === userId);
-    if (user)
-    {
-      if (user.pinned)
-      {
-        unpinUser(userId);
-      } else
-      {
-        pinUser(userId);
-      }
-    }
+    if (user) user.pinned ? unpinUser(userId) : pinUser(userId);
   };
 
-  const handleUserEdit = (userId: string): void =>
-  {
-    navigateToUserEdit(userId);
-  };
+  const handleUserEdit = (userId: string): void => navigateToUserEdit(userId);
 
   const handleUserDelete = (userId: string, userName: string): void =>
   {

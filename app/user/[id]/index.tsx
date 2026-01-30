@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { TransactionItem } from '@/components/TransactionItem';
 import { Button } from '@/components/ui/Button';
 import { Actions } from '@/components/ui/Actions';
@@ -8,7 +8,6 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Pencil, Trash2, Pin, PinOff, ArrowLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IMenuItem } from '@/types/common';
 
 import { useUserDetail } from '@/hooks/user/useUserDetail';
 import { getBalanceStatus, getBalanceText } from '@/lib/utils';

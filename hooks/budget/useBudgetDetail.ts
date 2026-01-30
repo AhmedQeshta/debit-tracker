@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useBudgetStore } from "@/store/budgetStore";
 import { safeId, validateAmount, validateTitle } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
-import { useBudgetOperations } from "@/hooks/budget/useBudgetOperations";
+import { useOperations } from "@/hooks/useOperations";
 import { confirmDelete } from "@/lib/alert";
 import { createMenuItems } from "@/components/budget/createMenuItems";
 
@@ -23,7 +23,7 @@ export const useBudgetDetail = () =>
   } = useBudgetStore();
 
   const { navigateToBudgetEdit, navigateToBudgetList } = useNavigation();
-  const { handlePinToggle: togglePin } = useBudgetOperations();
+  const { handleBudgetPinToggle: togglePin } = useOperations();
 
   const [itemTitle, setItemTitle] = useState("");
   const [itemAmount, setItemAmount] = useState("");

@@ -133,4 +133,3 @@ export const validateUserName = (name: string): string | null => {
 
 export const generateId = (): string => Math.random().toString(36).substring(2, 15);;
 
-export const showError = (title: string, message: string): void => Alert.alert(title, message);

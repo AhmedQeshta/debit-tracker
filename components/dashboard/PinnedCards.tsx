@@ -4,18 +4,9 @@ import { Spacing } from '@/theme/spacing';
 import { Pin, PinOff } from 'lucide-react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
+import { IPinnedCardsProps } from '@/types/common';
 
-export interface IPinnedCardsProps {
-  title: string;
-  count: number;
-  items: any[];
-  renderAvatar: (item: any) => React.ReactNode;
-  getTitle: (item: any) => string;
-  getAmount: (item: any) => number;
-  formatAmount: (amount: number, item: any) => string;
-  getNavigationPath: (item: any) => string;
-  onUnpin: (id: string, e: any) => void;
-}
+
 
 export const PinnedCards = ({
   title,
@@ -28,10 +19,12 @@ export const PinnedCards = ({
   getNavigationPath,
   onUnpin,
 
-}: IPinnedCardsProps) => {
+}: IPinnedCardsProps) =>
+{
   const router = useRouter();
 
-  if (count === 0) {
+  if (count === 0)
+  {
     return null;
   }
 
@@ -45,7 +38,8 @@ export const PinnedCards = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.pinnedList}>
-        {items.map((item) => {
+        {items.map((item) =>
+        {
           const amount = getAmount(item);
           return (
             <View key={item.id} style={styles.cardWrapper}>

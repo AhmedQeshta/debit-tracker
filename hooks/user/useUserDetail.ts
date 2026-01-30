@@ -6,7 +6,7 @@ import { useShallow } from "zustand/react/shallow";
 import { getUserBalance, safeId } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useUserSync } from "@/hooks/user/useUserSync";
-import { useUserOperations } from "@/hooks/user/useUserOperations";
+import { useOperations } from "@/hooks/useOperations";
 import { confirmDelete } from "@/lib/alert";
 
 
@@ -24,7 +24,7 @@ export const useUserDetail = () =>
 
   const { navigateToUserEdit, navigateBack } = useNavigation();
   const { addToSyncQueue, triggerSync } = useUserSync();
-  const { handlePinToggle: togglePin } = useUserOperations();
+  const { handleUserPinToggle: togglePin } = useOperations();
 
   const balance = useMemo(() => getUserBalance(transactions), [transactions]);
 
