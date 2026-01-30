@@ -63,6 +63,8 @@ export const useDrawer =()=>{
       router.push('/(drawer)/(tabs)/users' as any);
     } else if (path === '/(drawer)/(tabs)/dashboard') {
       router.push('/(drawer)/(tabs)/dashboard' as any);
+    } else if (path === '/(drawer)/(tabs)/budget') {
+      router.push('/(drawer)/(tabs)/budget' as any);
     } else if (path === '/(drawer)/budget') {
       router.push('/(drawer)/budget' as any);
     } else if (path === '/(drawer)/about') {
@@ -89,6 +91,10 @@ export const useDrawer =()=>{
     if (path === '/(drawer)/(tabs)/dashboard') {
       // For dashboard tab
       return seg0 === '(drawer)' && seg1 === '(tabs)' && seg2 === 'dashboard';
+    }
+    if (path === '/(drawer)/(tabs)/budget') {
+      // For budget tab
+      return seg0 === '(drawer)' && seg1 === '(tabs)' && seg2 === 'budget';
     }
     if (path === '/(drawer)/budget') {
       return seg0 === '(drawer)' && seg1 === 'budget';
