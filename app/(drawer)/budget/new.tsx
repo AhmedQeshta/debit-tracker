@@ -6,10 +6,10 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ArrowLeft } from 'lucide-react-native';
 import { CurrencyPicker } from '@/components/CurrencyPicker';
-import { useNewBudget } from '@/hooks/budget/useNewBudget';
+import { useBudgetCreate } from '@/hooks/budget/useBudgetCreate';
 
 export default function NewBudget() {
-  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave,router, setTitleError,setBudgetError } = useNewBudget();
+  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave,router, setTitleError,setBudgetError } = useBudgetCreate();
   return (
     <ScreenContainer>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>

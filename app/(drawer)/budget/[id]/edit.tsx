@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ArrowLeft } from 'lucide-react-native';
-import { useEditBudget } from '@/hooks/budget/useEditBudget';
+import { useBudgetEdit } from '@/hooks/budget/useBudgetEdit';
 import { CurrencyPicker } from '@/components/CurrencyPicker';
 
 
 export default function EditBudget() {
-  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave,router, setTitleError,setBudgetError,budget } = useEditBudget();
+  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave, router, setTitleError,setBudgetError,budget } = useBudgetEdit();
 
   if (!budget) {
     return (
