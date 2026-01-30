@@ -1,4 +1,6 @@
+import 'react-native-reanimated';
 import { Stack } from 'expo-router';
+// import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -22,7 +24,8 @@ const STACK_OPTIONS = {
   headerShown: false
 };
 
-export default function RootLayout() {
+export default function RootLayout()
+{
   useSplash();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -30,6 +33,7 @@ export default function RootLayout() {
         <Stack screenOptions={STACK_OPTIONS}>
           <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
         </Stack>
+        {/* <StatusBar style="auto" /> */}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -1,0 +1,42 @@
+name: Expo Cloud Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🟦 Checkout the code
+        uses: actions/checkout@v3
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 💙 Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: 🔐 Set Expo token
+        run: |
+          echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
+
+      - name: 🚀 Trigger EAS Cloud Build (Android + iOS)
+        run: |
+          eas build \
+            --platform all \
+            --profile production \
+            --non-interactive
+
+      - name: 📄 Show build links
+        run: |
+          echo "----- Expo Build Logs -----"
+          eas build:list --status in-progress,finished --limit 5

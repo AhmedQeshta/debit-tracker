@@ -66,6 +66,14 @@ types/              # TypeScript model definitions
    - Scan the QR code with the **Expo Go** app (Android) or Camera (iOS).
    - Press `a` for Android Emulator or `i` for iOS Simulator.
 
+## 📱 Asset Requirements
+
+**Important**: The following icon images must be square (equal width and height):
+- `./assets/icon.png` - App icon (recommended: 1024x1024)
+- `./assets/adaptive-icon.png` - Android adaptive icon foreground (recommended: 1024x1024)
+
+Currently these images are 1115x1073 and need to be resized to square dimensions for Expo validation to pass.
+
 ## 🔄 Sync Engine Logic
 
 The app uses a robust background sync pattern:
