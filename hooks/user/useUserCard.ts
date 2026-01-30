@@ -1,21 +1,23 @@
-import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { TouchableOpacity, View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native';
+import { Animated } from "react-native";
+import { State } from "react-native-gesture-handler";
 import { User } from "@/types/models";
-import { State } from 'react-native-gesture-handler';
-import { IMenuItem } from "@/types/common";
-import { Colors } from "@/theme/colors";
-import { Pencil, Pin, PinOff, Trash2 } from "lucide-react-native";
+import { useNavigation } from "@/hooks/useNavigation";
+import { createMenuItems } from "@/components/user/createMenuItems";
 
-export const useUserCard = (user: User, onPinToggle: (userId: string) => void, handleUserDelete: (userId: string, userName: string) => void) =>
+export const useUserCard = (
+  user: User,
+  onPinToggle: (userId: string) => void,
+  handleUserDelete: (userId: string, userName: string) => void
+) =>
 {
-  const router = useRouter();
+  const { navigateToUser, navigateToUserEdit } = useNavigation();
   const translateX = useRef(new Animated.Value(0)).current;
   const [isPinning, setIsPinning] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const lastTranslateX = useRef(0);
 
-  const handlePinToggle = () =>
+  const handlePinToggle = (): void =>
   {
     if (onPinToggle && !isPinning)
     {
@@ -25,7 +27,7 @@ export const useUserCard = (user: User, onPinToggle: (userId: string) => void, h
     }
   };
 
-  const onGestureEvent = (event: any) =>
+  const onGestureEvent = (event: any): void =>
   {
     const { translationX } = event.nativeEvent;
     // Only allow swiping left (negative translation), clamp to -80
@@ -37,7 +39,7 @@ export const useUserCard = (user: User, onPinToggle: (userId: string) => void, h
     }
   };
 
-  const onHandlerStateChange = (event: any) =>
+  const onHandlerStateChange = (event: any): void =>
   {
     if (event.nativeEvent.oldState === State.ACTIVE)
     {
@@ -71,12 +73,12 @@ export const useUserCard = (user: User, onPinToggle: (userId: string) => void, h
     }
   };
 
-  const handleCardPress = () =>
+  const handleCardPress = (): void =>
   {
     const currentValue = lastTranslateX.current;
     if (Math.abs(currentValue) < 10)
     {
-      router.push(`/user/${user.id}`);
+      navigateToUser(user.id);
     } else
     {
       // Reset position if swiped
@@ -94,31 +96,22 @@ export const useUserCard = (user: User, onPinToggle: (userId: string) => void, h
     transform: [{ translateX }],
   };
 
+  const handleEdit = (): void =>
+  {
+    navigateToUserEdit(user.id);
+  };
 
+  const handleDelete = (): void =>
+  {
+    handleUserDelete(user.id, user.name);
+  };
 
-  const menuItems: IMenuItem[] = [
-    {
-      icon: user.pinned ? (
-        <PinOff size={18} color={Colors.text} />
-      ) : (
-        <Pin size={18} color={Colors.text} />
-      ),
-      label: user.pinned ? 'Unpin User' : 'Pin User',
-      onPress: () => handlePinToggle(),
-    },
-    {
-      icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit User',
-      onPress: () => router.push(`/user/${user.id}/edit`),
-    },
-    {
-      icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete User',
-      onPress: () => handleUserDelete(user.id, user.name),
-      danger: true,
-    },
-  ];
-
+  const menuItems = createMenuItems(
+    user,
+    handlePinToggle,
+    handleEdit,
+    handleDelete
+  );
 
   return {
     animatedStyle,

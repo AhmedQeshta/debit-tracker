@@ -26,3 +26,20 @@ export interface IFilteredUsersProps {
   handleUserDelete: (userId: string, userName: string) => void;
   handlePinToggle: (userId: string) => void;
 }
+
+
+/**
+ * Type definitions for form data and errors
+ */
+export interface IUserFormData {
+  name: string;
+  bio: string;
+  currency: string;
+}
+
+export interface IUserFormErrors {
+  name?: string;
+  bio?: string;
+  currency?: string;
+}
+

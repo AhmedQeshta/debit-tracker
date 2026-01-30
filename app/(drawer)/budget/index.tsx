@@ -1,14 +1,15 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Menu, Plus } from 'lucide-react-native';
 import { EmptySection } from '@/components/ui/EmptySection';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
-import { BudgetCard } from '@/components/BudgetCard';
-export default function BudgetList() {
+import { BudgetCard } from '@/components/budget/BudgetCard';
+export default function BudgetList()
+{
 
-  const { sortedBudgets, handlePinToggle, handleDelete, router, openDrawer,getTotalSpent,getRemainingBudget } = useBudgetList();
+  const { sortedBudgets, handlePinToggle, handleDelete, router, openDrawer, getTotalSpent, getRemainingBudget } = useBudgetList();
 
   return (
     <View style={styles.wrapper}>
@@ -32,9 +33,10 @@ export default function BudgetList() {
         <FlatList
           data={sortedBudgets}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
+          renderItem={({ item }) =>
+          {
             return <BudgetCard item={item} handlePinToggle={handlePinToggle} handleDelete={handleDelete} getTotalSpent={getTotalSpent} getRemainingBudget={getRemainingBudget} />
-           
+
           }}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={

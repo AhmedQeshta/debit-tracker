@@ -1,18 +1,20 @@
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ArrowLeft } from 'lucide-react-native';
-import { useEditBudget } from '@/hooks/budget/useEditBudget';
-import { CurrencyPicker } from '@/components/CurrencyPicker';
+import { useBudgetEdit } from '@/hooks/budget/useBudgetEdit';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 
 
-export default function EditBudget() {
-  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave,router, setTitleError,setBudgetError,budget } = useEditBudget();
+export default function EditBudget()
+{
+  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave, router, setTitleError, setBudgetError, budget } = useBudgetEdit();
 
-  if (!budget) {
+  if (!budget)
+  {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -33,7 +35,8 @@ export default function EditBudget() {
         <Input
           label="Budget Title"
           value={title}
-          onChangeText={(text) => {
+          onChangeText={(text) =>
+          {
             setTitle(text);
             setTitleError('');
           }}
@@ -44,7 +47,8 @@ export default function EditBudget() {
         <Input
           label="Total Budget"
           value={totalBudget}
-          onChangeText={(text) => {
+          onChangeText={(text) =>
+          {
             setTotalBudget(text);
             setBudgetError('');
           }}

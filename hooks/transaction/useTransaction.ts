@@ -1,4 +1,5 @@
-import { getFinalAmount } from "@/lib/utils";
+import { showError } from "@/lib/alert";
+import { generateId, getFinalAmount } from "@/lib/utils";
 import { syncData } from "@/services/sync";
 import { useSyncStore } from "@/store/syncStore";
 import { useTransactionsStore } from "@/store/transactionsStore";
@@ -24,21 +25,21 @@ export const useTransaction = () => {
 
   const handleSave = () => {
     if (!userId) {
-      Alert.alert('Error', 'Please select a user');
+      showError('Error', 'Please select a user');
       return;
     }
     if (!amount || isNaN(Number(amount))) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      showError('Error', 'Please enter a valid amount');
       return;
     }
     if (!description.trim()) {
-      Alert.alert('Error', 'Description is required');
+      showError('Error', 'Description is required');
       return;
     }
 
 
     const newTransaction = {
-      id: Math.random().toString(36).substring(7),
+      id: generateId(),
       userId,
       amount: getFinalAmount(amount, isNegative),
       description,
@@ -48,7 +49,7 @@ export const useTransaction = () => {
 
     addTransaction(newTransaction);
     addToQueue({
-      id: Math.random().toString(36).substring(7),
+      id: generateId(),
       type: 'transaction',
       action: 'create',
       payload: newTransaction,

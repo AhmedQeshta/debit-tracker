@@ -1,26 +1,31 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image, Linking, Alert } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
 import { Menu, Mail, Phone, MapPin, Linkedin, Github, Globe } from 'lucide-react-native';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 
-export default function About() {
+export default function About()
+{
   const { openDrawer } = useDrawerContext();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 
-  const handleEmailPress = () => {
+  const handleEmailPress = () =>
+  {
     Linking.openURL('mailto:ahmed.qeshta.dev@gmail.com');
   };
 
-  const handlePhonePress = () => {
+  const handlePhonePress = () =>
+  {
     Linking.openURL('tel:+970592157001');
   };
 
-  const handleLinkPress = (url: string) => {
-    Linking.openURL(url).catch(() => {
+  const handleLinkPress = (url: string) =>
+  {
+    Linking.openURL(url).catch(() =>
+    {
       Alert.alert('Error', 'Could not open the link');
     });
   };
@@ -53,9 +58,9 @@ export default function About() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>
-            DebitTracker is a premium, offline-first mobile application designed to help you manage 
-            personal finances with ease. Track debts, transactions, and balances seamlessly, even 
-            without an internet connection. Built with modern technologies for a fast, reliable, 
+            DebitTracker is a premium, offline-first mobile application designed to help you manage
+            personal finances with ease. Track debts, transactions, and balances seamlessly, even
+            without an internet connection. Built with modern technologies for a fast, reliable,
             and intuitive user experience.
           </Text>
         </View>
@@ -77,11 +82,11 @@ export default function About() {
         {/* Developer Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Developer</Text>
-          
+
           <View style={styles.developerCard}>
             <Text style={styles.developerName}>Ahmed Qeshta</Text>
             <Text style={styles.developerTitle}>Computer Engineer - Full Stack Engineer</Text>
-            
+
             <View style={styles.contactInfo}>
               <TouchableOpacity
                 style={styles.contactItem}
@@ -90,7 +95,7 @@ export default function About() {
                 <Mail size={18} color={Colors.primary} />
                 <Text style={styles.contactText}>ahmed.qeshta.dev@gmail.com</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.contactItem}
                 onPress={handlePhonePress}
@@ -98,7 +103,7 @@ export default function About() {
                 <Phone size={18} color={Colors.primary} />
                 <Text style={styles.contactText}>+970592157001</Text>
               </TouchableOpacity>
-              
+
               <View style={styles.contactItem}>
                 <MapPin size={18} color={Colors.primary} />
                 <Text style={styles.contactText}>Palestine, Gaza Strip, Gaza</Text>
@@ -113,7 +118,7 @@ export default function About() {
                 <Linkedin size={16} color={Colors.primary} />
                 <Text style={styles.socialText}>LinkedIn</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.socialButton}
                 onPress={() => handleLinkPress('https://github.com/ahmed-qeshta')}
@@ -121,7 +126,7 @@ export default function About() {
                 <Github size={16} color={Colors.primary} />
                 <Text style={styles.socialText}>GitHub</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.socialButton}
                 onPress={() => handleLinkPress('https://ahmed.qeshta.dev')}
@@ -134,21 +139,21 @@ export default function About() {
             <View style={styles.developerInfo}>
               <Text style={styles.developerSubtitle}>Professional Summary</Text>
               <Text style={styles.developerDescription}>
-                Experienced Full Stack Engineer with a strong focus on React, Next.js, and modern 
-                web technologies. Specialized in building production-ready applications with emphasis 
-                on component architecture, state management, and performance optimization. Comfortable 
+                Experienced Full Stack Engineer with a strong focus on React, Next.js, and modern
+                web technologies. Specialized in building production-ready applications with emphasis
+                on component architecture, state management, and performance optimization. Comfortable
                 working across the full stack, from frontend UI/UX to backend APIs and database design.
               </Text>
-              
+
               <Text style={styles.developerSubtitle}>Education</Text>
               <Text style={styles.developerDescription}>
-                Bachelor's degree in Computer Engineering from The Islamic University of Gaza 
+                Bachelor's degree in Computer Engineering from The Islamic University of Gaza
                 (April 2016 - June 2021)
               </Text>
-              
+
               <Text style={styles.developerSubtitle}>Key Skills</Text>
               <Text style={styles.developerDescription}>
-                React.js, Next.js, React Native, Node.js, TypeScript, JavaScript, PHP/Laravel, 
+                React.js, Next.js, React Native, Node.js, TypeScript, JavaScript, PHP/Laravel,
                 REST APIs, GraphQL, PostgreSQL, MongoDB, AWS, Docker, Git, and modern development tools.
               </Text>
             </View>
@@ -206,7 +211,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: Spacing.xl,
-    paddingHorizontal:Spacing.md,
+    paddingHorizontal: Spacing.md,
   },
   sectionTitle: {
     fontSize: 20,
@@ -236,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     lineHeight: 24,
-    textAlign:'justify',
+    textAlign: 'justify',
   },
   featureList: {
     marginTop: Spacing.sm,
@@ -323,7 +328,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     lineHeight: 20,
     marginBottom: Spacing.sm,
-    textAlign:'justify',
+    textAlign: 'justify',
   },
   footer: {
     marginTop: Spacing.xl,

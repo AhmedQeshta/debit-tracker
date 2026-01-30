@@ -1,15 +1,16 @@
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ArrowLeft } from 'lucide-react-native';
-import { CurrencyPicker } from '@/components/CurrencyPicker';
-import { useNewBudget } from '@/hooks/budget/useNewBudget';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
+import { useBudgetCreate } from '@/hooks/budget/useBudgetCreate';
 
-export default function NewBudget() {
-  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave,router, setTitleError,setBudgetError } = useNewBudget();
+export default function NewBudget()
+{
+  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave, router, setTitleError, setBudgetError } = useBudgetCreate();
   return (
     <ScreenContainer>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -20,20 +21,22 @@ export default function NewBudget() {
         <Input
           label="Budget Title"
           value={title}
-          onChangeText={(text) => {
+          onChangeText={(text) =>
+          {
             setTitle(text);
             setTitleError('');
           }}
           placeholder="e.g. Monthly Groceries"
           error={titleError}
         />
-   
+
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
 
         <Input
           label="Total Budget"
           value={totalBudget}
-          onChangeText={(text) => {
+          onChangeText={(text) =>
+          {
             setTotalBudget(text);
             setBudgetError('');
           }}

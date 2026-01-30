@@ -1,18 +1,18 @@
 
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useEditUser } from '@/hooks/user/useEditUser';
+import { useUserEdit } from '@/hooks/user/useUserEdit';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import { CurrencyPicker } from '@/components/CurrencyPicker';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 
 export default function EditUser()
 {
-  const { name, setName, bio, setBio, currency, setCurrency, handleSave, user, router } = useEditUser();
+  const { name, setName, bio, setBio, currency, setCurrency, handleSave, user, router } = useUserEdit();
   const insets = useSafeAreaInsets();
 
   if (!user)

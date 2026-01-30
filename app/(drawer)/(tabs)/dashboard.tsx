@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Wifi, WifiOff, Menu, Calculator } from 'lucide-react-native';
@@ -9,15 +9,16 @@ import { formatCurrency } from '@/lib/utils';
 import { PinnedCards } from '@/components/dashboard/PinnedCards';
 import { Text as RNText } from 'react-native';
 
-export default function Dashboard() {
-  const { 
-    users, 
-    queueSize, 
-    isOnline, 
-    globalDebit, 
-    totalPaidBack, 
-    pinnedUsers, 
-    pinnedCount, 
+export default function Dashboard()
+{
+  const {
+    users,
+    queueSize,
+    isOnline,
+    globalDebit,
+    totalPaidBack,
+    pinnedUsers,
+    pinnedCount,
     pinnedBudgets,
     pinnedBudgetCount,
     getUserBalance,
@@ -28,7 +29,7 @@ export default function Dashboard() {
     handleUnpinBudget
   } = useDashboard();
   const { openDrawer } = useDrawerContext();
- 
+
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
@@ -40,7 +41,7 @@ export default function Dashboard() {
               activeOpacity={0.7}>
               <Menu size={24} color={Colors.text} />
             </TouchableOpacity>
-          <Text style={styles.title}>Dashboard</Text>
+            <Text style={styles.title}>Dashboard</Text>
           </View>
           <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
             {isOnline ? <Wifi size={14} stroke="#000" /> : <WifiOff size={14} stroke="#fff" />}

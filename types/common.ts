@@ -57,3 +57,15 @@ export interface IActionsProps {
   setMenuVisible: (visible: boolean) => void;
   menuItems: IMenuItem[];
 }
+
+export interface IPinnedCardsProps {
+  title: string;
+  count: number;
+  items: any[];
+  renderAvatar: (item: any) => React.ReactNode;
+  getTitle: (item: any) => string;
+  getAmount: (item: any) => number;
+  formatAmount: (amount: number, item: any) => string;
+  getNavigationPath: (item: any) => string;
+  onUnpin: (id: string, e: any) => void;
+}

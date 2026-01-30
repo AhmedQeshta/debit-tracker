@@ -1,11 +1,12 @@
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../theme/colors';
-import { Spacing } from '../theme/spacing';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
 import { IActionCardProps } from '@/types/common';
 
 
-export const ActionCard = ({ icon: Icon, title, onPress, disabled }: IActionCardProps) => {
+export const ActionCard = ({ icon: Icon, title, onPress, disabled }: IActionCardProps) =>
+{
   return (
     <TouchableOpacity
       style={[styles.container, disabled && styles.disabled]}

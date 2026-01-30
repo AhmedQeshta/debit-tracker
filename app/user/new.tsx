@@ -1,17 +1,17 @@
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useNewUser } from '@/hooks/user/useNewUser';
+import { useUserCreate } from '@/hooks/user/useUserCreate';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import { CurrencyPicker } from '@/components/CurrencyPicker';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 
 export default function AddUser()
 {
-  const { name, setName, bio, setBio, currency, setCurrency, handleSave, router } = useNewUser();
+  const { name, setName, bio, setBio, currency, setCurrency, handleSave, router } = useUserCreate();
   const insets = useSafeAreaInsets();
   return (
     <ScreenContainer>

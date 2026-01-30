@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';

@@ -1,5 +1,6 @@
 import { Colors } from "@/theme/colors";
-import { Transaction, User } from "@/types/models";
+import { Budget, Transaction, User } from "@/types/models";
+import { Alert } from "react-native";
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
   return [...allTransactions]
@@ -79,3 +80,56 @@ export const CURRENCIES = [
 export const formatCurrency = (amount: number, currency: string) => {
   return `${currency || '$'} ${amount.toFixed(2)}`;
 };
+
+export const safeId = (id: string | string[] | undefined): string =>
+  {
+    if (typeof id === "string") return id;
+    if (Array.isArray(id) && id.length > 0) return id[0];
+    return "";
+  };
+
+
+
+/**
+ * Validation helpers
+ */
+export const validateTitle = (title: string): string | null =>
+  {
+    if (!title.trim()) return "Title is required";
+    if (title.length > 50) return "Title must be less than 50 characters";
+    return null;
+  };
+  
+export const validateAmount = (
+    amount: string,
+    minValue: number = 0
+  ): string | null =>
+  {
+    const num = parseFloat(amount);
+    if (isNaN(num)) return "Amount must be a valid number";
+    if (minValue === 0 && num < 0) return "Amount must be a valid number >= 0";
+    if (minValue > 0 && num <= 0) return "Amount must be a valid number > 0";
+    return null;
+  };
+
+
+  export const sortBudgets = (budgets: Budget[])=> [...budgets].sort((a, b) =>
+    {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.createdAt - a.createdAt;
+    });
+
+
+    /**
+ * Validation helpers
+ */
+export const validateUserName = (name: string): string | null => {
+  if (!name.trim()) return "Name is required";
+  if (name.length > 50) return "Name must be less than 50 characters";
+  return null;
+};
+
+
+export const generateId = (): string => Math.random().toString(36).substring(2, 15);;
+
