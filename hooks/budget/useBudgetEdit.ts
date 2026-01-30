@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useBudgetStore } from "@/store/budgetStore";
 import { safeId } from "@/lib/utils";
-import { useBudgetNavigation } from "@/hooks/budget/useBudgetNavigation";
+import { useNavigation } from "@/hooks/useNavigation";
 import { validateTitle, validateAmount } from "@/lib/utils";
 import { showSuccess } from "@/lib/alert";
 
@@ -14,7 +14,7 @@ export const useBudgetEdit = () =>
   const budgetId = safeId(id);
   const budget = useBudgetStore((state) => state.getBudget(budgetId));
   const { updateBudget } = useBudgetStore();
-  const { navigateBack } = useBudgetNavigation();
+  const { navigateBack } = useNavigation();
 
   const [title, setTitle] = useState("");
   const [currency, setCurrency] = useState("$");

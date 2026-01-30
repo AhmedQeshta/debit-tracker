@@ -5,14 +5,14 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useEditUser } from '@/hooks/user/useEditUser';
+import { useUserEdit } from '@/hooks/user/useUserEdit';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { CurrencyPicker } from '@/components/CurrencyPicker';
 
 export default function EditUser()
 {
-  const { name, setName, bio, setBio, currency, setCurrency, handleSave, user, router } = useEditUser();
+  const { name, setName, bio, setBio, currency, setCurrency, handleSave, user, router } = useUserEdit();
   const insets = useSafeAreaInsets();
 
   if (!user)

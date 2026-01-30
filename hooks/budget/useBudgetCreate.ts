@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { useBudgetStore } from "@/store/budgetStore";
-import { useBudgetNavigation } from "@/hooks/budget/useBudgetNavigation";
+import { useNavigation } from "@/hooks/useNavigation";
 import { validateTitle, validateAmount } from "@/lib/utils";
 import { showSuccess } from "@/lib/alert";
 
@@ -10,7 +10,7 @@ export const useBudgetCreate = () =>
 {
   const router = useRouter();
   const { addBudget } = useBudgetStore();
-  const { navigateToBudget } = useBudgetNavigation();
+  const { navigateToBudget } = useNavigation();
 
   const [title, setTitle] = useState("");
   const [currency, setCurrency] = useState("$");

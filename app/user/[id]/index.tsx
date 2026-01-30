@@ -10,12 +10,12 @@ import { Pencil, Trash2, Pin, PinOff, ArrowLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IMenuItem } from '@/types/common';
 
-import { useUserDetails } from '@/hooks/user/useUserDetails';
+import { useUserDetail } from '@/hooks/user/useUserDetail';
 import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 
 export default function UserDetails()
 {
-  const { user, transactions, balance, handleEditUser, handleDeleteUser, handleEditTransaction, handleDeleteTransaction, handlePinToggle, router, id } = useUserDetails();
+  const { user, transactions, balance, handleEditUser, handleDeleteUser, handleEditTransaction, handleDeleteTransaction, handlePinToggle, router, id } = useUserDetail();
   const insets = useSafeAreaInsets();
   const [userMenuVisible, setUserMenuVisible] = useState(false);
 

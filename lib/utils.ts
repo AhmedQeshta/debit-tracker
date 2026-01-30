@@ -1,5 +1,6 @@
 import { Colors } from "@/theme/colors";
 import { Budget, Transaction, User } from "@/types/models";
+import { Alert } from "react-native";
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
   return [...allTransactions]
@@ -118,3 +119,18 @@ export const validateAmount = (
       if (!a.pinned && b.pinned) return 1;
       return b.createdAt - a.createdAt;
     });
+
+
+    /**
+ * Validation helpers
+ */
+export const validateUserName = (name: string): string | null => {
+  if (!name.trim()) return "Name is required";
+  if (name.length > 50) return "Name must be less than 50 characters";
+  return null;
+};
+
+
+export const generateId = (): string => Math.random().toString(36).substring(2, 15);;
+
+export const showError = (title: string, message: string): void => Alert.alert(title, message);
