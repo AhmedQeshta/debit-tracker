@@ -6,6 +6,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useEditTransaction } from '@/hooks/transaction/useEditTransaction';
 import { ArrowLeft } from 'lucide-react-native';
+import { EmptySection } from '@/components/ui/EmptySection';
 
 export default function EditTransaction()
 {
@@ -14,9 +15,11 @@ export default function EditTransaction()
   if (!transaction)
   {
     return (
-      <ScreenContainer>
-        <Button title="Go Back" onPress={() => router.back()} />
-      </ScreenContainer>
+      <EmptySection
+        title={'Transaction Not Found'}
+        description={'The transaction you are looking for does not exist'}
+        icon={'transactions'}
+      />
     );
   }
 

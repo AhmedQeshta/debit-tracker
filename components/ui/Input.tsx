@@ -12,6 +12,9 @@ export const Input = ({
   keyboardType = 'default',
   error,
   multiline = false,
+  autoCapitalize,
+  secureTextEntry,
+  onBlur,
 }: IInputProps) => {
   return (
     <View style={styles.container}>
@@ -28,6 +31,9 @@ export const Input = ({
         placeholderTextColor={Colors.textSecondary}
         keyboardType={keyboardType}
         multiline={!!multiline}
+        autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
+        onBlur={onBlur}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>

@@ -1,34 +1,28 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Menu, Plus } from 'lucide-react-native';
 import { EmptySection } from '@/components/ui/EmptySection';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
 import { BudgetCard } from '@/components/budget/BudgetCard';
+import Header from '@/components/ui/Header';
+import NavigateTo from '@/components/ui/NavigateTo';
 
 export default function BudgetTab()
 {
-  const { sortedBudgets, handlePinToggle, handleDelete, router, openDrawer, getTotalSpent, getRemainingBudget } = useBudgetList();
+  const {
+    sortedBudgets,
+    handlePinToggle,
+    handleDelete,
+    openDrawer,
+    getTotalSpent,
+    getRemainingBudget,
+  } = useBudgetList();
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer scrollable={false}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={openDrawer}
-            style={styles.menuButton}
-            activeOpacity={0.7}>
-            <Menu size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Budgets</Text>
-          <TouchableOpacity
-            onPress={() => router.push('/(drawer)/budget/new')}
-            style={styles.addButton}
-            activeOpacity={0.7}>
-            <Plus size={24} color={Colors.text} />
-          </TouchableOpacity>
-        </View>
+        <Header openDrawer={openDrawer} title="Budgets" />
 
         <FlatList
           data={sortedBudgets}
@@ -54,6 +48,8 @@ export default function BudgetTab()
             />
           }
         />
+
+        <NavigateTo navigatePath="/(drawer)/budget/new" />
       </ScreenContainer>
     </View>
   );
@@ -86,4 +82,3 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 });
-

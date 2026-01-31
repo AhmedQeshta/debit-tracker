@@ -1,71 +1,141 @@
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useTransaction } from '@/hooks/transaction/useTransaction';
-import { router } from 'expo-router';
+import { useTransactionForm } from '@/hooks/transaction/useTransactionForm';
+import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { Controller } from 'react-hook-form';
+import { CATEGORIES } from '@/lib/data';
 
 export default function AddTransaction()
 {
-  const { users, userId, setUserId, isNegative, setIsNegative, amount, setAmount, description, setDescription, handleSave, selectedUser } = useTransaction();
+  const {
+    friends,
+    friendId,
+    setFriendId,
+    isNegative,
+    setIsNegative,
+    control,
+    handleSubmit,
+    errors,
+  } = useTransactionForm();
+  const router = useRouter();
+
+
   return (
     <ScreenContainer>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <ArrowLeft size={25} style={styles.ArrowLeft} color={Colors.text} />
         <Text style={styles.title}>Add Transaction</Text>
       </TouchableOpacity>
-      <View style={styles.form}>
-        <Text style={styles.label}>Select User</Text>
-        <View style={styles.userPicker}>
-          {users.length === 0 ? <Text style={styles.errorText}>No users available. Create one first.</Text> : users.map((u) => (
-            <TouchableOpacity key={u.id} style={[styles.userChip, userId === u.id && styles.userChipSelected]} onPress={() => setUserId(u.id)}>
-              <Text style={[styles.userChipText, userId === u.id && styles.userChipTextSelected]}>{u.name}</Text>
-              {userId === u.id && u.currency && (
-                <View style={styles.currencyBadgeInline}>
-                  <Text style={styles.currencySymbolInline}>{u.currency}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
 
-        <View style={styles.amountHeader}>
-          <Text style={styles.label}>Amount</Text>
-          <View style={styles.signToggle}>
-            <TouchableOpacity
-              style={[styles.signButton, !isNegative && styles.signButtonActivePositive]}
-              onPress={() => setIsNegative(false)}>
-              <Text style={styles.signText}>+</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.signButton, isNegative && styles.signButtonActiveNegative]}
-              onPress={() => setIsNegative(true)}>
-              <Text style={styles.signText}>-</Text>
-            </TouchableOpacity>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.form}>
+          <Text style={styles.label}>Select Friend</Text>
+          <View style={styles.userPicker}>
+            {friends.length === 0 ? (
+              <Text style={styles.errorText}>No friends available. Create one first.</Text>
+            ) : (
+              friends.map((f) => (
+                <TouchableOpacity
+                  key={f.id}
+                  style={[styles.userChip, friendId === f.id && styles.userChipSelected]}
+                  onPress={() => setFriendId(f.id)}>
+                  <Text
+                    style={[styles.userChipText, friendId === f.id && styles.userChipTextSelected]}>
+                    {f.name}
+                  </Text>
+                  {friendId === f.id && f.currency && (
+                    <View style={styles.currencyBadgeInline}>
+                      <Text style={styles.currencySymbolInline}>{f.currency}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))
+            )}
           </View>
+
+          <View style={styles.amountHeader}>
+            <Text style={styles.label}>Amount</Text>
+            <View style={styles.signToggle}>
+              <TouchableOpacity
+                style={[styles.signButton, !isNegative && styles.signButtonActivePositive]}
+                onPress={() => setIsNegative(false)}>
+                <Text style={styles.signText}>+</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.signButton, isNegative && styles.signButtonActiveNegative]}
+                onPress={() => setIsNegative(true)}>
+                <Text style={styles.signText}>-</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Controller
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                value={value}
+                onChangeText={onChange}
+                placeholder="0.00"
+                keyboardType="numeric"
+                error={errors.amount ? 'Amount is required' : undefined}
+              />
+            )}
+            name="amount"
+          />
+
+          <Controller
+            control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Title"
+                value={value}
+                onChangeText={onChange}
+                placeholder="e.g. Lunch, Borrowed cash..."
+                error={errors.title ? 'Title is required' : undefined}
+              />
+            )}
+            name="title"
+          />
+
+          <Text style={styles.label}>Category</Text>
+          <View style={styles.userPicker}>
+            {CATEGORIES.map((cat) => (
+              <Controller
+                key={cat}
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <TouchableOpacity
+                    style={[styles.userChip, value === cat && styles.userChipSelected]}
+                    onPress={() => onChange(cat)}>
+                    <Text
+                      style={[styles.userChipText, value === cat && styles.userChipTextSelected]}>
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                name="category"
+              />
+            ))}
+          </View>
+
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              {isNegative
+                ? 'Friendly reminder: You owe this friend.'
+                : 'Nice! This friend owes you.'}
+            </Text>
+          </View>
+
+          <Button title="Add Transaction" onPress={handleSubmit} disabled={friends.length === 0} />
         </View>
-
-        <Input value={amount} onChangeText={setAmount} placeholder="0.00" keyboardType="numeric" />
-
-        <Input
-          label="Description"
-          value={description}
-          onChangeText={setDescription}
-          placeholder="e.g. Lunch, Borrowed cash..."
-          multiline
-        />
-
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            {isNegative ? 'This user owes you this amount.' : 'You owe this user this amount.'}
-          </Text>
-        </View>
-
-        <Button title="Add Transaction" onPress={handleSave} disabled={users.length === 0} />
-      </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }

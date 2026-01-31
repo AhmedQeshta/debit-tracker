@@ -1,12 +1,11 @@
-import { useRouter, useSegments } from "expo-router";
-import { useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {  Animated } from 'react-native';
-
+import { useRouter, useSegments } from 'expo-router';
+import { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Animated } from 'react-native';
 
 export const DRAWER_WIDTH = 280;
 
-export const useDrawer =()=>{
+export const useDrawer = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
   const segments = useSegments();
@@ -56,19 +55,12 @@ export const useDrawer =()=>{
   };
 
   const navigateTo = (path: string) => {
-    // Use relative paths for Expo Router
-    if (path === '/(drawer)/(tabs)' || path === '/(drawer)/(tabs)/index') {
-      router.push('/(drawer)/(tabs)' as any);
-    } else if (path === '/(drawer)/(tabs)/users') {
-      router.push('/(drawer)/(tabs)/users' as any);
-    } else if (path === '/(drawer)/(tabs)/dashboard') {
-      router.push('/(drawer)/(tabs)/dashboard' as any);
-    } else if (path === '/(drawer)/(tabs)/budget') {
-      router.push('/(drawer)/(tabs)/budget' as any);
-    } else if (path === '/(drawer)/budget') {
-      router.push('/(drawer)/budget' as any);
-    } else if (path === '/(drawer)/about') {
-      router.push('/(drawer)/about' as any);
+    // Allow direct navigation for defined routes
+    if (path.startsWith('/(drawer)')) {
+      router.push(path as any);
+    } else {
+      // Fallback for any other paths
+      router.push(path as any);
     }
     closeDrawer();
   };
@@ -79,29 +71,29 @@ export const useDrawer =()=>{
     const seg0 = segArray[0];
     const seg1 = segArray[1];
     const seg2 = segArray[2];
-    
+
+    // Normalize path for comparison
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const pathSegments = cleanPath.split('/');
+
     if (path === '/(drawer)/(tabs)' || path === '/(drawer)/(tabs)/index') {
-      // For home tab, check if we're on index route
-      return seg0 === '(drawer)' && seg1 === '(tabs)' && (segArray.length === 2 || seg2 === 'index' || !seg2);
+      return (
+        seg0 === '(drawer)' &&
+        seg1 === '(tabs)' &&
+        (segArray.length === 2 || seg2 === 'index' || !seg2)
+      );
     }
-    if (path === '/(drawer)/(tabs)/users') {
-      // For users tab
-      return seg0 === '(drawer)' && seg1 === '(tabs)' && seg2 === 'users';
+
+    // Match segments
+    // (drawer)/(tabs)/friends -> seg0=(drawer), seg1=(tabs), seg2=friends
+    if (pathSegments.length >= 3) {
+      return seg0 === pathSegments[0] && seg1 === pathSegments[1] && seg2 === pathSegments[2];
     }
-    if (path === '/(drawer)/(tabs)/dashboard') {
-      // For dashboard tab
-      return seg0 === '(drawer)' && seg1 === '(tabs)' && seg2 === 'dashboard';
+
+    if (pathSegments.length === 2) {
+      return seg0 === pathSegments[0] && seg1 === pathSegments[1];
     }
-    if (path === '/(drawer)/(tabs)/budget') {
-      // For budget tab
-      return seg0 === '(drawer)' && seg1 === '(tabs)' && seg2 === 'budget';
-    }
-    if (path === '/(drawer)/budget') {
-      return seg0 === '(drawer)' && seg1 === 'budget';
-    }
-    if (path === '/(drawer)/about') {
-      return seg0 === '(drawer)' && seg1 === 'about';
-    }
+
     return false;
   };
 
@@ -115,7 +107,5 @@ export const useDrawer =()=>{
     drawerOpen,
     overlayAnim,
     slideAnim,
-
-
-  }
-}
+  };
+};

@@ -1,5 +1,5 @@
 import { useSyncStore } from '../store/syncStore';
-import { useUsersStore } from '../store/usersStore';
+import { useFriendsStore } from '../store/friendsStore';
 import { useTransactionsStore } from '../store/transactionsStore';
 import { checkNetwork } from './net';
 
@@ -11,7 +11,7 @@ export const syncData = async () => {
   }
 
   const { queue, isSyncing, setSyncing, removeFromQueue } = useSyncStore.getState();
-  const { markAsSynced: markUserSynced } = useUsersStore.getState();
+  const { markAsSynced: markFriendSynced } = useFriendsStore.getState();
   const { markAsSynced: markTransactionSynced } = useTransactionsStore.getState();
 
   if (queue.length === 0 || isSyncing) return;
@@ -30,8 +30,8 @@ export const syncData = async () => {
 
       console.log(`Synced ${item.type} action ${item.action}: ${item.id}`);
 
-      if (item.type === 'user') {
-        markUserSynced(item.payload.id);
+      if (item.type === 'friend') {
+        markFriendSynced(item.payload.id);
       } else if (item.type === 'transaction') {
         markTransactionSynced(item.payload.id);
       }

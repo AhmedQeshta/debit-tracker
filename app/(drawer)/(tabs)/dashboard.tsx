@@ -1,32 +1,30 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Text as RNText } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Wifi, WifiOff, Menu, Calculator } from 'lucide-react-native';
+import { Wifi, WifiOff, Calculator } from 'lucide-react-native';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { formatCurrency } from '@/lib/utils';
 import { PinnedCards } from '@/components/dashboard/PinnedCards';
-import { Text as RNText } from 'react-native';
+import Header from '@/components/ui/Header';
 
 export default function Dashboard()
 {
   const {
-    users,
+    friends,
     queueSize,
     isOnline,
     globalDebit,
     totalPaidBack,
-    pinnedUsers,
+    pinnedFriends,
     pinnedCount,
     pinnedBudgets,
     pinnedBudgetCount,
-    getUserBalance,
-    getBudgetTotalSpent,
+    getFriendBalance,
     getBudgetRemaining,
-    router,
     handleUnpin,
-    handleUnpinBudget
+    handleUnpinBudget,
   } = useDashboard();
   const { openDrawer } = useDrawerContext();
 
@@ -34,15 +32,7 @@ export default function Dashboard()
     <View style={styles.wrapper}>
       <ScreenContainer>
         <View style={styles.statusHeader}>
-          <View style={styles.titleRow}>
-            <TouchableOpacity
-              onPress={openDrawer}
-              style={styles.menuButton}
-              activeOpacity={0.7}>
-              <Menu size={24} color={Colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.title}>Dashboard</Text>
-          </View>
+          <Header openDrawer={openDrawer} title="Dashboard" />
           <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
             {isOnline ? <Wifi size={14} stroke="#000" /> : <WifiOff size={14} stroke="#fff" />}
             <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
@@ -53,14 +43,12 @@ export default function Dashboard()
 
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Total Users</Text>
-            <Text style={styles.statValue}>{users.length}</Text>
+            <Text style={styles.statLabel}>Total Friends</Text>
+            <Text style={styles.statValue}>{friends.length}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Pinned Users</Text>
-            <Text style={[styles.statValue, { color: Colors.primary }]}>
-              {pinnedCount}
-            </Text>
+            <Text style={styles.statLabel}>Pinned Friends</Text>
+            <Text style={[styles.statValue, { color: Colors.primary }]}>{pinnedCount}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Pending Syncs</Text>
@@ -86,16 +74,16 @@ export default function Dashboard()
         </View>
 
         <PinnedCards
-          title="Pinned Users"
+          title="Pinned Friends"
           count={pinnedCount}
-          items={pinnedUsers}
-          renderAvatar={(user) => (
-            <RNText style={styles.avatarText}>{user.name.charAt(0)}</RNText>
+          items={pinnedFriends}
+          renderAvatar={(friend) => (
+            <RNText style={styles.avatarText}>{friend.name.charAt(0)}</RNText>
           )}
-          getTitle={(user) => user.name}
-          getAmount={(user) => getUserBalance(user.id)}
+          getTitle={(friend) => friend.name}
+          getAmount={(friend) => getFriendBalance(friend.id)}
           formatAmount={(amount) => `$${amount.toFixed(2)}`}
-          getNavigationPath={(user) => `/user/${user.id}`}
+          getNavigationPath={(friend) => `/friend/${friend.id}`}
           onUnpin={handleUnpin}
         />
 
@@ -237,4 +225,3 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
-

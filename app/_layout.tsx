@@ -1,11 +1,45 @@
 import 'react-native-reanimated';
 import { Stack } from 'expo-router';
-// import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '../theme/colors';
 import { useSplash } from '@/hooks/useSplash';
+import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
+import * as SecureStore from 'expo-secure-store'; // Try to use SecureStore if possible, else AsyncStorage
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      const item = await SecureStore.getItemAsync(key);
+      if (item) {
+        console.log(`${key} was used 🔐 \n`);
+      } else {
+        console.log('No values stored under key: ' + key);
+      }
+      return item;
+    } catch (error) {
+      console.error('SecureStore get item error: ', error);
+      await SecureStore.deleteItemAsync(key);
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+if (!publishableKey) {
+  throw new Error(
+    'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
+  );
+}
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -21,20 +55,22 @@ const STACK_OPTIONS = {
   contentStyle: {
     backgroundColor: Colors.background,
   },
-  headerShown: false
+  headerShown: false,
 };
 
-export default function RootLayout()
-{
+export default function RootLayout() {
   useSplash();
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <Stack screenOptions={STACK_OPTIONS}>
-          <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-        </Stack>
-        {/* <StatusBar style="auto" /> */}
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+      <ClerkLoaded>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <Stack screenOptions={STACK_OPTIONS}>
+              <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+            </Stack>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ClerkLoaded>
+    </ClerkProvider>
   );
 }

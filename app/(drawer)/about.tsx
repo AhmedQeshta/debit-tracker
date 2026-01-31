@@ -6,26 +6,21 @@ import Constants from 'expo-constants';
 import { Menu, Mail, Phone, MapPin, Linkedin, Github, Globe } from 'lucide-react-native';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 
-export default function About()
-{
+export default function About() {
   const { openDrawer } = useDrawerContext();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 
-  const handleEmailPress = () =>
-  {
+  const handleEmailPress = () => {
     Linking.openURL('mailto:ahmed.qeshta.dev@gmail.com');
   };
 
-  const handlePhonePress = () =>
-  {
+  const handlePhonePress = () => {
     Linking.openURL('tel:+970592157001');
   };
 
-  const handleLinkPress = (url: string) =>
-  {
-    Linking.openURL(url).catch(() =>
-    {
+  const handleLinkPress = (url: string) => {
+    Linking.openURL(url).catch(() => {
       Alert.alert('Error', 'Could not open the link');
     });
   };
@@ -34,10 +29,7 @@ export default function About()
     <View style={styles.wrapper}>
       <ScreenContainer>
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={openDrawer}
-            style={styles.menuButton}
-            activeOpacity={0.7}>
+          <TouchableOpacity onPress={openDrawer} style={styles.menuButton} activeOpacity={0.7}>
             <Menu size={24} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>About</Text>
@@ -45,11 +37,7 @@ export default function About()
 
         {/* App Logo, Name and Version */}
         <View style={styles.appHeader}>
-          <Image
-            source={require('@/assets/icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={require('@/assets/icon.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.appName}>{appName}</Text>
           <Text style={styles.appVersion}>Version {appVersion}</Text>
         </View>
@@ -60,8 +48,8 @@ export default function About()
           <Text style={styles.description}>
             DebitTracker is a premium, offline-first mobile application designed to help you manage
             personal finances with ease. Track debts, transactions, and balances seamlessly, even
-            without an internet connection. Built with modern technologies for a fast, reliable,
-            and intuitive user experience.
+            without an internet connection. Built with modern technologies for a fast, reliable, and
+            intuitive user experience.
           </Text>
         </View>
 
@@ -71,7 +59,7 @@ export default function About()
           <View style={styles.featureList}>
             <Text style={styles.featureItem}>• Offline-First Architecture</Text>
             <Text style={styles.featureItem}>• Premium Dark Mode Interface</Text>
-            <Text style={styles.featureItem}>• User Management & Profiles</Text>
+            <Text style={styles.featureItem}>• Friend Management & Profiles</Text>
             <Text style={styles.featureItem}>• Transaction Tracking & History</Text>
             <Text style={styles.featureItem}>• Budget Calculator & Management</Text>
             <Text style={styles.featureItem}>• Dashboard & Analytics</Text>
@@ -140,28 +128,32 @@ export default function About()
               <Text style={styles.developerSubtitle}>Professional Summary</Text>
               <Text style={styles.developerDescription}>
                 Experienced Full Stack Engineer with a strong focus on React, Next.js, and modern
-                web technologies. Specialized in building production-ready applications with emphasis
-                on component architecture, state management, and performance optimization. Comfortable
-                working across the full stack, from frontend UI/UX to backend APIs and database design.
+                web technologies. Specialized in building production-ready applications with
+                emphasis on component architecture, state management, and performance optimization.
+                Comfortable working across the full stack, from frontend UI/UX to backend APIs and
+                database design.
               </Text>
 
               <Text style={styles.developerSubtitle}>Education</Text>
               <Text style={styles.developerDescription}>
-                Bachelor's degree in Computer Engineering from The Islamic University of Gaza
-                (April 2016 - June 2021)
+                {
+                  "Bachelor's degree in Computer Engineering from The Islamic University of Gaza (April 2016 - June 2021)"
+                }
               </Text>
 
               <Text style={styles.developerSubtitle}>Key Skills</Text>
               <Text style={styles.developerDescription}>
-                React.js, Next.js, React Native, Node.js, TypeScript, JavaScript, PHP/Laravel,
-                REST APIs, GraphQL, PostgreSQL, MongoDB, AWS, Docker, Git, and modern development tools.
+                React.js, Next.js, React Native, Node.js, TypeScript, JavaScript, PHP/Laravel, REST
+                APIs, GraphQL, PostgreSQL, MongoDB, AWS, Docker, Git, and modern development tools.
               </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2024 DebitTracker. All rights reserved.</Text>
+          <Text style={styles.footerText}>
+            © {new Date().getFullYear()} DebitTracker. All rights reserved.
+          </Text>
         </View>
       </ScreenContainer>
     </View>
@@ -342,4 +334,3 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
 });
-

@@ -1,14 +1,17 @@
-import { SyncQueueItem, Transaction, User, BudgetItem, Budget } from "@/types/models";
+import { SyncQueueItem, Transaction, Friend, BudgetItem, Budget } from '@/types/models';
 
 export interface ISyncState {
   queue: SyncQueueItem[];
   isSyncing: boolean;
+  syncEnabled: boolean;
+  lastSync: number | null;
   addToQueue: (item: SyncQueueItem) => void;
   removeFromQueue: (id: string) => void;
   setSyncing: (status: boolean) => void;
   clearQueue: () => void;
+  setSyncEnabled: (enabled: boolean) => void;
+  setLastSync: (timestamp: number) => void;
 }
-
 
 export interface ITransactionsState {
   transactions: Transaction[];
@@ -19,21 +22,20 @@ export interface ITransactionsState {
   markAsSynced: (id: string) => void;
 }
 
-
-export interface IUsersState {
-  users: User[];
-  addUser: (user: User) => void;
-  updateUser: (user: User) => void;
-  deleteUser: (id: string) => void;
-  setUsers: (users: User[]) => void;
+export interface IFriendsState {
+  friends: Friend[];
+  addFriend: (friend: Friend) => void;
+  updateFriend: (friend: Friend) => void;
+  deleteFriend: (id: string) => void;
+  setFriends: (friends: Friend[]) => void;
   markAsSynced: (id: string) => void;
-  pinUser: (id: string) => void;
-  unpinUser: (id: string) => void;
+  pinFriend: (id: string) => void;
+  unpinFriend: (id: string) => void;
 }
 
 export interface IBudgetState {
   budgets: Budget[];
-  addBudget: (title: string, currency: string, totalBudget: number) => string;
+  addBudget: (title: string, currency: string, totalBudget: number, friendId: string) => string;
   updateBudget: (id: string, updates: Partial<Budget>) => void;
   deleteBudget: (id: string) => void;
   pinBudget: (id: string) => void;
@@ -46,4 +48,3 @@ export interface IBudgetState {
   getRemainingBudget: (budgetId: string) => number;
   getBudget: (id: string) => Budget | undefined;
 }
-

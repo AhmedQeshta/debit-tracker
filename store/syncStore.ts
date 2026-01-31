@@ -1,19 +1,34 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SyncQueueItem } from '@/types/models';
 import { ISyncState } from '@/types/store';
-
-
 
 export const useSyncStore = create<ISyncState>()(
   persist(
     (set) => ({
       queue: [],
       isSyncing: false,
-      addToQueue: (item) => set((state) => ({ queue: [...state.queue, item] })),
-      removeFromQueue: (id) => set((state) => ({ queue: state.queue.filter((i) => i.id !== id) })),
-      setSyncing: (status) => set({ isSyncing: status }),
+      syncEnabled: false, // Default to false
+      lastSync: null,
+
+      addToQueue: (item: SyncQueueItem) =>
+        set((state) => ({
+          queue: [...state.queue, item],
+        })),
+
+      removeFromQueue: (id: string) =>
+        set((state) => ({
+          queue: state.queue.filter((item) => item.id !== id),
+        })),
+
+      setSyncing: (status: boolean) => set({ isSyncing: status }),
+
       clearQueue: () => set({ queue: [] }),
+
+      setSyncEnabled: (enabled: boolean) => set({ syncEnabled: enabled }),
+
+      setLastSync: (timestamp: number) => set({ lastSync: timestamp }),
     }),
     {
       name: 'sync-storage',
