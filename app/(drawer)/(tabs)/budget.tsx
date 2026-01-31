@@ -80,5 +80,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 100,
+    marginTop: Spacing.sm,
   },
 });

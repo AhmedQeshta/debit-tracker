@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   actions: {
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -Spacing.xs,

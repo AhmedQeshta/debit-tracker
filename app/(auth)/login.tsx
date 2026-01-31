@@ -1,4 +1,5 @@
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'; // Standard imports since UI components might need adaptation
+import { X } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Button } from '@/components/ui/Button'; // Assuming we have this
@@ -10,13 +11,19 @@ import { useLoginScreen } from '@/hooks/auth/useLoginScreen';
 
 export default function LoginScreen()
 {
-  const { control, handleSubmit, errors, loading, authError, onSignInPress, router } = useLoginScreen();
-
+  const { control, handleSubmit, errors, loading, authError, onSignInPress, router } =
+    useLoginScreen();
 
   return (
     <ScreenContainer>
       <View style={styles.container}>
-        <Text style={styles.title}>Welcome Back</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <TouchableOpacity onPress={() => router.replace('/')} style={styles.closeButton}>
+            <X size={24} color={Colors.text} />
+          </TouchableOpacity>
+        </View>
+
         <Text style={styles.subtitle}>Sign in to sync your data</Text>
 
         <Controller
@@ -76,7 +83,7 @@ export default function LoginScreen()
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.md,
   },
   title: {
     fontSize: 28,
@@ -103,5 +110,22 @@ const styles = StyleSheet.create({
   linkText: {
     color: Colors.primary,
     fontSize: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.sm,
+  },
+  closeButton: {
+    padding: Spacing.xs,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.round,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 32,
+    height: 32,
   },
 });

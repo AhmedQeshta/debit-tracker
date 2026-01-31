@@ -1,4 +1,5 @@
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { X } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Button } from '@/components/ui/Button';
@@ -10,13 +11,27 @@ import { useRegisterScreen } from '@/hooks/auth/useRegisterScreen';
 
 export default function RegisterScreen()
 {
-
-  const { control, handleSubmit, errors, loading, authError, onSignUpPress, onPressVerify, pendingVerification, router } = useRegisterScreen();
+  const {
+    control,
+    handleSubmit,
+    errors,
+    loading,
+    authError,
+    onSignUpPress,
+    onPressVerify,
+    pendingVerification,
+    router,
+  } = useRegisterScreen();
 
   return (
     <ScreenContainer>
       <View style={styles.container}>
-        <Text style={styles.title}>Create Account</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <TouchableOpacity onPress={() => router.replace('/')} style={styles.closeButton}>
+            <X size={24} color={Colors.text} />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.subtitle}>
           {pendingVerification ? 'Verify your email' : 'Start syncing your data'}
         </Text>
@@ -111,7 +126,7 @@ export default function RegisterScreen()
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.md,
   },
   title: {
     fontSize: 28,
@@ -138,5 +153,22 @@ const styles = StyleSheet.create({
   linkText: {
     color: Colors.primary,
     fontSize: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.sm,
+  },
+  closeButton: {
+    padding: Spacing.xs,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.round,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 32,
+    height: 32,
   },
 });

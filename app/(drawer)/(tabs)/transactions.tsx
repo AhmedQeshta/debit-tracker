@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: Spacing.md,
     paddingBottom: 100,
+    marginTop: Spacing.sm,
   },
   transactionCard: {
     flexDirection: 'row',

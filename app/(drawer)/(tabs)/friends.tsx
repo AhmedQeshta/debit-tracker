@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   headerRow: {
+    marginTop: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,

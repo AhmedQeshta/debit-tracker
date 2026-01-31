@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   badge: {
+    marginTop: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
