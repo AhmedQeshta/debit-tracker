@@ -18,11 +18,11 @@ export const useNavigation = () => {
 
   // Friend navigation methods
   const navigateToFriend = (id: string): void => {
-    router.push(`/friend/${id}`);
+    router.push(`/(drawer)/friend/${id}`);
   };
 
   const navigateToFriendEdit = (id: string): void => {
-    router.push(`/friend/${id}/edit`);
+    router.push(`/(drawer)/friend/${id}/edit`);
   };
 
   // Common navigation methods

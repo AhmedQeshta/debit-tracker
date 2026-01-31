@@ -53,9 +53,8 @@ export const useBudgetCreate = () => {
         action: 'create',
         payload: newBudget,
       });
-
-      router.back();
-    } finally {
+      router.push(`/(drawer)/budget/${budgetId}`)  
+      } finally {
       setLoading(false);
     }
   };

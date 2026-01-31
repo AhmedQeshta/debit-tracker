@@ -43,12 +43,12 @@ export default function Home() {
           <ActionCard
             icon={UserPlus}
             title="Add Friend"
-            onPress={() => router.push('/friend/new')}
+            onPress={() => router.push('/(drawer)/friend/new')}
           />
           <ActionCard
             icon={PlusCircle}
             title="Add Transaction"
-            onPress={() => router.push('/transaction/new')}
+            onPress={() => router.push('/(drawer)/transaction/new')}
             disabled={latestFriends.length === 0}
           />
           <ActionCard

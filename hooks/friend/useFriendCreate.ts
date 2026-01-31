@@ -51,7 +51,7 @@ export const useFriendCreate = () => {
       addToSyncQueue('friend', 'create', newFriend);
 
       await triggerSync();
-      navigateBack();
+      router.push(`/(drawer)/transaction/new`);
     } finally {
       setLoading(false);
     }

@@ -69,7 +69,7 @@ export const useTransactionForm = () => {
         payload: newTransaction,
       });
 
-      router.back();
+      router.push(`/(drawer)/friend/${data.friendId}`);
     } finally {
       setLoading(false);
     }

@@ -54,7 +54,7 @@ export const useFriendDetail = () => {
   };
 
   const handleEditTransaction = (transactionId: string): void => {
-    router.push(`/transaction/${transactionId}/edit`);
+    router.push(`/(drawer)/transaction/${transactionId}/edit`);
   };
 
   const handleDeleteTransaction = (transactionId: string): void => {

@@ -117,7 +117,7 @@ export default function FriendDetails()
         <Button
           title="+ Add Record"
           variant="secondary"
-          onPress={() => router.push({ pathname: '/transaction/new', params: { friendId: id } })}
+          onPress={() => router.push({ pathname: '/(drawer)/transaction/new', params: { friendId: id } })}
         />
       </View>
 

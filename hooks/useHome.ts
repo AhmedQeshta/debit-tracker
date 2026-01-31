@@ -118,7 +118,7 @@ export const useHome = () => {
   };
 
   const handleTransactionEdit = (id: string) => {
-    router.push(`/transaction/${id}/edit`);
+    router.push(`/(drawer)/transaction/${id}/edit`);
   };
 
   const handleTransactionDelete = (id: string) => {

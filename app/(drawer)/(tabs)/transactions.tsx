@@ -14,19 +14,23 @@ import { useRouter } from 'expo-router';
 import { confirmDelete } from '@/lib/alert';
 import { useFriendSync } from '@/hooks/friend/useFriendSync';
 
-export default function TransactionsScreen() {
+export default function TransactionsScreen()
+{
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const { deleteTransaction } = useTransactionsStore();
   const { addToSyncQueue } = useFriendSync();
   const transactions = useTransactionsStore(useShallow((state) => state.transactions));
 
-  const handleEdit = (id: string) => {
-    router.push(`/transaction/${id}/edit`);
+  const handleEdit = (id: string) =>
+  {
+    router.push(`/(drawer)/transaction/${id}/edit`);
   };
 
-  const handleDelete = (id: string, title: string) => {
-    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, () => {
+  const handleDelete = (id: string, title: string) =>
+  {
+    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, () =>
+    {
       deleteTransaction(id);
       addToSyncQueue('transaction', 'delete', { id });
     });
@@ -52,7 +56,7 @@ export default function TransactionsScreen() {
         }
       />
 
-      <NavigateTo navigatePath="/transaction/new" />
+      <NavigateTo navigatePath="/(drawer)/transaction/new" />
     </ScreenContainer>
   );
 }
