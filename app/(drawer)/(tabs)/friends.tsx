@@ -67,7 +67,7 @@ export default function FriendsList()
           }
         />
 
-        <NavigateTo navigatePath="/friend/new" />
+        <NavigateTo navigatePath="/(drawer)/friend/new" />
       </ScreenContainer>
     </View>
   );
