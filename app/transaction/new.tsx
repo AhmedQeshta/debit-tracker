@@ -10,8 +10,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { CATEGORIES } from '@/lib/data';
 
-export default function AddTransaction()
-{
+export default function AddTransaction() {
   const {
     friends,
     friendId,
@@ -21,9 +20,9 @@ export default function AddTransaction()
     control,
     handleSubmit,
     errors,
+    loading,
   } = useTransactionForm();
   const router = useRouter();
-
 
   return (
     <ScreenContainer>
@@ -133,7 +132,12 @@ export default function AddTransaction()
             </Text>
           </View>
 
-          <Button title="Add Transaction" onPress={handleSubmit} disabled={friends.length === 0} />
+          <Button
+            title="Add Transaction"
+            onPress={handleSubmit}
+            disabled={friends.length === 0}
+            loading={loading}
+          />
         </View>
       </ScrollView>
     </ScreenContainer>

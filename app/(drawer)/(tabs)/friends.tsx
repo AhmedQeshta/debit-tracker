@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    padding: Spacing.sm,
   },
   toggle: {
     width: 58,
@@ -103,6 +104,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 100,
+    padding: Spacing.sm,
+    gap: Spacing.sm,
   },
   gridItem: {
     flex: 0.5,

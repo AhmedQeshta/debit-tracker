@@ -10,12 +10,27 @@ import Header from '@/components/ui/Header';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { sortedTransactions } from '@/lib/utils';
 import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
+import { useRouter } from 'expo-router';
+import { confirmDelete } from '@/lib/alert';
+import { useFriendSync } from '@/hooks/friend/useFriendSync';
 
-export default function TransactionsScreen()
-{
+export default function TransactionsScreen() {
   const { openDrawer } = useDrawerContext();
+  const router = useRouter();
+  const { deleteTransaction } = useTransactionsStore();
+  const { addToSyncQueue } = useFriendSync();
   const transactions = useTransactionsStore(useShallow((state) => state.transactions));
 
+  const handleEdit = (id: string) => {
+    router.push(`/transaction/${id}/edit`);
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, () => {
+      deleteTransaction(id);
+      addToSyncQueue('transaction', 'delete', { id });
+    });
+  };
 
   return (
     <ScreenContainer scrollable={false}>
@@ -23,7 +38,9 @@ export default function TransactionsScreen()
 
       <FlatList
         data={sortedTransactions(transactions)}
-        renderItem={TransactionScreenItem}
+        renderItem={({ item }) => (
+          <TransactionScreenItem item={item} onEdit={handleEdit} onDelete={handleDelete} />
+        )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
@@ -56,9 +73,10 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   listContent: {
-    padding: Spacing.md,
+    padding: Spacing.sm,
     paddingBottom: 100,
     marginTop: Spacing.sm,
+    gap: Spacing.sm,
   },
   transactionCard: {
     flexDirection: 'row',

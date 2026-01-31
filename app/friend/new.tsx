@@ -8,9 +8,10 @@ import { useFriendCreate } from '@/hooks/friend/useFriendCreate';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
+import { Controller } from 'react-hook-form';
 
 export default function AddFriend() {
-  const { name, setName, bio, setBio, currency, setCurrency, handleSave, router } =
+  const { control, errors, handleSubmit, currency, setCurrency, loading, router } =
     useFriendCreate();
   const insets = useSafeAreaInsets();
   return (
@@ -20,19 +21,42 @@ export default function AddFriend() {
         <Text style={styles.title}>Add Friend</Text>
       </TouchableOpacity>
       <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
-        <Input label="Full Name" value={name} onChangeText={setName} placeholder="e.g. John Doe" />
-        <Input
-          label="Bio / Notes"
-          value={bio}
-          onChangeText={setBio}
-          placeholder="Brief description or relationship..."
-          multiline
+        <Controller
+          control={control}
+          rules={{ required: 'Full name is required' }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Full Name"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              placeholder="e.g. John Doe"
+              error={errors.name?.message}
+            />
+          )}
+          name="name"
+        />
+
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Bio / Notes"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              placeholder="Brief description or relationship..."
+              multiline
+              error={errors.bio?.message}
+            />
+          )}
+          name="bio"
         />
 
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
 
         <View style={styles.actionSection}>
-          <Button title="Save Friend" onPress={handleSave} />
+          <Button title="Save Friend" onPress={handleSubmit} loading={loading} />
         </View>
       </View>
     </ScreenContainer>

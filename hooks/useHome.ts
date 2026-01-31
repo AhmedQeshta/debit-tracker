@@ -1,5 +1,6 @@
 import { calculateLatestTransactions, getBalance } from '@/lib/utils';
 import { useMemo } from 'react';
+import { useRouter } from 'expo-router';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useBudgetStore } from '@/store/budgetStore';
@@ -13,6 +14,7 @@ export const useHome = () => {
   const { deleteTransaction } = useTransactionsStore();
   const { addToQueue } = useSyncStore();
   const { navigateToFriendEdit } = useNavigation();
+  const router = useRouter();
 
   const allFriends = useFriendsStore(useShallow((state) => state.friends));
 
@@ -115,6 +117,27 @@ export const useHome = () => {
     );
   };
 
+  const handleTransactionEdit = (id: string) => {
+    router.push(`/transaction/${id}/edit`);
+  };
+
+  const handleTransactionDelete = (id: string) => {
+    const transaction = allTransactions.find((t) => t.id === id);
+    confirmDelete(
+      'Delete Transaction',
+      `Are you sure you want to delete "${transaction?.title || 'this transaction'}"?`,
+      () => {
+        deleteTransaction(id);
+        addToQueue({
+          id: Math.random().toString(36).substring(7),
+          type: 'transaction',
+          action: 'delete',
+          payload: { id },
+        });
+      },
+    );
+  };
+
   return {
     latestTransactions,
     getFriendBalance,
@@ -127,5 +150,7 @@ export const useHome = () => {
     handleBudgetDelete,
     handleFriendEdit,
     handleFriendDelete,
+    handleTransactionEdit,
+    handleTransactionDelete,
   };
 };

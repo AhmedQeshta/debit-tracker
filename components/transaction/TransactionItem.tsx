@@ -33,7 +33,7 @@ export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITr
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.description}>{transaction.description}</Text>
+        <Text style={styles.title}>{transaction.title}</Text>
         <Text style={styles.date}>{new Date(transaction.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={styles.rightSide}>
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  description: {
+  title: {
     color: Colors.text,
     fontSize: 14,
     fontWeight: '600',

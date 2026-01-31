@@ -7,14 +7,13 @@ import { Spacing } from '@/theme/spacing';
 import { ArrowLeft } from 'lucide-react-native';
 import { useBudgetEdit } from '@/hooks/budget/useBudgetEdit';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
+import { Controller } from 'react-hook-form';
 
+export default function EditBudget() {
+  const { control, errors, handleSubmit, currency, setCurrency, budget, loading, router } =
+    useBudgetEdit();
 
-export default function EditBudget()
-{
-  const { title, setTitle, currency, setCurrency, totalBudget, setTotalBudget, titleError, budgetError, handleSave, router, setTitleError, setBudgetError, budget } = useBudgetEdit();
-
-  if (!budget)
-  {
+  if (!budget) {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -32,33 +31,41 @@ export default function EditBudget()
         <Text style={styles.title}>Edit Budget</Text>
       </TouchableOpacity>
       <View style={styles.form}>
-        <Input
-          label="Budget Title"
-          value={title}
-          onChangeText={(text) =>
-          {
-            setTitle(text);
-            setTitleError('');
-          }}
-          placeholder="e.g. Monthly Groceries"
-          error={titleError}
+        <Controller
+          control={control}
+          rules={{ required: 'Budget title is required' }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Budget Title"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              placeholder="e.g. Monthly Groceries"
+              error={errors.title?.message}
+            />
+          )}
+          name="title"
         />
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
-        <Input
-          label="Total Budget"
-          value={totalBudget}
-          onChangeText={(text) =>
-          {
-            setTotalBudget(text);
-            setBudgetError('');
-          }}
-          placeholder="300"
-          keyboardType="numeric"
-          error={budgetError}
+        <Controller
+          control={control}
+          rules={{ required: 'Total budget is required' }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Total Budget"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              placeholder="300"
+              keyboardType="numeric"
+              error={errors.totalBudget?.message}
+            />
+          )}
+          name="totalBudget"
         />
 
         <View style={styles.actionSection}>
-          <Button title="Save Changes" onPress={handleSave} />
+          <Button title="Save Changes" onPress={handleSubmit} loading={loading} />
         </View>
       </View>
     </ScreenContainer>
@@ -73,38 +80,6 @@ const styles = StyleSheet.create({
   },
   form: {
     paddingVertical: Spacing.md,
-  },
-  label: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: Spacing.sm,
-  },
-  currencyPicker: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  currencyChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  currencyChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  currencyChipText: {
-    color: Colors.text,
-    fontSize: 14,
-  },
-  currencyChipTextSelected: {
-    color: '#000',
-    fontWeight: 'bold',
   },
   actionSection: {
     marginTop: Spacing.md,
@@ -127,4 +102,3 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
 });
-

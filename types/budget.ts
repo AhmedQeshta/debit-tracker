@@ -34,3 +34,9 @@ export interface IBudgetCardProps {
   getTotalSpent: (id: string) => number;
   getRemainingBudget: (id: string) => number;
 }
+
+export interface IBudgetFormData {
+  title: string;
+  currency: string;
+  totalBudget: string;
+}

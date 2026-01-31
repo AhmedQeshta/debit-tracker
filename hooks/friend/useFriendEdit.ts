@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFriendsStore } from '@/store/friendsStore';
-import { safeId, validateFriendName } from '@/lib/utils';
+import { safeId } from '@/lib/utils';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useFriendSync } from '@/hooks/friend/useFriendSync';
-import { showError } from '@/lib/alert';
+import { useForm } from 'react-hook-form';
+import { IFriendFormData } from '@/types/friend';
 
 export const useFriendEdit = () => {
   const router = useRouter();
@@ -14,52 +15,70 @@ export const useFriendEdit = () => {
   const { updateFriend } = useFriendsStore();
   const { navigateBack } = useNavigation();
   const { addToSyncQueue, triggerSync } = useFriendSync();
+  const [loading, setLoading] = useState(false);
 
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-  const [currency, setCurrency] = useState('$');
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<IFriendFormData>({
+    defaultValues: {
+      name: '',
+      bio: '',
+      currency: '$',
+    },
+  });
 
   useEffect(() => {
     if (friend) {
-      setName(friend.name);
-      setBio(friend.bio);
-      setCurrency(friend.currency || '$');
+      reset({
+        name: friend.name,
+        bio: friend.bio,
+        currency: friend.currency || '$',
+      });
     }
-  }, [friend]);
+  }, [friend, reset]);
 
-  const handleSave = async (): Promise<void> => {
+  const name = watch('name');
+  const bio = watch('bio');
+  const currency = watch('currency');
+
+  const onSubmit = async (data: IFriendFormData): Promise<void> => {
     if (!friend || !friendId) return;
 
-    const nameError = validateFriendName(name);
-    if (nameError) {
-      showError('Error', nameError);
-      return;
+    setLoading(true);
+    try {
+      const updatedFriend = {
+        ...friend,
+        name: data.name.trim(),
+        bio: data.bio,
+        currency: data.currency,
+        synced: false,
+      };
+
+      updateFriend(updatedFriend);
+      addToSyncQueue('friend', 'update', updatedFriend);
+
+      await triggerSync();
+      navigateBack();
+    } finally {
+      setLoading(false);
     }
-
-    const updatedFriend = {
-      ...friend,
-      name: name.trim(),
-      bio,
-      currency,
-      synced: false,
-    };
-
-    updateFriend(updatedFriend);
-    addToSyncQueue('friend', 'update', updatedFriend);
-
-    await triggerSync();
-    navigateBack();
   };
 
   return {
+    control,
+    errors,
+    handleSubmit: handleSubmit(onSubmit),
     name,
-    setName,
     bio,
-    setBio,
     currency,
-    setCurrency,
-    handleSave,
+    setCurrency: (val: string) => setValue('currency', val),
     friend,
+    loading,
     router,
   };
 };

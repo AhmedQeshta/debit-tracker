@@ -1,49 +1,66 @@
-import { getFriendName } from "@/lib/utils";
-import { useFriendsStore } from "@/store/friendsStore";
-import { Colors } from "@/theme/colors";
-import { Spacing } from "@/theme/spacing";
-import { StyleSheet, Text, View } from "react-native";
-import { useShallow } from "zustand/react/shallow";
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { getFriendName } from '@/lib/utils';
+import { useFriendsStore } from '@/store/friendsStore';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { useShallow } from 'zustand/react/shallow';
+import { Trash2, Pencil } from 'lucide-react-native';
+import { Actions } from '@/components/ui/Actions';
+import { ITransactionScreenItemProps } from '@/types/transaction';
 
 
-export const TransactionScreenItem = ({ item }: { item: any }) =>
+export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionScreenItemProps) =>
 {
+  const [menuVisible, setMenuVisible] = useState(false);
   const friends = useFriendsStore(useShallow((state) => state.friends));
 
-  return <View style={styles.transactionCard}>
-    <view style={styles.transactionInfo}>
-      <Text style={styles.transactionTitle}>{item.title}</Text>
-      <Text style={styles.transactionFriend}>with {getFriendName(friends, item.friendId)}</Text>
-      <Text style={styles.transactionDate}>{new Date(item.date).toLocaleDateString()}</Text>
-    </view>
-    <View style={styles.transactionAmount}>
-      <Text style={[styles.amountText, item.amount < 0 ? styles.negative : styles.positive]}>
-        {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
-      </Text>
-      <Text style={styles.categoryText}>{item.category}</Text>
+  const menuItems = [];
+  if (onEdit)
+  {
+    menuItems.push({
+      icon: <Pencil size={18} color={Colors.text} />,
+      label: 'Edit Transaction',
+      onPress: () => onEdit(item.id),
+    });
+  }
+  if (onDelete)
+  {
+    menuItems.push({
+      icon: <Trash2 size={18} color={Colors.error} />,
+      label: 'Delete Transaction',
+      onPress: () => onDelete(item.id, item.title),
+      danger: true,
+    });
+  }
+
+  return (
+    <View style={styles.transactionCard}>
+      <View style={styles.transactionInfo}>
+        <Text style={styles.transactionTitle}>{item.title}</Text>
+        <Text style={styles.transactionFriend}>with {getFriendName(friends, item.friendId)}</Text>
+        <Text style={styles.transactionDate}>{new Date(item.date).toLocaleDateString()}</Text>
+      </View>
+      <View style={styles.transactionAmount}>
+        <Text style={[styles.amountText, item.amount < 0 ? styles.negative : styles.positive]}>
+          {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
+        </Text>
+        <Text style={styles.categoryText}>{item.category}</Text>
+      </View>
+      {menuItems.length > 0 && (
+        <View style={styles.actions}>
+          <Actions
+            menuVisible={menuVisible}
+            setMenuVisible={setMenuVisible}
+            menuItems={menuItems}
+          />
+        </View>
+      )}
     </View>
-  </View>
+  );
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    gap: Spacing.md,
-  },
-  menuButton: {
-    padding: Spacing.xs,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  listContent: {
-    padding: Spacing.md,
-    paddingBottom: 100,
-  },
   transactionCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -75,6 +92,7 @@ const styles = StyleSheet.create({
   },
   transactionAmount: {
     alignItems: 'flex-end',
+    marginRight: Spacing.sm,
   },
   amountText: {
     fontSize: 16,
@@ -91,20 +109,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 4,
   },
-  fab: {
-    position: 'absolute',
-    bottom: Spacing.xl,
-    right: Spacing.xl,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+  actions: {
+    marginLeft: Spacing.xs,
   },
 });

@@ -1,63 +1,74 @@
-import { useState } from "react";
-import { useRouter } from "expo-router";
-import { useBudgetStore } from "@/store/budgetStore";
-import { useNavigation } from "@/hooks/useNavigation";
-import { validateTitle, validateAmount } from "@/lib/utils";
-import { showSuccess } from "@/lib/alert";
+import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useBudgetStore } from '@/store/budgetStore';
+import { generateId } from '@/lib/utils';
+import { useSyncStore } from '@/store/syncStore';
+import { useForm } from 'react-hook-form';
+import { IBudgetFormData } from '@/types/budget';
 
 
-export const useBudgetCreate = () =>
-{
+
+export const useBudgetCreate = () => {
   const router = useRouter();
   const { addBudget } = useBudgetStore();
-  const { navigateToBudget } = useNavigation();
+  const { addToQueue } = useSyncStore();
+  const [loading, setLoading] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [currency, setCurrency] = useState("$");
-  const [totalBudget, setTotalBudget] = useState("");
-  const [titleError, setTitleError] = useState("");
-  const [budgetError, setBudgetError] = useState("");
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<IBudgetFormData>({
+    defaultValues: {
+      title: '',
+      currency: '$',
+      totalBudget: '',
+    },
+  });
 
-  const handleSave = (): void =>
-  {
-    const titleErr = validateTitle(title);
-    if (titleErr)
-    {
-      setTitleError(titleErr);
-      return;
+  const title = watch('title');
+  const currency = watch('currency');
+  const totalBudget = watch('totalBudget');
+
+  const onSubmit = async (data: IBudgetFormData) => {
+    setLoading(true);
+    try {
+      const amount = parseFloat(data.totalBudget);
+      const budgetId = addBudget(data.title.trim(), data.currency, amount, undefined as any);
+      const newBudget = {
+        id: budgetId,
+        title: data.title,
+        currency: data.currency,
+        totalBudget: amount,
+        spentAmount: 0,
+        createdAt: Date.now(),
+        synced: false,
+      };
+
+      addToQueue({
+        id: generateId(),
+        type: 'budget',
+        action: 'create',
+        payload: newBudget,
+      });
+
+      router.back();
+    } finally {
+      setLoading(false);
     }
-    setTitleError("");
-
-    const amountErr = validateAmount(totalBudget, 0);
-    if (amountErr)
-    {
-      setBudgetError(amountErr);
-      return;
-    }
-    setBudgetError("");
-
-    const amount = parseFloat(totalBudget);
-    const budgetId = addBudget(title.trim(), currency, amount);
-
-    showSuccess("Success", "Budget created successfully", () =>
-    {
-      navigateToBudget(budgetId);
-    });
   };
 
   return {
+    control,
+    errors,
+    handleSubmit: handleSubmit(onSubmit),
     title,
-    setTitle,
     currency,
-    setCurrency,
     totalBudget,
-    setTotalBudget,
-    titleError,
-    budgetError,
-    handleSave,
+    setCurrency: (val: string) => setValue('currency', val),
+    loading,
     router,
-    setTitleError,
-    setBudgetError,
   };
 };
-
