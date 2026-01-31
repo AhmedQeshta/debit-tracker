@@ -14,7 +14,8 @@
       "backgroundColor": "#121829"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ahmedqeshta.debittracker"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,8 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ahmedqeshta.debittracker",
-      "versionCode": 1
+      "package": "com.ahmedqeshta.debittracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"

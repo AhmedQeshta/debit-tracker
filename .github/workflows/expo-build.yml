@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: "npm"
+          cache: 'npm'
 
       - name: 📦 Install dependencies
         run: npm install
@@ -29,11 +29,11 @@ jobs:
         run: |
           echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
 
-      - name: 🚀 Trigger EAS Cloud Build (Android + iOS)
+      - name: 🚀 Trigger EAS Cloud Build (Android APK)
         run: |
           eas build \
-            --platform all \
-            --profile production \
+            --platform android \
+            --profile preview \
             --non-interactive
 
       - name: 📄 Show build links
