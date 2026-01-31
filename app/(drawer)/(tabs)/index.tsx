@@ -1,71 +1,81 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { UserCard } from '@/components/user/UserCard';
-import { TransactionItem } from '@/components/TransactionItem';
+import { FriendCard } from '@/components/friend/FriendCard';
+import { TransactionItem } from '@/components/transaction/TransactionItem';
 import { BudgetCard } from '@/components/budget/BudgetCard';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { UserPlus, PlusCircle, Users, Menu } from 'lucide-react-native';
+import { UserPlus, PlusCircle, Users } from 'lucide-react-native';
 import { useHome } from '@/hooks/useHome';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { EmptySection } from '@/components/ui/EmptySection';
-import { useUsersStore } from '@/store/usersStore';
+import { useFriendsStore } from '@/store/friendsStore';
 import { useShallow } from 'zustand/react/shallow';
 import { ActionCard } from '@/components/ui/ActionCard';
+import Header from '@/components/ui/Header';
 
-export default function Home()
-{
+export default function Home() {
   const router = useRouter();
   const { openDrawer } = useDrawerContext();
   // Get latest transactions sorted by date (most recent first), limit to 5
-  const { latestTransactions, getUserBalance, latestUsers, handlePinToggle, latestBudgets, getBudgetTotalSpent, getBudgetRemaining, handleBudgetPinToggle, handleBudgetDelete, handleUserEdit, handleUserDelete } = useHome();
-  const users = useUsersStore(useShallow((state) => state.users));
+  const {
+    latestTransactions,
+    getFriendBalance,
+    latestFriends,
+    handlePinToggle,
+    latestBudgets,
+    getBudgetTotalSpent,
+    getBudgetRemaining,
+    handleBudgetPinToggle,
+    handleBudgetDelete,
+    handleFriendDelete,
+    handleTransactionEdit,
+    handleTransactionDelete,
+  } = useHome();
+  const friends = useFriendsStore(useShallow((state) => state.friends));
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={openDrawer}
-            style={styles.menuButton}
-            activeOpacity={0.7}>
-            <Menu size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.actionsTitle}>Actions</Text>
-        </View>
+        <Header openDrawer={openDrawer} title="Actions" />
         <View style={styles.actions}>
           <ActionCard
             icon={UserPlus}
-            title="Add New User"
-            onPress={() => router.push('/user/new')}
+            title="Add Friend"
+            onPress={() => router.push('/friend/new')}
           />
           <ActionCard
             icon={PlusCircle}
             title="Add Transaction"
             onPress={() => router.push('/transaction/new')}
-            disabled={latestUsers.length === 0}
+            disabled={latestFriends.length === 0}
           />
-          <ActionCard icon={Users} title="Show All Users" onPress={() => router.push('/users')} disabled={latestUsers.length === 0} />
+          <ActionCard
+            icon={Users}
+            title="Show All Friends"
+            onPress={() => router.push('/friends')}
+            disabled={latestFriends.length === 0}
+          />
         </View>
 
-
-        <Text style={styles.title}>Latest Users</Text>
+        <Text style={styles.title}>Latest Friends</Text>
         <View style={styles.userList}>
-          {latestUsers.length === 0 ? (
-            <EmptySection title={'No Users Yet'}
-              description={'Start tracking your debts by adding your first user'}
-              icon={'users'} />
+          {latestFriends.length === 0 ? (
+            <EmptySection
+              title={'No Friends Yet'}
+              description={'Start tracking your debts by adding your first friend'}
+              icon={'users'}
+            />
           ) : (
-            latestUsers.map((user) =>
-            {
+            latestFriends.map((friend) => {
               return (
-                <UserCard
-                  key={user.id}
-                  user={user}
-                  balance={getUserBalance(user.id)}
+                <FriendCard
+                  key={friend.id}
+                  friend={friend}
+                  balance={getFriendBalance(friend.id)}
                   showActions={true}
-                  handleUserDelete={handleUserDelete}
+                  handleFriendDelete={handleFriendDelete}
                   handlePinToggle={handlePinToggle}
                 />
               );
@@ -98,18 +108,21 @@ export default function Home()
         <Text style={styles.transactionsTitle}>Latest Transactions</Text>
         <View style={styles.transactionsList}>
           {latestTransactions.length === 0 ? (
-            <EmptySection title={'No Transactions Yet'}
+            <EmptySection
+              title={'No Transactions Yet'}
               description={'Add your first transaction to start tracking debts'}
-              icon={'transactions'} />
+              icon={'transactions'}
+            />
           ) : (
-            latestTransactions.map((transaction) =>
-            {
-              const user = users.find((u) => u.id === transaction.userId);
+            latestTransactions.map((transaction) => {
+              const friend = friends.find((f) => f.id === transaction.friendId);
               return (
                 <TransactionItem
                   key={transaction.id}
                   transaction={transaction}
-                  currency={user?.currency || '$'}
+                  currency={friend?.currency || '$'}
+                  onEdit={handleTransactionEdit}
+                  onDelete={handleTransactionDelete}
                 />
               );
             })
@@ -167,7 +180,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   actions: {
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -Spacing.xs,
@@ -183,20 +196,4 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     marginTop: Spacing.md,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  menuButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
-  },
-  actionsTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
 });
-

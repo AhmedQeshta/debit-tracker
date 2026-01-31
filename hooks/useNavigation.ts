@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter } from 'expo-router';
 
 export const useNavigation = () => {
   const router = useRouter();
@@ -13,16 +13,16 @@ export const useNavigation = () => {
   };
 
   const navigateToBudgetList = (): void => {
-    router.replace("/(drawer)/budget");
+    router.replace('/(drawer)/budget');
   };
 
-  // User navigation methods
-  const navigateToUser = (id: string): void => {
-    router.push(`/user/${id}`);
+  // Friend navigation methods
+  const navigateToFriend = (id: string): void => {
+    router.push(`/friend/${id}`);
   };
 
-  const navigateToUserEdit = (id: string): void => {
-    router.push(`/user/${id}/edit`);
+  const navigateToFriendEdit = (id: string): void => {
+    router.push(`/friend/${id}/edit`);
   };
 
   // Common navigation methods
@@ -35,9 +35,9 @@ export const useNavigation = () => {
     navigateToBudget,
     navigateToBudgetEdit,
     navigateToBudgetList,
-    // User navigation
-    navigateToUser,
-    navigateToUserEdit,
+    // Friend navigation
+    navigateToFriend,
+    navigateToFriendEdit,
     // Common navigation
     navigateBack,
   };

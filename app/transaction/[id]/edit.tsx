@@ -6,17 +6,19 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useEditTransaction } from '@/hooks/transaction/useEditTransaction';
 import { ArrowLeft } from 'lucide-react-native';
+import { EmptySection } from '@/components/ui/EmptySection';
+import { Controller } from 'react-hook-form';
 
-export default function EditTransaction()
-{
-  const { amount, setAmount, description, setDescription, handleSave, transaction, router } = useEditTransaction();
+export default function EditTransaction() {
+  const { control, errors, handleSubmit, transaction, loading, router } = useEditTransaction();
 
-  if (!transaction)
-  {
+  if (!transaction) {
     return (
-      <ScreenContainer>
-        <Button title="Go Back" onPress={() => router.back()} />
-      </ScreenContainer>
+      <EmptySection
+        title={'Transaction Not Found'}
+        description={'The transaction you are looking for does not exist'}
+        icon={'transactions'}
+      />
     );
   }
 
@@ -26,9 +28,39 @@ export default function EditTransaction()
         <ArrowLeft size={25} style={styles.ArrowLeft} color={Colors.text} />
         <Text style={styles.title}>Edit Transaction</Text>
       </TouchableOpacity>
-      <Input label="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" />
-      <Input label="Description" value={description} onChangeText={setDescription} />
-      <Button title="Update Transaction" onPress={handleSave} />
+
+      <Controller
+        control={control}
+        rules={{ required: 'Amount is required' }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            label="Amount"
+            value={value}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            keyboardType="numeric"
+            error={errors.amount?.message}
+          />
+        )}
+        name="amount"
+      />
+
+      <Controller
+        control={control}
+        rules={{ required: 'Description is required' }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            label="Description"
+            value={value}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            error={errors.description?.message}
+          />
+        )}
+        name="description"
+      />
+
+      <Button title="Update Transaction" onPress={handleSubmit} loading={loading} />
     </ScreenContainer>
   );
 }
@@ -47,5 +79,5 @@ const styles = StyleSheet.create({
   },
   ArrowLeft: {
     marginBottom: Spacing.md,
-  }
+  },
 });

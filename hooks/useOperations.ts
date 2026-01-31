@@ -1,26 +1,28 @@
-import { User, Budget } from "@/types/models";
-import { useUsersStore } from "@/store/usersStore";
-import { useBudgetStore } from "@/store/budgetStore";
+import { Friend, Budget } from '@/types/models';
+import { useFriendsStore } from '@/store/friendsStore';
+import { useBudgetStore } from '@/store/budgetStore';
 
 export const useOperations = () => {
-  const usersStore = useUsersStore();
+  const friendsStore = useFriendsStore();
   const budgetStore = useBudgetStore();
 
-  // User operations
-  const getUserById = (id: string): User | undefined => usersStore.users.find((u) => u.id === id);
+  // Friend operations
+  const getFriendById = (id: string): Friend | undefined =>
+    friendsStore.friends.find((f) => f.id === id);
 
-  const handleUserPinToggle = (user: User): void => user.pinned ? usersStore.unpinUser(user.id) : usersStore.pinUser(user.id);
-  
+  const handleFriendPinToggle = (friend: Friend): void =>
+    friend.pinned ? friendsStore.unpinFriend(friend.id) : friendsStore.pinFriend(friend.id);
+
   // Budget operations
   const getBudgetById = (id: string): Budget | undefined => budgetStore.getBudget(id);
 
-  const handleBudgetPinToggle = (budget: Budget): void => budget.pinned ? budgetStore.unpinBudget(budget.id) : budgetStore.pinBudget(budget.id);
+  const handleBudgetPinToggle = (budget: Budget): void =>
+    budget.pinned ? budgetStore.unpinBudget(budget.id) : budgetStore.pinBudget(budget.id);
 
   return {
-    getUserById,
-    handleUserPinToggle,
+    getFriendById,
+    handleFriendPinToggle,
     getBudgetById,
     handleBudgetPinToggle,
   };
 };
-

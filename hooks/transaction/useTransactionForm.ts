@@ -1,0 +1,91 @@
+import { useState } from 'react';
+import { showError } from '@/lib/alert';
+import { generateId, getFinalAmount } from '@/lib/utils';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { useFriendsStore } from '@/store/friendsStore';
+import { useSyncStore } from '@/store/syncStore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useShallow } from 'zustand/react/shallow';
+import { useForm } from 'react-hook-form';
+import { Transaction } from '@/types/models';
+import { ITransactionFormData } from '@/types/transaction';
+
+export const useTransactionForm = () => {
+  const { friendId: initialFriendId } = useLocalSearchParams<{ friendId: string }>();
+  const friends = useFriendsStore(useShallow((state) => state.friends));
+  const { addTransaction } = useTransactionsStore();
+  const { addToQueue } = useSyncStore();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<ITransactionFormData>({
+    defaultValues: {
+      friendId: initialFriendId || '',
+      amount: '',
+      title: '',
+      category: 'General',
+      date: Date.now(),
+      note: '',
+      isNegative: true,
+    },
+  });
+
+  const isNegative = watch('isNegative');
+  const friendId = watch('friendId');
+  const selectedFriend = friends.find((f) => f.id === friendId);
+
+  const onSubmit = async (data: ITransactionFormData) => {
+    const amountNum = parseFloat(data.amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      showError('Error', 'Please enter a valid amount');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const newTransaction: Transaction = {
+        id: generateId(),
+        friendId: data.friendId,
+        title: data.title,
+        amount: getFinalAmount(data.amount, data.isNegative),
+        category: data.category,
+        date: data.date,
+        note: data.note,
+        createdAt: Date.now(),
+        synced: false,
+      };
+
+      addTransaction(newTransaction);
+      addToQueue({
+        id: generateId(),
+        type: 'transaction',
+        action: 'create',
+        payload: newTransaction,
+      });
+
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    friends,
+    control,
+    errors,
+    handleSubmit: handleSubmit(onSubmit),
+    isNegative,
+    setIsNegative: (val: boolean) => setValue('isNegative', val),
+    friendId,
+    setFriendId: (val: string) => setValue('friendId', val),
+    selectedFriend,
+    setValue,
+    loading,
+  };
+};

@@ -1,82 +1,93 @@
-import { useEffect, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useBudgetStore } from "@/store/budgetStore";
-import { safeId } from "@/lib/utils";
-import { useNavigation } from "@/hooks/useNavigation";
-import { validateTitle, validateAmount } from "@/lib/utils";
-import { showSuccess } from "@/lib/alert";
+import { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useBudgetStore } from '@/store/budgetStore';
+import { generateId, safeId } from '@/lib/utils';
+import { useSyncStore } from '@/store/syncStore';
+import { useForm } from 'react-hook-form';
+import { IBudgetFormData } from '@/types/budget';
 
-
-export const useBudgetEdit = () =>
-{
-  const router = useRouter();
+export const useBudgetEdit = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
-  const budget = useBudgetStore((state) => state.getBudget(budgetId));
-  const { updateBudget } = useBudgetStore();
-  const { navigateBack } = useNavigation();
+  const router = useRouter();
+  const { budgets, updateBudget } = useBudgetStore();
+  const { addToQueue } = useSyncStore();
+  const [loading, setLoading] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [currency, setCurrency] = useState("$");
-  const [totalBudget, setTotalBudget] = useState("");
-  const [titleError, setTitleError] = useState("");
-  const [budgetError, setBudgetError] = useState("");
+  const budget = budgets.find((b) => b.id === budgetId);
 
-  useEffect(() =>
-  {
-    if (budget)
-    {
-      setTitle(budget.title);
-      setCurrency(budget.currency);
-      setTotalBudget(budget.totalBudget.toString());
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<IBudgetFormData>({
+    defaultValues: {
+      title: '',
+      currency: '$',
+      totalBudget: '',
+    },
+  });
+
+  useEffect(() => {
+    if (budget) {
+      reset({
+        title: budget.title,
+        currency: budget.currency || '$',
+        totalBudget: budget.totalBudget.toString(),
+      });
     }
-  }, [budget]);
+  }, [budget, reset]);
 
-  const handleSave = (): void =>
-  {
-    const titleErr = validateTitle(title);
-    if (titleErr)
-    {
-      setTitleError(titleErr);
-      return;
+  const title = watch('title');
+  const currency = watch('currency');
+  const totalBudget = watch('totalBudget');
+
+  const onSubmit = async (data: IBudgetFormData) => {
+    if (!budget) return;
+
+    setLoading(true);
+    try {
+      const amount = parseFloat(data.totalBudget);
+      updateBudget(budgetId, {
+        title: data.title.trim(),
+        currency: data.currency,
+        totalBudget: amount,
+      });
+
+      const updatedBudget = {
+        ...budget,
+        title: data.title,
+        currency: data.currency,
+        totalBudget: amount,
+        synced: false,
+      };
+
+      addToQueue({
+        id: generateId(),
+        type: 'budget',
+        action: 'update',
+        payload: updatedBudget,
+      });
+
+      router.back();
+    } finally {
+      setLoading(false);
     }
-    setTitleError("");
-
-    const amountErr = validateAmount(totalBudget, 0);
-    if (amountErr)
-    {
-      setBudgetError(amountErr);
-      return;
-    }
-    setBudgetError("");
-
-    const amount = parseFloat(totalBudget);
-    updateBudget(budgetId, {
-      title: title.trim(),
-      currency,
-      totalBudget: amount,
-    });
-
-    showSuccess("Success", "Budget updated successfully", () =>
-    {
-      navigateBack();
-    });
   };
 
   return {
-    budget,
+    control,
+    errors,
+    handleSubmit: handleSubmit(onSubmit),
     title,
-    setTitle,
     currency,
-    setCurrency,
     totalBudget,
-    setTotalBudget,
-    titleError,
-    budgetError,
-    handleSave,
+    setCurrency: (val: string) => setValue('currency', val),
+    budget,
+    loading,
     router,
-    setTitleError,
-    setBudgetError,
   };
 };
-

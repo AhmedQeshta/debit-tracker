@@ -1,24 +1,25 @@
 import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import {  Slot } from 'expo-router';
+import { Slot } from 'expo-router';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { DRAWER_WIDTH, useDrawer } from '@/hooks/drawer/useDrawer';
 import { DrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { DrawerContent } from '@/components/DrawerContent';
+import { DrawerContent } from '@/components/drawer/DrawerContent';
 
 
 
-export default function DrawerLayoutWrapper() {
-  const {closeDrawer,insets,isActive,navigateTo,openDrawer,toggleDrawer,drawerOpen,overlayAnim,slideAnim} = useDrawer();
+export default function DrawerLayoutWrapper()
+{
+  const { closeDrawer, insets, isActive, navigateTo, openDrawer, toggleDrawer, drawerOpen, overlayAnim, slideAnim } = useDrawer();
 
-  
+
   return (
     <DrawerContext.Provider value={{ openDrawer, closeDrawer, toggleDrawer }}>
       <View style={styles.container}>
         <View style={styles.content}>
           <Slot />
         </View>
-        
+
         {drawerOpen && (
           <>
             <TouchableOpacity

@@ -8,7 +8,7 @@ export const useBudgetStore = create<IBudgetState>()(
   persist(
     (set, get) => ({
       budgets: [],
-      addBudget: (title: string, currency: string, totalBudget: number) => {
+      addBudget: (title: string, currency: string, totalBudget: number, friendId: string) => {
         const newBudget: Budget = {
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
           title,
@@ -17,6 +17,7 @@ export const useBudgetStore = create<IBudgetState>()(
           items: [],
           pinned: false,
           createdAt: Date.now(),
+          friendId,
         };
         set((state) => ({ budgets: [newBudget, ...state.budgets] }));
         return newBudget.id;
@@ -51,6 +52,7 @@ export const useBudgetStore = create<IBudgetState>()(
           title,
           amount,
           createdAt: Date.now(),
+          budgetId,
         };
         set((state) => ({
           budgets: state.budgets.map((b) =>

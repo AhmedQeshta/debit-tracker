@@ -1,68 +1,78 @@
-import { syncData } from "@/services/sync";
-import { useSyncStore } from "@/store/syncStore";
-import { useTransactionsStore } from "@/store/transactionsStore";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert } from "react-native";
-import { useShallow } from "zustand/react/shallow";
+import { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { useSyncStore } from '@/store/syncStore';
+import { generateId, safeId } from '@/lib/utils';
+import { useForm } from 'react-hook-form';
+import { IEditTransactionFormData } from '@/types/transaction';
 
 export const useEditTransaction = () => {
-
   const { id } = useLocalSearchParams<{ id: string }>();
+  const transactionId = safeId(id);
   const router = useRouter();
-
-  const transaction = useTransactionsStore(
-    useShallow((state) => state.transactions.find((t) => t.id === id)),
-  );
-  const { updateTransaction } = useTransactionsStore();
+  const { transactions, updateTransaction } = useTransactionsStore();
   const { addToQueue } = useSyncStore();
+  const [loading, setLoading] = useState(false);
 
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
+  const transaction = transactions.find((t) => t.id === transactionId);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<IEditTransactionFormData>({
+    defaultValues: {
+      amount: '',
+      description: '',
+    },
+  });
 
   useEffect(() => {
     if (transaction) {
-      setAmount(Math.abs(transaction.amount).toString());
-      setDescription(transaction.description);
+      reset({
+        amount: Math.abs(transaction.amount).toString(),
+        description: transaction.title,
+      });
     }
-  }, [transaction]);
+  }, [transaction, reset]);
 
-  const handleSave = () => {
+  const onSubmit = async (data: IEditTransactionFormData) => {
     if (!transaction) return;
-    if (!amount || isNaN(Number(amount))) {
-      Alert.alert('Error', 'Please enter a valid amount');
-      return;
+
+    setLoading(true);
+    try {
+      const isNegative = transaction.amount < 0;
+      const amountNum = parseFloat(data.amount);
+      const finalAmount = isNegative ? -Math.abs(amountNum) : Math.abs(amountNum);
+
+      const updatedTransaction = {
+        ...transaction,
+        amount: finalAmount,
+        title: data.description,
+        synced: false,
+      };
+
+      updateTransaction(updatedTransaction);
+      addToQueue({
+        id: generateId(),
+        type: 'transaction',
+        action: 'update',
+        payload: updatedTransaction,
+      });
+
+      router.back();
+    } finally {
+      setLoading(false);
     }
-
-    const isNegative = transaction.amount < 0;
-    const finalAmount = isNegative ? -Math.abs(Number(amount)) : Math.abs(Number(amount));
-
-    const updatedTransaction = {
-      ...transaction,
-      amount: finalAmount,
-      description,
-      synced: false,
-    };
-
-    updateTransaction(updatedTransaction);
-    addToQueue({
-      id: Math.random().toString(36).substring(7),
-      type: 'transaction',
-      action: 'update',
-      payload: updatedTransaction,
-    });
-
-    syncData();
-    router.back();
   };
 
   return {
-    amount,
-    setAmount,
-    description,
-    setDescription,
-    handleSave,
+    control,
+    errors,
+    handleSubmit: handleSubmit(onSubmit),
     transaction,
-    router
+    loading,
+    router,
   };
 };
