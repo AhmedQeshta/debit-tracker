@@ -15,7 +15,7 @@ export const useCloudSync = () => {
   // Clear token when logged out or sync disabled
   useEffect(() => {
     if (!isLoaded) return;
-    
+
     if (!isSignedIn || !syncEnabled) {
       setSupabaseToken(null);
       tokenBoundRef.current = false;
@@ -39,7 +39,7 @@ export const useCloudSync = () => {
         console.log('[Sync] ensureUserRecord skipped: sync disabled (strict gate)');
         return; // Do NOT proceed with any sync operations
       }
-      
+
       // Step 2: Check if not signed in -> clear token and return
       if (!isSignedIn) {
         setSupabaseToken(null);
@@ -47,13 +47,13 @@ export const useCloudSync = () => {
         console.log('[Sync] ensureUserRecord skipped: user not signed in');
         return;
       }
-      
+
       // Step 3: Check if not loaded -> return early
       if (!isLoaded) {
         console.log('[Sync] ensureUserRecord skipped: Clerk not loaded');
         return;
       }
-      
+
       // Step 4: Check if no user object -> return early
       if (!user) {
         console.log('[Sync] ensureUserRecord skipped: no user object');
@@ -98,7 +98,7 @@ export const useCloudSync = () => {
 
       // Step 10: Then call ensureUserRecord(user) - now token is ready AND sync is enabled
       try {
-        const result = await syncService.ensureUserRecord(user);
+        const result = await syncService.ensureUserRecord(user, getToken);
         if (result.skipped) {
           console.log(`[Sync] ensureUserRecord skipped: ${result.reason}`);
         } else if (result.ok) {
@@ -121,7 +121,7 @@ export const useCloudSync = () => {
       }
     });
     // Initial check
-    NetInfo.fetch().then(state => setIsOnline(!!state.isConnected));
+    NetInfo.fetch().then((state) => setIsOnline(!!state.isConnected));
     return unsubscribe;
   }, [syncEnabled, isSignedIn, isLoaded]);
 
@@ -179,7 +179,7 @@ export const useCloudSync = () => {
 
     setSyncing(true);
     try {
-      await syncService.syncAll(userId);
+      await syncService.syncAll(userId, getToken);
     } catch (e) {
       console.error('[Sync] Sync failed:', e);
     } finally {

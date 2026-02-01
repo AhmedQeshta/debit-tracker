@@ -6,37 +6,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '../theme/colors';
 import { useSplash } from '@/hooks/useSplash';
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
-import * as SecureStore from 'expo-secure-store'; // Try to use SecureStore if possible, else AsyncStorage
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { publishableKey, tokenCache } from '@/lib/token';
+import { ErrorScreen } from '@/components/ui/ErrorScreen';
+import { SplashManager, SyncManager } from '@/lib/syncAuth';
 
-const tokenCache = {
-  async getToken(key: string) {
-    try {
-      const item = await SecureStore.getItemAsync(key);
-      if (item) {
-        console.log(`${key} was used 🔐 \n`);
-      } else {
-        console.log('No values stored under key: ' + key);
-      }
-      return item;
-    } catch (error) {
-      console.error('SecureStore get item error: ', error);
-      await SecureStore.deleteItemAsync(key);
-      return null;
-    }
-  },
-  async saveToken(key: string, value: string) {
-    try {
-      return SecureStore.setItemAsync(key, value);
-    } catch {
-      return;
-    }
-  },
-};
 
-const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-if (!publishableKey) {
+if (!publishableKey)
+{
   console.warn(
     'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
   );
@@ -59,22 +36,27 @@ const STACK_OPTIONS = {
   headerShown: false,
 };
 
-function SyncManager() {
-  useCloudSync();
-  return null;
-}
 
-export default function RootLayout() {
-  useSplash();
 
-  if (!publishableKey) {
-    return null; // Or a custom error screen
+export default function RootLayout()
+{
+  // useSplash();
+
+  if (!publishableKey)
+  {
+    return (
+      <ErrorScreen
+        title="Missing Configuration"
+        message="Missing Publishable Key. Please set CLERK  PUBLISHABLE  KEY in your .env file to continue."
+      />
+    );
   }
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
         <SyncManager />
+        <SplashManager />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
             <Stack screenOptions={STACK_OPTIONS}>

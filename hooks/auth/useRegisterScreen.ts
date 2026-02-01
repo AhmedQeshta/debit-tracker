@@ -1,12 +1,13 @@
 import { syncService } from '@/services/syncService';
 import { useSyncStore } from '@/store/syncStore';
-import { useSignUp } from '@clerk/clerk-expo';
+import { useSignUp, useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export const useRegisterScreen = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { getToken } = useAuth();
   const router = useRouter();
   const {
     control,
@@ -61,7 +62,7 @@ export const useRegisterScreen = () => {
         // Ensure user record exists in Supabase
         const { syncEnabled } = useSyncStore.getState();
         if (syncEnabled) {
-          await syncService.ensureUserRecord(signUp);
+          await syncService.ensureUserRecord(signUp, getToken);
         }
 
         router.replace('/');
