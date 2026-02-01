@@ -1,34 +1,27 @@
-import { syncData } from "@/services/sync";
-import { subscribeToNetwork } from "@/services/net";
-import { useEffect } from "react";
+import { syncService } from '@/services/syncService';
+import { subscribeToNetwork } from '@/services/net';
+import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 
-export const useSplash = () =>
-{
-  useEffect(() =>
-  {
+export const useSplash = () => {
+  useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
-    async function prepare()
-    {
-      try
-      {
-        // Initial sync attempt
-        await syncData();
+    async function prepare() {
+      try {
+        // Initial sync attempt - only push locally stored changes if any
+        await syncService.pushChanges();
 
         // Subscribe to network changes to trigger sync
-        unsubscribe = subscribeToNetwork((isConnected) =>
-        {
-          if (isConnected)
-          {
-            syncData();
+        unsubscribe = subscribeToNetwork((isConnected) => {
+          if (isConnected) {
+            syncService.pushChanges();
           }
         });
 
         // Hide splash screen after initialization
         await SplashScreen.hideAsync();
-      } catch (e)
-      {
+      } catch (e) {
         console.warn('Error during app initialization:', e);
         // Hide splash screen even if there's an error
         await SplashScreen.hideAsync();
@@ -37,15 +30,12 @@ export const useSplash = () =>
 
     prepare();
 
-    return () =>
-    {
-      if (unsubscribe)
-      {
+    return () => {
+      if (unsubscribe) {
         unsubscribe();
       }
     };
   }, []);
-
 
   return {};
 };

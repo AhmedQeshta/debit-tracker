@@ -1,14 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { useSyncStore } from '@/store/syncStore';
-import { useFriendsStore } from '@/store/friendsStore';
-import { useTransactionsStore } from '@/store/transactionsStore';
-import { useBudgetStore } from '@/store/budgetStore';
 import { SyncQueueItem } from '@/types/models';
 
 export const syncService = {
   pushChanges: async () => {
     const { queue, removeFromQueue } = useSyncStore.getState();
     if (queue.length === 0) return;
+
+    // Don't try to sync if using placeholder config
+    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
+      console.log('Sync skipped: Placeholder configuration');
+      return;
+    }
 
     for (const item of queue) {
       try {
@@ -62,7 +65,7 @@ export const syncService = {
   ensureUserRecord: async (clerkUser: any) => {
     if (!clerkUser) return;
 
-    const { data, error } = await supabase.from('friends').upsert(
+    const { error } = await supabase.from('friends').upsert(
       {
         id: clerkUser.id,
         email: clerkUser.primaryEmailAddress?.emailAddress,
