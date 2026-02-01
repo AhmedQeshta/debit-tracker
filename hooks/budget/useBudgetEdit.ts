@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useBudgetStore } from '@/store/budgetStore';
-import { generateId, safeId } from '@/lib/utils';
-import { useSyncStore } from '@/store/syncStore';
+import { safeId } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { IBudgetFormData } from '@/types/budget';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useBudgetEdit = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
   const router = useRouter();
   const { budgets, updateBudget } = useBudgetStore();
-  const { addToQueue } = useSyncStore();
+  const { mutate } = useSyncMutation();
   const [loading, setLoading] = useState(false);
 
   const budget = budgets.find((b) => b.id === budgetId);
@@ -65,12 +65,7 @@ export const useBudgetEdit = () => {
         synced: false,
       };
 
-      addToQueue({
-        id: generateId(),
-        type: 'budget',
-        action: 'update',
-        payload: updatedBudget,
-      });
+      await mutate('budget', 'update', updatedBudget);
 
       router.back();
     } finally {

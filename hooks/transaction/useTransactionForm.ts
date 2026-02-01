@@ -3,18 +3,18 @@ import { showError } from '@/lib/alert';
 import { generateId, getFinalAmount } from '@/lib/utils';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useFriendsStore } from '@/store/friendsStore';
-import { useSyncStore } from '@/store/syncStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useShallow } from 'zustand/react/shallow';
 import { useForm } from 'react-hook-form';
 import { Transaction } from '@/types/models';
 import { ITransactionFormData } from '@/types/transaction';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useTransactionForm = () => {
   const { friendId: initialFriendId } = useLocalSearchParams<{ friendId: string }>();
   const friends = useFriendsStore(useShallow((state) => state.friends));
   const { addTransaction } = useTransactionsStore();
-  const { addToQueue } = useSyncStore();
+  const { mutate } = useSyncMutation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -62,12 +62,7 @@ export const useTransactionForm = () => {
       };
 
       addTransaction(newTransaction);
-      addToQueue({
-        id: generateId(),
-        type: 'transaction',
-        action: 'create',
-        payload: newTransaction,
-      });
+      await mutate('transaction', 'create', newTransaction);
 
       router.push(`/(drawer)/friend/${data.friendId}`);
     } finally {

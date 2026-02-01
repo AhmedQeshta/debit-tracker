@@ -3,9 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFriendsStore } from '@/store/friendsStore';
 import { safeId } from '@/lib/utils';
 import { useNavigation } from '@/hooks/useNavigation';
-import { useFriendSync } from '@/hooks/friend/useFriendSync';
 import { useForm } from 'react-hook-form';
 import { IFriendFormData } from '@/types/friend';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useFriendEdit = () => {
   const router = useRouter();
@@ -14,7 +14,7 @@ export const useFriendEdit = () => {
   const friend = useFriendsStore((state) => state.friends.find((f) => f.id === friendId));
   const { updateFriend } = useFriendsStore();
   const { navigateBack } = useNavigation();
-  const { addToSyncQueue, triggerSync } = useFriendSync();
+  const { mutate } = useSyncMutation();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -60,9 +60,8 @@ export const useFriendEdit = () => {
       };
 
       updateFriend(updatedFriend);
-      addToSyncQueue('friend', 'update', updatedFriend);
+      await mutate('friend', 'update', updatedFriend);
 
-      await triggerSync();
       navigateBack();
     } finally {
       setLoading(false);

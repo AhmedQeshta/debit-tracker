@@ -3,16 +3,15 @@ import { useRouter } from 'expo-router';
 import { useFriendsStore } from '@/store/friendsStore';
 import { generateId } from '@/lib/utils';
 import { useNavigation } from '@/hooks/useNavigation';
-import { useFriendSync } from '@/hooks/friend/useFriendSync';
 import { useForm } from 'react-hook-form';
 import { IFriendFormData } from '@/types/friend';
-
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useFriendCreate = () => {
   const router = useRouter();
   const { addFriend } = useFriendsStore();
   const { navigateBack } = useNavigation();
-  const { addToSyncQueue, triggerSync } = useFriendSync();
+  const { mutate } = useSyncMutation();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -48,9 +47,8 @@ export const useFriendCreate = () => {
       };
 
       addFriend(newFriend);
-      addToSyncQueue('friend', 'create', newFriend);
+      await mutate('friend', 'create', newFriend);
 
-      await triggerSync();
       router.push({ pathname: '/(drawer)/transaction/new', params: { friendId: newFriend.id } });
     } finally {
       setLoading(false);

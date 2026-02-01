@@ -7,6 +7,7 @@ import { Colors } from '../theme/colors';
 import { useSplash } from '@/hooks/useSplash';
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store'; // Try to use SecureStore if possible, else AsyncStorage
+import { useCloudSync } from '@/hooks/sync/useCloudSync';
 
 const tokenCache = {
   async getToken(key: string) {
@@ -58,6 +59,11 @@ const STACK_OPTIONS = {
   headerShown: false,
 };
 
+function SyncManager() {
+  useCloudSync();
+  return null;
+}
+
 export default function RootLayout() {
   useSplash();
 
@@ -68,6 +74,7 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
+        <SyncManager />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
             <Stack screenOptions={STACK_OPTIONS}>

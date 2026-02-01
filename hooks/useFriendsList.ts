@@ -5,13 +5,13 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { filterFriends, getBalance } from '@/lib/utils';
 import { useNavigation } from '@/hooks/useNavigation';
 import { confirmDelete } from '@/lib/alert';
-import { useFriendSync } from '@/hooks/friend/useFriendSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useFriendsList = () => {
   const { pinFriend, unpinFriend, deleteFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
-  const { addToSyncQueue } = useFriendSync();
+  const { mutate } = useSyncMutation();
   const [search, setSearch] = useState('');
   const [isGrid, setIsGrid] = useState(false);
   const friends = useFriendsStore(useShallow((state) => state.friends));
@@ -40,36 +40,30 @@ export const useFriendsList = () => {
   const handleFriendEdit = (friendId: string): void => navigateToFriendEdit(friendId);
 
   const handleFriendDelete = (friendId: string, friendName: string): void => {
-    const friendTransactions = useTransactionsStore
-      .getState()
-      .transactions.filter((t) => t.friendId === friendId);
-
-    confirmDelete(
-      'Delete Friend',
-      `Are you sure you want to delete "${friendName}" and all records?`,
-      () => {
-        // Delete all transactions for this friend
-        friendTransactions.forEach((t) => {
-          deleteTransaction(t.id);
-          addToSyncQueue('transaction', 'delete', { id: t.id });
-        });
-
-        // Delete the friend
-        deleteFriend(friendId);
-        addToSyncQueue('friend', 'delete', { id: friendId });
-      },
-    );
+    confirmDelete('Delete Friend', `Are you sure you want to delete ${friendName}?`, async () => {
+        // Find friend's transactions
+        const friendTransactions = transactions.filter(t => t.friendId === friendId);
+        
+        for (const t of friendTransactions) {
+            deleteTransaction(t.id);
+            await mutate('transaction', 'delete', { id: t.id });
+        }
+        
+      deleteFriend(friendId);
+      await mutate('friend', 'delete', { id: friendId });
+    });
   };
 
   return {
+    friends,
     filteredFriends,
-    isGrid,
-    setSearch,
-    setIsGrid,
-    getFriendBalance,
     search,
+    setSearch,
+    isGrid,
+    setIsGrid,
     handlePinToggle,
     handleFriendEdit,
     handleFriendDelete,
+    getFriendBalance,
   };
 };

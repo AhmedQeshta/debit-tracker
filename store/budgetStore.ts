@@ -30,6 +30,22 @@ export const useBudgetStore = create<IBudgetState>()(
         set((state) => ({
           budgets: state.budgets.filter((b) => b.id !== id),
         })),
+      mergeBudgets: (remoteBudgets: Budget[]) =>
+        set((state) => {
+          const localMap = new Map(state.budgets.map((b) => [b.id, b]));
+          remoteBudgets.forEach((remote) => {
+            const local = localMap.get(remote.id);
+            // Merge budgets
+            if (!local || (remote.updatedAt || 0) > (local.updatedAt || 0)) {
+              localMap.set(remote.id, remote); // Assuming remote includes items
+            }
+          });
+          return { budgets: Array.from(localMap.values()) };
+        }),
+      markAsSynced: (id: string) =>
+        set((state) => ({
+          budgets: state.budgets.map((b) => (b.id === id ? { ...b, synced: true } : b)),
+        })),
       pinBudget: (id: string) =>
         set((state) => ({
           budgets: state.budgets.map((b) => (b.id === id ? { ...b, pinned: true } : b)),

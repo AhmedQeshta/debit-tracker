@@ -5,9 +5,9 @@ import { useTransactionsStore } from '@/store/transactionsStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getBalance, safeId } from '@/lib/utils';
 import { useNavigation } from '@/hooks/useNavigation';
-import { useFriendSync } from '@/hooks/friend/useFriendSync';
 import { useOperations } from '@/hooks/useOperations';
 import { confirmDelete } from '@/lib/alert';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useFriendDetail = () => {
   const router = useRouter();
@@ -21,7 +21,7 @@ export const useFriendDetail = () => {
   const { deleteTransaction } = useTransactionsStore();
 
   const { navigateToFriendEdit, navigateBack } = useNavigation();
-  const { addToSyncQueue } = useFriendSync();
+  const { mutate } = useSyncMutation();
   const { handleFriendPinToggle: togglePin } = useOperations();
 
   const balance = useMemo(() => getBalance(friendId, transactions), [friendId, transactions]);
@@ -39,29 +39,34 @@ export const useFriendDetail = () => {
       'Are you sure you want to delete this friend and all records?',
       async () => {
         // Delete all transactions for this friend
-        transactions.forEach((t) => {
+        // TODO: Batch delete or iterate. Iterate for now.
+        for (const t of transactions) {
           deleteTransaction(t.id);
-          addToSyncQueue('transaction', 'delete', { id: t.id });
-        });
+          await mutate('transaction', 'delete', { id: t.id });
+        }
 
         // Delete the friend
         deleteFriend(friendId);
-        addToSyncQueue('friend', 'delete', { id: friendId });
+        await mutate('friend', 'delete', { id: friendId });
 
         navigateBack();
       },
     );
   };
 
-  const handleEditTransaction = (transactionId: string): void => {
-    router.push(`/(drawer)/transaction/${transactionId}/edit`);
+  const handleDeleteTransaction = (transactionId: string): void => {
+    confirmDelete(
+      'Delete Transaction',
+      'Are you sure you want to delete this transaction?',
+      async () => {
+        deleteTransaction(transactionId);
+        await mutate('transaction', 'delete', { id: transactionId });
+      },
+    );
   };
 
-  const handleDeleteTransaction = (transactionId: string): void => {
-    confirmDelete('Delete Transaction', 'Are you sure you want to delete this transaction?', () => {
-      deleteTransaction(transactionId);
-      addToSyncQueue('transaction', 'delete', { id: transactionId });
-    });
+  const handleEditTransaction = (transactionId: string): void => {
+    router.push(`/(drawer)/transaction/${transactionId}/edit`);
   };
 
   const handlePinToggle = (): void => {

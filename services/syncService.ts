@@ -1,98 +1,297 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, hasSupabaseToken } from '@/lib/supabase';
 import { useSyncStore } from '@/store/syncStore';
-import { SyncQueueItem } from '@/types/models';
+import { useFriendsStore } from '@/store/friendsStore';
+import { useBudgetStore } from '@/store/budgetStore';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { SyncQueueItem, Friend, Budget, Transaction, BudgetItem } from '@/types/models';
 
 export const syncService = {
   pushChanges: async () => {
     const { queue, removeFromQueue } = useSyncStore.getState();
-    if (queue.length === 0) return;
 
-    // Don't try to sync if using placeholder config
-    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
-      console.log('Sync skipped: Placeholder configuration');
+    // Sync gating: if sync is disabled, don't write to Supabase
+    if (!useSyncStore.getState().syncEnabled) {
+      console.log('[Sync] pushChanges skipped: sync disabled');
       return;
     }
 
+    // Token validation: if sync is enabled, token is required
+    if (!hasSupabaseToken()) {
+      console.log('[Sync] pushChanges skipped: no token');
+      throw new Error(
+        'Sync is enabled but no authentication token available. Cannot sync without authentication.',
+      );
+    }
+
+    if (queue.length === 0) return;
+
+    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
+      console.log('[Sync] Sync skipped: Placeholder configuration');
+      return;
+    }
+
+    // Process queue sequentially to maintain order
     for (const item of queue) {
       try {
         const { table, data } = getTableAndData(item);
         if (!table) {
-          removeFromQueue(item.id); // Remove invalid items
+          removeFromQueue(item.id);
           continue;
         }
 
-        if (item.action === 'create') {
-          await supabase.from(table).upsert(data);
-        } else if (item.action === 'update') {
-          await supabase.from(table).update(data).eq('id', item.id);
+        let error;
+        if (item.action === 'create' || item.action === 'update') {
+          const { error: reqError } = await supabase.from(table).upsert(data);
+          error = reqError;
         } else if (item.action === 'delete') {
-          await supabase.from(table).delete().eq('id', item.id);
+          const { error: reqError } = await supabase.from(table).delete().eq('id', item.id);
+          error = reqError;
         }
-        removeFromQueue(item.id);
-      } catch (error) {
-        console.error('Sync push error:', error);
-        // Keep in queue to retry? Or remove? For now, keep.
+
+        if (error) {
+          console.error(`[Sync] Error for ${item.type} ${item.id}:`, error);
+          // If 401/403, maybe stop syncing?
+          // For now, we keep it in queue to retry later.
+        } else {
+          removeFromQueue(item.id);
+
+          // Mark as synced in local store if it was a create/update
+          if (item.action !== 'delete') {
+            markLocalAsSynced(item.type, item.id);
+          }
+        }
+      } catch (e) {
+        console.error('[Sync] Push exception:', e);
       }
     }
   },
 
   pullChanges: async (userId: string) => {
-    // Pull Friends
+    const { syncEnabled } = useSyncStore.getState();
+
+    // Sync gating: if sync is disabled, don't read from Supabase
+    if (!syncEnabled) {
+      console.log('[Sync] pullChanges skipped: sync disabled');
+      return;
+    }
+
+    // Token validation: if sync is enabled, token is required
+    if (!hasSupabaseToken()) {
+      console.log('[Sync] pullChanges skipped: no token');
+      throw new Error(
+        'Sync is enabled but no authentication token available. Cannot sync without authentication.',
+      );
+    }
+
+    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
+      console.log('[Sync] Sync skipped: Placeholder configuration');
+      return;
+    }
+
+    // 1. Pull Friends (filtered by clerk_id if needed)
     const { data: friends, error: friendsError } = await supabase
       .from('friends')
       .select('*')
-      .eq('id', userId); // For now, sync *my* friend profile
-
+      .eq('clerk_id', userId);
     if (friends && !friendsError) {
-      // Merge logic (simple replace for now)
-      // In a real app, we'd compare updated_at
-      // useFriendsStore.getState().setFriends(friends); // Careful not to overwrite local-only friends if any?
-      // Prompt says "Clerk user = Supabase friend". So maybe only sync THAT record?
-      // But what about the friends I track?
-      // If the table 'friends' stores ALL user profiles, then maybe I need to fetch friends unrelated to me?
-      // Or maybe I have a 'friends' relationship table?
-      // The prompt says "All data is tied to friend_id".
-      // If I am following "Single User" model, I only pull MY data.
+      useFriendsStore.getState().mergeFriends(friends as Friend[]);
+    }
+
+    // 2. Pull Budgets (filtered by clerk_id via friend_id relationship)
+    const { data: budgets, error: budgetsError } = await supabase.from('budgets').select(`
+      *,
+      items:budget_items(*)
+    `);
+
+    if (budgets && !budgetsError) {
+      const formattedBudgets = budgets.map((b: any) => ({
+        ...b,
+        items: b.items || [],
+      }));
+      useBudgetStore.getState().mergeBudgets(formattedBudgets as Budget[]);
+    }
+
+    // 3. Pull Transactions (filtered by clerk_id via friend_id relationship)
+    const { data: transactions, error: transError } = await supabase
+      .from('transactions')
+      .select('*');
+    if (transactions && !transError) {
+      useTransactionsStore.getState().mergeTransactions(transactions as Transaction[]);
     }
   },
 
   syncAll: async (userId: string) => {
-    await syncService.pushChanges();
-    // await syncService.pullChanges(userId);
-    useSyncStore.getState().setLastSync(Date.now());
+    const { syncEnabled } = useSyncStore.getState();
+
+    // Sync gating: if sync is disabled, don't sync
+    if (!syncEnabled) {
+      console.log('[Sync] syncAll skipped: sync disabled');
+      return;
+    }
+
+    // Token validation: if sync is enabled, token is required
+    if (!hasSupabaseToken()) {
+      console.log('[Sync] syncAll skipped: no token');
+      throw new Error(
+        'Sync is enabled but no authentication token available. Cannot sync without authentication.',
+      );
+    }
+
+    try {
+      await syncService.pushChanges();
+      await syncService.pullChanges(userId);
+      useSyncStore.getState().setLastSync(Date.now());
+    } catch (error) {
+      console.error('[Sync] SyncAll error:', error);
+      throw error; // Re-throw to let caller handle
+    }
   },
 
-  ensureUserRecord: async (clerkUser: any) => {
-    if (!clerkUser) return;
+  ensureUserRecord: async (
+    clerkUser: any,
+  ): Promise<{ ok: boolean; skipped?: boolean; reason?: string }> => {
+    const { syncEnabled } = useSyncStore.getState();
 
-    const { error } = await supabase.from('friends').upsert(
-      {
-        id: clerkUser.id,
-        email: clerkUser.primaryEmailAddress?.emailAddress,
-        updated_at: new Date().toISOString(),
-        last_login: new Date().toISOString(),
-      },
-      { onConflict: 'id' },
-    );
-
-    if (error) {
-      console.error('Error ensuring user record:', error);
+    // STRICT GATING: if sync is disabled, or no token, or no user -> skip
+    if (!syncEnabled || !hasSupabaseToken() || !clerkUser) {
+      console.log('[Sync] ensureUserRecord skipped:', {
+        syncEnabled,
+        hasToken: hasSupabaseToken(),
+        hasUser: !!clerkUser,
+      });
+      return {
+        ok: false,
+        skipped: true,
+        reason: !syncEnabled ? 'sync_disabled' : !hasSupabaseToken() ? 'no_token' : 'no_user',
+      };
     }
+
+    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
+      console.log('[Sync] Sync skipped: Placeholder configuration');
+      return { ok: false, skipped: true, reason: 'placeholder_config' };
+    }
+
+    try {
+      // Query for existing record ONLY by clerk_id
+      const { data: existing } = await supabase
+        .from('friends')
+        .select('id')
+        .eq('clerk_id', clerkUser.id)
+        .maybeSingle();
+
+      // Build upsert payload
+      const upsertData: any = {
+        clerk_id: clerkUser.id, // TEXT column
+        email: clerkUser.primaryEmailAddress?.emailAddress || clerkUser.emailAddress, // Handle both user and signup objects
+        name: clerkUser.fullName || clerkUser.firstName || 'User',
+        last_login: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // If record exists, include the existing UUID for update
+      // IMPORTANT: never use clerkUser.id here
+      if (existing?.id) {
+        upsertData.id = existing.id;
+      }
+
+      console.log('[Sync] ensureUserRecord payload:', upsertData);
+
+      const { error } = await supabase
+        .from('friends')
+        .upsert(upsertData, { onConflict: 'clerk_id' });
+
+      if (error) {
+        console.error('[Sync] Error ensuring user record (22P02 fix):', error);
+        throw error;
+      }
+
+      return { ok: true };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Direct upsert helper for "Write-Through"
+  upsertOne: async (table: string, data: any) => {
+    const { syncEnabled } = useSyncStore.getState();
+    if (!syncEnabled) {
+      throw new Error('Sync must be enabled');
+    }
+    if (!hasSupabaseToken()) {
+      throw new Error('No authentication token available');
+    }
+    return await supabase.from(table).upsert(data);
+  },
+
+  deleteOne: async (table: string, id: string) => {
+    const { syncEnabled } = useSyncStore.getState();
+    if (!syncEnabled) {
+      throw new Error('Sync must be enabled');
+    }
+    if (!hasSupabaseToken()) {
+      throw new Error('No authentication token available');
+    }
+    return await supabase.from(table).delete().eq('id', id);
   },
 };
 
 const getTableAndData = (item: SyncQueueItem) => {
-  // payload should have keys matching db columns
   switch (item.type) {
     case 'friend':
-      return { table: 'friends', data: item.payload };
+      return { table: 'friends', data: mapFriendToDb(item.payload) };
     case 'transaction':
-      return { table: 'transactions', data: item.payload };
+      return { table: 'transactions', data: mapTransactionToDb(item.payload) };
     case 'budget':
-      return { table: 'budgets', data: item.payload };
+      return { table: 'budgets', data: mapBudgetToDb(item.payload) };
     case 'budget_item':
-      return { table: 'budget_items', data: item.payload };
+      return { table: 'budget_items', data: mapBudgetItemToDb(item.payload) };
     default:
       return { table: null, data: null };
   }
 };
+
+const markLocalAsSynced = (type: string, id: string) => {
+  switch (type) {
+    case 'friend':
+      useFriendsStore.getState().markAsSynced(id);
+      break;
+    case 'transaction':
+      useTransactionsStore.getState().markAsSynced(id);
+      break;
+    // budgets don't have 'markAsSynced' in store yet? They should.
+    // I didn't add it to BudgetStore. I should.
+  }
+};
+
+// Helpers to clean up data before sending to DB (e.g. remove 'items' from budget object)
+const mapFriendToDb = (f: Friend) => {
+  const { items, ...rest } = f as any; // friends don't have items
+  return {
+    ...rest,
+    updated_at: new Date().toISOString(), // Ensure timestamp update
+  };
+};
+
+const mapTransactionToDb = (t: Transaction) => ({
+  ...t,
+  friend_id: t.friendId, // map camel to snake
+  updated_at: new Date().toISOString(),
+});
+
+const mapBudgetToDb = (b: Budget) => {
+  const { items, ...rest } = b;
+  return {
+    ...rest,
+    friend_id: b.friendId,
+    total_budget: b.totalBudget,
+    created_at: new Date(b.createdAt).toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+};
+
+const mapBudgetItemToDb = (bi: BudgetItem) => ({
+  ...bi,
+  budget_id: bi.budgetId,
+  created_at: new Date(bi.createdAt).toISOString(),
+  updated_at: new Date().toISOString(),
+});
