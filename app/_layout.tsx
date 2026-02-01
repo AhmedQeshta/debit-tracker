@@ -27,16 +27,16 @@ const tokenCache = {
   async saveToken(key: string, value: string) {
     try {
       return SecureStore.setItemAsync(key, value);
-    } catch (err) {
+    } catch {
       return;
     }
   },
 };
 
-const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 if (!publishableKey) {
-  throw new Error(
+  console.warn(
     'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
   );
 }
@@ -60,6 +60,11 @@ const STACK_OPTIONS = {
 
 export default function RootLayout() {
   useSplash();
+
+  if (!publishableKey) {
+    return null; // Or a custom error screen
+  }
+
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
