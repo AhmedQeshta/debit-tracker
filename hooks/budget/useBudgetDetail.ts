@@ -30,8 +30,9 @@ export const useBudgetDetail = () =>
   const [itemTitleError, setItemTitleError] = useState("");
   const [itemAmountError, setItemAmountError] = useState("");
 
-  const totalSpent = getTotalSpent(budgetId);
-  const remaining = getRemainingBudget(budgetId);
+  // Calculate from budget object to make it reactive to changes
+  const totalSpent = budget ? budget.items.reduce((sum, item) => sum + item.amount, 0) : 0;
+  const remaining = budget ? budget.totalBudget - totalSpent : 0;
 
   const handleAddItem = (): void =>
   {
