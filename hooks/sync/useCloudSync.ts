@@ -1,14 +1,12 @@
-import { useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSyncStore } from '@/store/syncStore';
 import { syncService } from '@/services/syncService';
-import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 import NetInfo from '@react-native-community/netinfo';
 
 export const useCloudSync = () => {
-  const { syncEnabled, setSyncEnabled, isSyncing, setSyncing, lastSync, queue, addToQueue } =
-    useSyncStore();
+  const { syncEnabled, setSyncEnabled, isSyncing, setSyncing, lastSync, queue } = useSyncStore();
   const { isSignedIn, userId } = useAuth();
-  const { user } = useUser();
 
   // Auto-sync on syncEnabled change, login, or reconnect
   useEffect(() => {
