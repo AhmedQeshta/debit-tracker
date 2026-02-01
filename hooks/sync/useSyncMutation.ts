@@ -6,9 +6,13 @@ import { SyncQueueItem } from '@/types/models';
 
 export const useSyncMutation = () => {
   const { syncEnabled, addToQueue } = useSyncStore();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
 
-  const mutate = async (type: SyncQueueItem['type'], action: SyncQueueItem['action'], payload: any) => {
+  const mutate = async (
+    type: SyncQueueItem['type'],
+    action: SyncQueueItem['action'],
+    payload: any,
+  ) => {
     // If sync is disabled, do nothing (local changes already applied by caller)
     if (!syncEnabled) return;
 
@@ -22,7 +26,7 @@ export const useSyncMutation = () => {
     if (isOnline && isSignedIn) {
       try {
         // Token is managed globally by useCloudSync, just call pushChanges
-        await syncService.pushChanges();
+        await syncService.pushChanges(getToken);
       } catch (e) {
         console.error('[Sync] Immediate sync failed, item remains in queue:', e);
       }

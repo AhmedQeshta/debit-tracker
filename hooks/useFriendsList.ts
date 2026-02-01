@@ -45,11 +45,11 @@ export const useFriendsList = () => {
         const friendTransactions = transactions.filter(t => t.friendId === friendId);
         
         for (const t of friendTransactions) {
-            deleteTransaction(t.id);
+          deleteTransaction(t.id);
             await mutate('transaction', 'delete', { id: t.id });
         }
-        
-      deleteFriend(friendId);
+
+        deleteFriend(friendId);
       await mutate('friend', 'delete', { id: friendId });
     });
   };
