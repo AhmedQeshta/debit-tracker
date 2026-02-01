@@ -12,14 +12,14 @@ import { sortedTransactions } from '@/lib/utils';
 import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
 import { useRouter } from 'expo-router';
 import { confirmDelete } from '@/lib/alert';
-import { useFriendSync } from '@/hooks/friend/useFriendSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export default function TransactionsScreen()
 {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const { deleteTransaction } = useTransactionsStore();
-  const { addToSyncQueue } = useFriendSync();
+  const { mutate } = useSyncMutation();
   const transactions = useTransactionsStore(useShallow((state) => state.transactions));
 
   const handleEdit = (id: string) =>
@@ -29,10 +29,10 @@ export default function TransactionsScreen()
 
   const handleDelete = (id: string, title: string) =>
   {
-    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, () =>
+    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, async () =>
     {
       deleteTransaction(id);
-      addToSyncQueue('transaction', 'delete', { id });
+      await mutate('transaction', 'delete', { id });
     });
   };
 

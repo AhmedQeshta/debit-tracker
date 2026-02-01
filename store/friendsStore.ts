@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Friend } from '@/types/models';
 import { IFriendsState } from '@/types/store';
 
 export const useFriendsStore = create<IFriendsState>()(
@@ -18,6 +17,17 @@ export const useFriendsStore = create<IFriendsState>()(
           friends: state.friends.filter((f) => f.id !== id),
         })),
       setFriends: (friends) => set({ friends }),
+      mergeFriends: (remoteFriends) =>
+        set((state) => {
+          const localMap = new Map(state.friends.map((f) => [f.id, f]));
+          remoteFriends.forEach((remote) => {
+            const local = localMap.get(remote.id);
+            if (!local || (remote.updatedAt || 0) > (local.updatedAt || 0)) {
+              localMap.set(remote.id, { ...remote, synced: true });
+            }
+          });
+          return { friends: Array.from(localMap.values()) };
+        }),
       markAsSynced: (id) =>
         set((state) => ({
           friends: state.friends.map((f) => (f.id === id ? { ...f, synced: true } : f)),

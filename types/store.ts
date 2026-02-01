@@ -1,4 +1,4 @@
-import { SyncQueueItem, Transaction, Friend, BudgetItem, Budget } from '@/types/models';
+import { SyncQueueItem, Transaction, Friend, Budget } from '@/types/models';
 
 export interface ISyncState {
   queue: SyncQueueItem[];
@@ -19,6 +19,7 @@ export interface ITransactionsState {
   updateTransaction: (transaction: Transaction) => void;
   deleteTransaction: (id: string) => void;
   setTransactions: (transactions: Transaction[]) => void;
+  mergeTransactions: (transactions: Transaction[]) => void;
   markAsSynced: (id: string) => void;
 }
 
@@ -28,6 +29,7 @@ export interface IFriendsState {
   updateFriend: (friend: Friend) => void;
   deleteFriend: (id: string) => void;
   setFriends: (friends: Friend[]) => void;
+  mergeFriends: (friends: Friend[]) => void;
   markAsSynced: (id: string) => void;
   pinFriend: (id: string) => void;
   unpinFriend: (id: string) => void;
@@ -38,6 +40,8 @@ export interface IBudgetState {
   addBudget: (title: string, currency: string, totalBudget: number, friendId: string) => string;
   updateBudget: (id: string, updates: Partial<Budget>) => void;
   deleteBudget: (id: string) => void;
+  mergeBudgets: (budgets: Budget[]) => void;
+  markAsSynced: (id: string) => void;
   pinBudget: (id: string) => void;
   unpinBudget: (id: string) => void;
   setCurrency: (id: string, currency: string) => void;

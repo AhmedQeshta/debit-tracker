@@ -41,6 +41,7 @@ export interface BudgetItem {
   amount: number; // price (positive number)
   createdAt: number;
   updatedAt?: number;
+  synced?: boolean;
 }
 
 export interface Budget {
@@ -53,4 +54,5 @@ export interface Budget {
   pinned: boolean;
   createdAt: number;
   updatedAt?: number;
+  synced?: boolean;
 }

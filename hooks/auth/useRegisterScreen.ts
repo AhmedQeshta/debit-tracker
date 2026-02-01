@@ -1,8 +1,9 @@
-import { syncService } from "@/services/syncService";
-import { useSignUp } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { syncService } from '@/services/syncService';
+import { useSyncStore } from '@/store/syncStore';
+import { useSignUp } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export const useRegisterScreen = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -58,7 +59,10 @@ export const useRegisterScreen = () => {
         await setActive({ session: completeSignUp.createdSessionId });
 
         // Ensure user record exists in Supabase
-        await syncService.ensureUserRecord(signUp);
+        const { syncEnabled } = useSyncStore.getState();
+        if (syncEnabled) {
+          await syncService.ensureUserRecord(signUp);
+        }
 
         router.replace('/');
       } else {
@@ -79,6 +83,6 @@ export const useRegisterScreen = () => {
     onSignUpPress,
     onPressVerify,
     pendingVerification,
-    router
+    router,
   };
 };

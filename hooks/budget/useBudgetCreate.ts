@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useBudgetStore } from '@/store/budgetStore';
-import { generateId } from '@/lib/utils';
-import { useSyncStore } from '@/store/syncStore';
 import { useForm } from 'react-hook-form';
 import { IBudgetFormData } from '@/types/budget';
-
-
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export const useBudgetCreate = () => {
   const router = useRouter();
   const { addBudget } = useBudgetStore();
-  const { addToQueue } = useSyncStore();
+  const { mutate } = useSyncMutation();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -47,12 +44,7 @@ export const useBudgetCreate = () => {
         synced: false,
       };
 
-      addToQueue({
-        id: generateId(),
-        type: 'budget',
-        action: 'create',
-        payload: newBudget,
-      });
+      await mutate('budget', 'create', newBudget);
       router.push(`/(drawer)/budget/${budgetId}`)  
       } finally {
       setLoading(false);

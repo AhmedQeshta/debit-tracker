@@ -1,25 +1,22 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Colors } from '@/theme/colors';
 import
-{
-  Info,
-  X,
-  Cloud,
-  CloudOff,
-  LogIn,
-  LogOut,
-} from 'lucide-react-native';
+  {
+    Info,
+    X,
+    LogIn,
+    LogOut,
+  } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
-import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { MenuItemDrawer } from '@/components/drawer/MenuItemDrawer';
 import { MAIN_MENU_ITEMS } from '@/lib/menu';
+import { SyncStatus } from '@/components/sync/SyncStatus';
 
 
 export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) =>
 {
-  const { syncEnabled, setSyncEnabled, isSyncing, syncNow, lastSync } = useCloudSync();
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
   const router = useRouter();
@@ -47,35 +44,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
 
         <View style={styles.divider} />
 
-        <View style={styles.syncSection}>
-          <View style={styles.syncHeader}>
-            <View style={styles.syncTitleRow}>
-              {syncEnabled ? (
-                <Cloud size={18} color={Colors.primary} />
-              ) : (
-                <CloudOff size={18} color={Colors.textSecondary} />
-              )}
-              <Text style={styles.syncTitle}>Cloud Sync</Text>
-            </View>
-            <Switch
-              value={syncEnabled}
-              onValueChange={setSyncEnabled}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor="#fff"
-            />
-          </View>
-          {syncEnabled && (
-            <TouchableOpacity onPress={syncNow} disabled={isSyncing}>
-              <Text style={styles.lastSyncText}>
-                {isSyncing
-                  ? 'Syncing...'
-                  : lastSync
-                    ? `Last sync: ${new Date(lastSync).toLocaleTimeString()}`
-                    : 'Not synced yet'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <SyncStatus />
 
         <View style={styles.divider} />
 
@@ -137,56 +106,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Spacing.md,
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    marginHorizontal: Spacing.sm,
-    marginVertical: Spacing.xs,
-    borderRadius: Spacing.borderRadius.md,
-    gap: Spacing.md,
-  },
-  menuItemActive: {
-    backgroundColor: Colors.card,
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  menuItemTextActive: {
-    color: Colors.primary,
-  },
   divider: {
     height: 1,
     backgroundColor: Colors.border,
     marginVertical: Spacing.sm,
     marginHorizontal: Spacing.md,
-  },
-  syncSection: {
-    padding: Spacing.md,
-    marginHorizontal: Spacing.sm,
-  },
-  syncHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
-  },
-  syncTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  syncTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  lastSyncText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginLeft: 26,
   },
   footer: {
     padding: Spacing.md,
