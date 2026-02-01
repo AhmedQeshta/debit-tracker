@@ -1,5 +1,5 @@
 import { generateId } from '@/lib/utils';
-import { syncData } from '@/services/sync';
+import { syncService } from '@/services/syncService';
 import { useSyncStore } from '@/store/syncStore';
 
 export const useFriendSync = () => {
@@ -19,7 +19,7 @@ export const useFriendSync = () => {
   };
 
   const triggerSync = async (): Promise<void> => {
-    await syncData();
+    await syncService.pushChanges();
   };
 
   return {
