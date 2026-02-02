@@ -4,7 +4,8 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { SyncQueueItem, Friend, Budget, Transaction, BudgetItem } from '@/types/models';
-import { GetTokenFunction, refreshSupabaseJwt, isJwtExpiredError } from '@/lib/syncAuth';
+import { retryOnceOnJwtExpired, isJwtExpiredError,GetTokenFunction } from '@/services/authSync';
+import { ensureAppUser } from '@/services/userService';
 
 export const syncService = {
   pushChanges: async (getToken: GetTokenFunction) => {
@@ -31,10 +32,17 @@ export const syncService = {
       return;
     }
 
+    // Get cloudUserId from store
+    const { cloudUserId } = useSyncStore.getState();
+    if (!cloudUserId) {
+      console.log('[Sync] pushChanges skipped: no cloudUserId');
+      throw new Error('cloudUserId is required for syncing');
+    }
+
     // Process queue sequentially to maintain order
     for (const item of queue) {
       try {
-        const { table, data } = getTableAndData(item);
+        const { table, data } = getTableAndData(item, cloudUserId);
         if (!table) {
           removeFromQueue(item.id);
           continue;
@@ -43,7 +51,7 @@ export const syncService = {
         let error;
         let retried = false;
 
-        // Helper to execute the Supabase request
+        // Helper to execute the Supabase request with retry
         const executeRequest = async () => {
           if (item.action === 'create' || item.action === 'update') {
             const { error: reqError } = await supabase.from(table).upsert(data);
@@ -55,29 +63,29 @@ export const syncService = {
           return null;
         };
 
-        // First attempt
-        error = await executeRequest();
-
-        // If JWT expired, refresh token and retry once
-        if (error && isJwtExpiredError(error) && !retried) {
-          console.log(`[Sync] JWT expired for ${item.type} ${item.id}, refreshing token...`);
-          const newToken = await refreshSupabaseJwt(getToken);
-
-          if (newToken) {
-            retried = true;
-            console.log(`[Sync] Retrying ${item.type} ${item.id} with new token...`);
-            error = await executeRequest();
-          } else {
-            console.error('[Sync] Failed to refresh token, cannot retry');
+        // Execute with automatic JWT retry
+        try {
+          error = await retryOnceOnJwtExpired(executeRequest, getToken);
+        } catch (retryError: any) {
+          // If retry failed due to JWT expiration, set sync status and stop
+          if (isJwtExpiredError(retryError)) {
+            console.error('[Sync] JWT refresh failed after retry, setting sync status to needs_login');
+            useSyncStore.getState().setSyncStatus('needs_login');
+            // Don't throw - preserve queue and stop gracefully
+            return;
           }
+          // Re-throw non-JWT errors
+          throw retryError;
         }
 
         if (error) {
           console.error(`[Sync] Error for ${item.type} ${item.id}:`, error);
           // Keep item in queue for later retry
-          // If it was a JWT error and retry failed, we stop here but preserve queue
+          // If it was a JWT error and retry failed, set status and stop
           if (isJwtExpiredError(error)) {
-            throw new Error(`JWT expired and refresh failed for ${item.type} ${item.id}`);
+            console.error('[Sync] JWT expired and refresh failed, setting sync status to needs_login');
+            useSyncStore.getState().setSyncStatus('needs_login');
+            return; // Stop sync gracefully, preserve queue
           }
         } else {
           removeFromQueue(item.id);
@@ -87,15 +95,20 @@ export const syncService = {
             markLocalAsSynced(item.type, item.id);
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('[Sync] Push exception:', e);
-        // Re-throw to stop sync and preserve queue
+        // If it's a JWT error, set status and stop gracefully
+        if (isJwtExpiredError(e)) {
+          useSyncStore.getState().setSyncStatus('needs_login');
+          return;
+        }
+        // Re-throw other errors to stop sync and preserve queue
         throw e;
       }
     }
   },
 
-  pullChanges: async (userId: string, getToken: GetTokenFunction) => {
+  pullChanges: async (cloudUserId: string, getToken: GetTokenFunction) => {
     const { syncEnabled } = useSyncStore.getState();
 
     // Sync gating: if sync is disabled, don't read from Supabase
@@ -119,74 +132,112 @@ export const syncService = {
 
     // Helper to execute a pull request with retry logic
     const executePull = async <T>(queryFn: () => Promise<{ data: T | null; error: any }>) => {
-      let result = await queryFn();
-
-      // If JWT expired, refresh token and retry once
-      if (result.error && isJwtExpiredError(result.error)) {
-        console.log('[Sync] JWT expired during pull, refreshing token...');
-        const newToken = await refreshSupabaseJwt(getToken);
-
-        if (newToken) {
-          console.log('[Sync] Retrying pull with new token...');
-          result = await queryFn();
-        } else {
-          console.error('[Sync] Failed to refresh token, cannot retry pull');
-        }
-      }
-
-      return result;
+      return retryOnceOnJwtExpired(queryFn, getToken);
     };
 
-    // 1. Pull Friends (filtered by clerk_id if needed)
+    // 1. Pull Friends (filtered by owner_id)
     const { data: friends, error: friendsError } = await executePull(
-      async () => await supabase.from('friends').select('*').eq('clerk_id', userId),
+      async () => await supabase.from('friends').select('*').eq('owner_id', cloudUserId),
     );
     if (friends && !friendsError) {
-      useFriendsStore.getState().mergeFriends(friends as Friend[]);
+      // Map DB format to local format
+      const mappedFriends = friends.map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        email: undefined, // Friends don't have email in new schema
+        bio: f.bio || '',
+        imageUri: null, // Not in new schema
+        currency: '$', // Default, not in new schema
+        createdAt: safeDateToTimestamp(f.created_at),
+        updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
+        synced: true,
+        pinned: false, // Not in new schema
+      }));
+      useFriendsStore.getState().mergeFriends(mappedFriends as Friend[]);
     } else if (friendsError) {
       console.error('[Sync] Error pulling friends:', friendsError);
       if (isJwtExpiredError(friendsError)) {
-        throw new Error('JWT expired and refresh failed while pulling friends');
+        console.error('[Sync] JWT expired and refresh failed while pulling friends, setting sync status to needs_login');
+        useSyncStore.getState().setSyncStatus('needs_login');
+        return; // Stop sync gracefully
       }
     }
 
-    // 2. Pull Budgets (filtered by clerk_id via friend_id relationship)
+    // 2. Pull Budgets (filtered by owner_id)
     const { data: budgets, error: budgetsError } = await executePull(
       async () =>
-        await supabase.from('budgets').select(`
+        await supabase
+          .from('budgets')
+          .select(`
         *,
         items:budget_items(*)
-      `),
+      `)
+          .eq('owner_id', cloudUserId),
     );
 
     if (budgets && !budgetsError) {
+      // Map DB format to local format
       const formattedBudgets = budgets.map((b: any) => ({
-        ...b,
-        items: b.items || [],
+        id: b.id,
+        friendId: '', // Not used in new schema (budgets owned by app_user, not friend)
+        title: b.title,
+        currency: b.currency || '$',
+        totalBudget: Number(b.total_budget) || 0,
+        items: (b.items || []).map((item: any) => ({
+          id: item.id,
+          budgetId: item.budget_id,
+          title: item.title,
+          amount: Number(item.amount) || 0,
+          createdAt: safeDateToTimestamp(item.created_at),
+          updatedAt: item.updated_at ? safeDateToTimestamp(item.updated_at) : undefined,
+          synced: true,
+        })),
+        pinned: b.pinned || false,
+        createdAt: safeDateToTimestamp(b.created_at),
+        updatedAt: b.updated_at ? safeDateToTimestamp(b.updated_at) : undefined,
+        synced: true,
       }));
       useBudgetStore.getState().mergeBudgets(formattedBudgets as Budget[]);
     } else if (budgetsError) {
       console.error('[Sync] Error pulling budgets:', budgetsError);
       if (isJwtExpiredError(budgetsError)) {
-        throw new Error('JWT expired and refresh failed while pulling budgets');
+        console.error('[Sync] JWT expired and refresh failed while pulling budgets, setting sync status to needs_login');
+        useSyncStore.getState().setSyncStatus('needs_login');
+        return; // Stop sync gracefully
       }
     }
 
-    // 3. Pull Transactions (filtered by clerk_id via friend_id relationship)
+    // 3. Pull Transactions (filtered by owner_id)
     const { data: transactions, error: transError } = await executePull(
-      async () => await supabase.from('transactions').select('*'),
+      async () => await supabase.from('transactions').select('*').eq('owner_id', cloudUserId),
     );
     if (transactions && !transError) {
-      useTransactionsStore.getState().mergeTransactions(transactions as Transaction[]);
+      // Map DB format to local format
+      const mappedTransactions = transactions.map((t: any) => ({
+        id: t.id,
+        friendId: t.friend_id,
+        title: t.description || '',
+        amount: (t.sign || 1) * Math.abs(t.amount), // Apply sign to amount
+        sign: t.sign || (t.amount < 0 ? 1 : -1),
+        category: 'General', // Not in new schema
+        date: safeDateToTimestamp(t.created_at), // Use created_at as date
+        note: '', // Not in new schema
+        createdAt: safeDateToTimestamp(t.created_at),
+        updatedAt: t.updated_at ? safeDateToTimestamp(t.updated_at) : undefined,
+        synced: true,
+      }));
+      useTransactionsStore.getState().mergeTransactions(mappedTransactions as Transaction[]);
     } else if (transError) {
       console.error('[Sync] Error pulling transactions:', transError);
       if (isJwtExpiredError(transError)) {
-        throw new Error('JWT expired and refresh failed while pulling transactions');
+        console.error('[Sync] JWT expired and refresh failed while pulling transactions, setting sync status to needs_login');
+        useSyncStore.getState().setSyncStatus('needs_login');
+        return; // Stop sync gracefully
       }
     }
   },
 
-  syncAll: async (userId: string, getToken: GetTokenFunction) => {
+  syncAll: async (cloudUserId: string, getToken: GetTokenFunction) => {
     const { syncEnabled } = useSyncStore.getState();
 
     // Sync gating: if sync is disabled, don't sync
@@ -205,11 +256,17 @@ export const syncService = {
 
     try {
       await syncService.pushChanges(getToken);
-      await syncService.pullChanges(userId, getToken);
+      await syncService.pullChanges(cloudUserId, getToken);
       useSyncStore.getState().setLastSync(Date.now());
-    } catch (error) {
+      // Clear error status on successful sync
+      useSyncStore.getState().setSyncStatus(null);
+    } catch (error: any) {
       console.error('[Sync] SyncAll error:', error);
-      throw error; // Re-throw to let caller handle
+      // If it's a JWT error, status is already set by pushChanges/pullChanges
+      if (!isJwtExpiredError(error)) {
+        useSyncStore.getState().setSyncStatus('error');
+      }
+      // Don't throw - let caller handle gracefully
     }
   },
 
@@ -217,85 +274,13 @@ export const syncService = {
     clerkUser: any,
     getToken: GetTokenFunction,
   ): Promise<{ ok: boolean; skipped?: boolean; reason?: string }> => {
-    const { syncEnabled } = useSyncStore.getState();
-
-    // STRICT GATING: if sync is disabled, or no token, or no user -> skip
-    if (!syncEnabled || !hasSupabaseToken() || !clerkUser) {
-      console.log('[Sync] ensureUserRecord skipped:', {
-        syncEnabled,
-        hasToken: hasSupabaseToken(),
-        hasUser: !!clerkUser,
-      });
-      return {
-        ok: false,
-        skipped: true,
-        reason: !syncEnabled ? 'sync_disabled' : !hasSupabaseToken() ? 'no_token' : 'no_user',
-      };
-    }
-
-    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
-      console.log('[Sync] Sync skipped: Placeholder configuration');
-      return { ok: false, skipped: true, reason: 'placeholder_config' };
-    }
-
-    try {
-      // Helper to execute with retry
-      const executeWithRetry = async <T>(queryFn: () => Promise<T>): Promise<T> => {
-        try {
-          return await queryFn();
-        } catch (error: any) {
-          if (isJwtExpiredError(error)) {
-            console.log('[Sync] JWT expired in ensureUserRecord, refreshing token...');
-            const newToken = await refreshSupabaseJwt(getToken);
-
-            if (newToken) {
-              console.log('[Sync] Retrying ensureUserRecord with new token...');
-              return await queryFn();
-            } else {
-              console.error('[Sync] Failed to refresh token, cannot retry');
-              throw error;
-            }
-          }
-          throw error;
-        }
-      };
-
-      // Query for existing record ONLY by clerk_id
-      const { data: existing } = await executeWithRetry(
-        async () =>
-          await supabase.from('friends').select('id').eq('clerk_id', clerkUser.id).maybeSingle(),
-      );
-
-      // Build upsert payload
-      const upsertData: any = {
-        clerk_id: clerkUser.id, // TEXT column
-        email: clerkUser.primaryEmailAddress?.emailAddress || clerkUser.emailAddress, // Handle both user and signup objects
-        name: clerkUser.fullName || clerkUser.firstName || 'User',
-        last_login: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      // If record exists, include the existing UUID for update
-      // IMPORTANT: never use clerkUser.id here
-      if (existing?.id) {
-        upsertData.id = existing.id;
-      }
-
-      console.log('[Sync] ensureUserRecord payload:', upsertData);
-
-      const { error } = await executeWithRetry(
-        async () => await supabase.from('friends').upsert(upsertData, { onConflict: 'clerk_id' }),
-      );
-
-      if (error) {
-        console.error('[Sync] Error ensuring user record (22P02 fix):', error);
-        throw error;
-      }
-
-      return { ok: true };
-    } catch (error) {
-      throw error;
-    }
+    // Delegate to userService
+    const result = await ensureAppUser(clerkUser, getToken);
+    return {
+      ok: result.ok,
+      skipped: result.skipped,
+      reason: result.reason,
+    };
   },
 
   // Direct upsert helper for "Write-Through"
@@ -308,20 +293,7 @@ export const syncService = {
       throw new Error('No authentication token available');
     }
 
-    try {
-      return await supabase.from(table).upsert(data);
-    } catch (error: any) {
-      if (isJwtExpiredError(error)) {
-        console.log('[Sync] JWT expired in upsertOne, refreshing token...');
-        const newToken = await refreshSupabaseJwt(getToken);
-
-        if (newToken) {
-          console.log('[Sync] Retrying upsertOne with new token...');
-          return await supabase.from(table).upsert(data);
-        }
-      }
-      throw error;
-    }
+    return retryOnceOnJwtExpired(async () => await supabase.from(table).upsert(data), getToken);
   },
 
   deleteOne: async (table: string, id: string, getToken: GetTokenFunction) => {
@@ -333,33 +305,23 @@ export const syncService = {
       throw new Error('No authentication token available');
     }
 
-    try {
-      return await supabase.from(table).delete().eq('id', id);
-    } catch (error: any) {
-      if (isJwtExpiredError(error)) {
-        console.log('[Sync] JWT expired in deleteOne, refreshing token...');
-        const newToken = await refreshSupabaseJwt(getToken);
-
-        if (newToken) {
-          console.log('[Sync] Retrying deleteOne with new token...');
-          return await supabase.from(table).delete().eq('id', id);
-        }
-      }
-      throw error;
-    }
+    return retryOnceOnJwtExpired(
+      async () => await supabase.from(table).delete().eq('id', id),
+      getToken,
+    );
   },
 };
 
-const getTableAndData = (item: SyncQueueItem) => {
+const getTableAndData = (item: SyncQueueItem, cloudUserId: string) => {
   switch (item.type) {
     case 'friend':
-      return { table: 'friends', data: mapFriendToDb(item.payload) };
+      return { table: 'friends', data: mapFriendToDb(item.payload, cloudUserId) };
     case 'transaction':
-      return { table: 'transactions', data: mapTransactionToDb(item.payload) };
+      return { table: 'transactions', data: mapTransactionToDb(item.payload, cloudUserId) };
     case 'budget':
-      return { table: 'budgets', data: mapBudgetToDb(item.payload) };
+      return { table: 'budgets', data: mapBudgetToDb(item.payload, cloudUserId) };
     case 'budget_item':
-      return { table: 'budget_items', data: mapBudgetItemToDb(item.payload) };
+      return { table: 'budget_items', data: mapBudgetItemToDb(item.payload, cloudUserId) };
     default:
       return { table: null, data: null };
   }
@@ -378,35 +340,77 @@ const markLocalAsSynced = (type: string, id: string) => {
   }
 };
 
-// Helpers to clean up data before sending to DB (e.g. remove 'items' from budget object)
-const mapFriendToDb = (f: Friend) => {
-  const { items, ...rest } = f as any; // friends don't have items
-  return {
-    ...rest,
-    updated_at: new Date().toISOString(), // Ensure timestamp update
-  };
+// Helper to safely convert timestamp to ISO string
+// Returns current date ISO string if timestamp is invalid
+const safeTimestampToISO = (timestamp: number | undefined | null): string => {
+  if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) {
+    return new Date().toISOString();
+  }
+  const date = new Date(timestamp);
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return new Date().toISOString();
+  }
+  return date.toISOString();
 };
 
-const mapTransactionToDb = (t: Transaction) => ({
-  ...t,
-  friend_id: t.friendId, // map camel to snake
-  updated_at: new Date().toISOString(),
-});
+// Helper to safely convert ISO string or timestamp to number (milliseconds)
+// Returns current timestamp if date is invalid
+const safeDateToTimestamp = (dateValue: string | null | undefined): number => {
+  if (!dateValue) {
+    return Date.now();
+  }
+  const date = new Date(dateValue);
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return Date.now();
+  }
+  return date.getTime();
+};
 
-const mapBudgetToDb = (b: Budget) => {
-  const { items, ...rest } = b;
+// Helpers to clean up data before sending to DB (e.g. remove 'items' from budget object)
+const mapFriendToDb = (f: Friend, cloudUserId: string) => {
   return {
-    ...rest,
-    friend_id: b.friendId,
-    total_budget: b.totalBudget,
-    created_at: new Date(b.createdAt).toISOString(),
+    id: f.id,
+    owner_id: cloudUserId,
+    name: f.name,
+    bio: f.bio || null,
+    created_at: safeTimestampToISO(f.createdAt),
     updated_at: new Date().toISOString(),
   };
 };
 
-const mapBudgetItemToDb = (bi: BudgetItem) => ({
-  ...bi,
+const mapTransactionToDb = (t: Transaction, cloudUserId: string) => ({
+  id: t.id,
+  owner_id: cloudUserId,
+  friend_id: t.friendId, // map camel to snake
+  amount: Math.abs(t.amount), // Always positive, use sign for direction
+  description: t.title || t.note || null, // Use title as description
+  sign: t.sign || (t.amount < 0 ? -1 : 1), // 1 = add debt, -1 = reduce debt
+  created_at: safeTimestampToISO(t.createdAt),
+  updated_at: new Date().toISOString(),
+});
+
+const mapBudgetToDb = (b: Budget, cloudUserId: string) => {
+  const { items, ...rest } = b;
+  return {
+    id: b.id,
+    owner_id: cloudUserId,
+    title: b.title,
+    currency: b.currency,
+    total_budget: b.totalBudget,
+    pinned: b.pinned,
+    created_at: safeTimestampToISO(b.createdAt),
+    updated_at: new Date().toISOString(),
+  };
+};
+
+const mapBudgetItemToDb = (bi: BudgetItem, cloudUserId: string) => ({
+  id: bi.id,
+  owner_id: cloudUserId,
   budget_id: bi.budgetId,
-  created_at: new Date(bi.createdAt).toISOString(),
+  title: bi.title,
+  amount: bi.amount,
+  created_at: safeTimestampToISO(bi.createdAt),
   updated_at: new Date().toISOString(),
 });

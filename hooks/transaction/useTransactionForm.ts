@@ -49,11 +49,13 @@ export const useTransactionForm = () => {
 
     setLoading(true);
     try {
+      const finalAmount = getFinalAmount(data.amount, data.isNegative);
       const newTransaction: Transaction = {
         id: generateId(),
         friendId: data.friendId,
         title: data.title,
-        amount: getFinalAmount(data.amount, data.isNegative),
+        amount: finalAmount,
+        sign: finalAmount < 0 ? 1 : -1, // 1 = add debt (negative amount), -1 = reduce debt (positive amount)
         category: data.category,
         date: data.date,
         note: data.note,
