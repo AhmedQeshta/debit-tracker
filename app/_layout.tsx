@@ -10,6 +10,7 @@ import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { publishableKey, tokenCache } from '@/lib/token';
 import { ErrorScreen } from '@/components/ui/ErrorScreen';
 import { SplashManager, SyncManager } from '@/lib/syncAuth';
+import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
 
 
 if (!publishableKey)
@@ -57,6 +58,7 @@ export default function RootLayout()
       <ClerkLoaded>
         <SyncManager />
         <SplashManager />
+        <SyncLoadingOverlay />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
             <Stack screenOptions={STACK_OPTIONS}>

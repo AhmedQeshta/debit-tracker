@@ -1,6 +1,6 @@
 import { supabase, hasSupabaseToken } from '@/lib/supabase';
 import { useSyncStore } from '@/store/syncStore';
-import { getFreshSupabaseJwt, retryOnceOnJwtExpired, isJwtExpiredError, GetTokenFunction } from '@/services/authSync';
+import { retryOnceOnJwtExpired, isJwtExpiredError, GetTokenFunction } from '@/services/authSync';
 
 /**
  * Ensures an app_user record exists in Supabase for the given Clerk user.
@@ -13,11 +13,13 @@ import { getFreshSupabaseJwt, retryOnceOnJwtExpired, isJwtExpiredError, GetToken
 export const ensureAppUser = async (
   clerkUser: any,
   getToken: GetTokenFunction,
-): Promise<{ ok: boolean; skipped?: boolean; reason?: string; appUser?: { id: string } }> => {
+): Promise<{ ok: boolean; skipped?: boolean; reason?: string; appUser?: { id: string } }> =>
+{
   const { syncEnabled } = useSyncStore.getState();
 
   // STRICT GATING: if sync is disabled, or no token, or no user -> skip
-  if (!syncEnabled || !hasSupabaseToken() || !clerkUser) {
+  if (!syncEnabled || !hasSupabaseToken() || !clerkUser)
+  {
     console.log('[UserService] ensureAppUser skipped:', {
       syncEnabled,
       hasToken: hasSupabaseToken(),
@@ -30,14 +32,17 @@ export const ensureAppUser = async (
     };
   }
 
-  if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
+  if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder'))
+  {
     console.log('[UserService] Sync skipped: Placeholder configuration');
     return { ok: false, skipped: true, reason: 'placeholder_config' };
   }
 
-  try {
+  try
+  {
     // Helper to execute with retry
-    const executeWithRetry = async <T>(queryFn: () => Promise<T>): Promise<T> => {
+    const executeWithRetry = async <T>(queryFn: () => Promise<T>): Promise<T> =>
+    {
       return retryOnceOnJwtExpired(queryFn, getToken);
     };
 
@@ -47,7 +52,8 @@ export const ensureAppUser = async (
         await supabase.from('app_users').select('id').eq('clerk_id', clerkUser.id).maybeSingle(),
     );
 
-    if (queryError && !isJwtExpiredError(queryError)) {
+    if (queryError && !isJwtExpiredError(queryError))
+    {
       console.error('[UserService] Error querying app_users:', queryError);
       throw queryError;
     }
@@ -62,7 +68,8 @@ export const ensureAppUser = async (
 
     // If record exists, include the existing UUID for update
     // IMPORTANT: never use clerkUser.id here
-    if (existing?.id) {
+    if (existing?.id)
+    {
       upsertData.id = existing.id;
     }
 
@@ -73,16 +80,19 @@ export const ensureAppUser = async (
         await supabase.from('app_users').upsert(upsertData, { onConflict: 'clerk_id' }).select().single(),
     );
 
-    if (upsertError) {
+    if (upsertError)
+    {
       console.error('[UserService] Error ensuring user record:', upsertError);
       // If JWT expired and retry failed, set sync status
-      if (isJwtExpiredError(upsertError)) {
+      if (isJwtExpiredError(upsertError))
+      {
         useSyncStore.getState().setSyncStatus('needs_login');
       }
       throw upsertError;
     }
 
-    if (!upserted || !upserted.id) {
+    if (!upserted || !upserted.id)
+    {
       throw new Error('Failed to create or retrieve app_user record');
     }
 
@@ -94,10 +104,12 @@ export const ensureAppUser = async (
       ok: true,
       appUser: { id: upserted.id },
     };
-  } catch (error: any) {
+  } catch (error: any)
+  {
     console.error('[UserService] ensureAppUser error:', error);
     // If JWT expired and retry failed, set sync status
-    if (isJwtExpiredError(error)) {
+    if (isJwtExpiredError(error))
+    {
       useSyncStore.getState().setSyncStatus('needs_login');
     }
     throw error;
