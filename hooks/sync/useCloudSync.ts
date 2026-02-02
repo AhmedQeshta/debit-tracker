@@ -269,9 +269,14 @@ export const useCloudSync = () => {
       return;
     }
 
+    if (!userId) {
+      console.log('[Sync] syncNow skipped: no userId (Clerk user ID)');
+      return;
+    }
+
     setSyncing(true);
     try {
-      await syncService.syncAll(cloudUserId, getToken);
+      await syncService.syncAll(cloudUserId, userId, getToken);
     } catch (e) {
       console.error('[Sync] Sync failed:', e);
     } finally {

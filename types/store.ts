@@ -27,6 +27,7 @@ export interface ITransactionsState {
   setTransactions: (transactions: Transaction[]) => void;
   mergeTransactions: (transactions: Transaction[]) => void;
   markAsSynced: (id: string) => void;
+  getDirtyTransactions: () => Transaction[];
 }
 
 export interface IFriendsState {
@@ -39,7 +40,10 @@ export interface IFriendsState {
   markAsSynced: (id: string) => void;
   pinFriend: (id: string) => void;
   unpinFriend: (id: string) => void;
+  getDirtyFriends: () => Friend[];
 }
+
+import { BudgetItem } from '@/types/models';
 
 export interface IBudgetState {
   budgets: Budget[];
@@ -57,4 +61,7 @@ export interface IBudgetState {
   getTotalSpent: (budgetId: string) => number;
   getRemainingBudget: (budgetId: string) => number;
   getBudget: (id: string) => Budget | undefined;
+  getDirtyBudgets: () => Budget[];
+  getDirtyBudgetItems: () => BudgetItem[];
+  markItemAsSynced: (budgetId: string, itemId: string) => void;
 }

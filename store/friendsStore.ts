@@ -2,20 +2,34 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IFriendsState } from '@/types/store';
+import { Friend } from '@/types/models';
 
 export const useFriendsStore = create<IFriendsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       friends: [],
-      addFriend: (friend) => set((state) => ({ friends: [friend, ...state.friends] })),
+      addFriend: (friend) =>
+        set((state) => ({
+          friends: [
+            { ...friend, synced: false, updatedAt: Date.now() },
+            ...state.friends,
+          ],
+        })),
       updateFriend: (updatedFriend) =>
         set((state) => ({
-          friends: state.friends.map((f) => (f.id === updatedFriend.id ? updatedFriend : f)),
+          friends: state.friends.map((f) =>
+            f.id === updatedFriend.id
+              ? { ...updatedFriend, synced: false, updatedAt: Date.now() }
+              : f,
+          ),
         })),
       deleteFriend: (id) =>
         set((state) => ({
           friends: state.friends.filter((f) => f.id !== id),
         })),
+      getDirtyFriends: (): Friend[] => {
+        return get().friends.filter((f) => !f.synced || f.synced === false);
+      },
       setFriends: (friends) => set({ friends }),
       mergeFriends: (remoteFriends) =>
         set((state) => {

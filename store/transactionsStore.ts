@@ -2,25 +2,34 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ITransactionsState } from '@/types/store';
-
-
+import { Transaction } from '@/types/models';
 
 export const useTransactionsStore = create<ITransactionsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       transactions: [],
       addTransaction: (transaction) =>
-        set((state) => ({ transactions: [transaction, ...state.transactions] })),
+        set((state) => ({
+          transactions: [
+            { ...transaction, synced: false, updatedAt: Date.now() },
+            ...state.transactions,
+          ],
+        })),
       updateTransaction: (updatedTransaction) =>
         set((state) => ({
           transactions: state.transactions.map((t) =>
-            t.id === updatedTransaction.id ? updatedTransaction : t,
+            t.id === updatedTransaction.id
+              ? { ...updatedTransaction, synced: false, updatedAt: Date.now() }
+              : t,
           ),
         })),
       deleteTransaction: (id) =>
         set((state) => ({
           transactions: state.transactions.filter((t) => t.id !== id),
         })),
+      getDirtyTransactions: (): Transaction[] => {
+        return get().transactions.filter((t) => !t.synced || t.synced === false);
+      },
       setTransactions: (transactions) => set({ transactions }),
       mergeTransactions: (remoteTransactions) =>
         set((state) => {

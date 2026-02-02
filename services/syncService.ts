@@ -3,14 +3,12 @@ import { useSyncStore } from '@/store/syncStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
-import { SyncQueueItem, Friend, Budget, Transaction, BudgetItem } from '@/types/models';
+import { Friend, Budget, Transaction, BudgetItem } from '@/types/models';
 import { retryOnceOnJwtExpired, isJwtExpiredError,GetTokenFunction } from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
 
 export const syncService = {
-  pushChanges: async (getToken: GetTokenFunction) => {
-    const { queue, removeFromQueue } = useSyncStore.getState();
-
+  pushChanges: async (getToken: GetTokenFunction, clerkUserId: string) => {
     // Sync gating: if sync is disabled, don't write to Supabase
     if (!useSyncStore.getState().syncEnabled) {
       console.log('[Sync] pushChanges skipped: sync disabled');
@@ -20,91 +18,151 @@ export const syncService = {
     // Token validation: if sync is enabled, token is required
     if (!hasSupabaseToken()) {
       console.log('[Sync] pushChanges skipped: no token');
-      throw new Error(
-        'Sync is enabled but no authentication token available. Cannot sync without authentication.',
-      );
+      return; // Return silently, don't throw
     }
-
-    if (queue.length === 0) return;
 
     if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
       console.log('[Sync] Sync skipped: Placeholder configuration');
       return;
     }
 
-    // Get cloudUserId from store
+    // Get cloudUserId from store (UUID for owner_id FK)
     const { cloudUserId } = useSyncStore.getState();
     if (!cloudUserId) {
-      console.log('[Sync] pushChanges skipped: no cloudUserId');
-      throw new Error('cloudUserId is required for syncing');
+      console.log('[Sync] pushChanges skipped: no cloudUserId (user not ensured)');
+      return; // Return silently
     }
 
-    // Process queue sequentially to maintain order
-    for (const item of queue) {
+    // Get all dirty items from stores
+    const dirtyFriends = useFriendsStore.getState().getDirtyFriends();
+    const dirtyTransactions = useTransactionsStore.getState().getDirtyTransactions();
+    const dirtyBudgets = useBudgetStore.getState().getDirtyBudgets();
+    const dirtyBudgetItems = useBudgetStore.getState().getDirtyBudgetItems();
+
+    const totalDirty =
+      dirtyFriends.length +
+      dirtyTransactions.length +
+      dirtyBudgets.length +
+      dirtyBudgetItems.length;
+
+    if (totalDirty === 0) {
+      console.log('[Sync] No dirty items to push');
+      return;
+    }
+
+    console.log(
+      `[Sync] Starting push: ${dirtyFriends.length} friends, ${dirtyTransactions.length} transactions, ${dirtyBudgets.length} budgets, ${dirtyBudgetItems.length} items`,
+    );
+
+    // Helper to execute upsert with retry
+    const executeUpsert = async (table: string, data: any[]) => {
+      if (data.length === 0) return { success: true, count: 0 };
       try {
-        const { table, data } = getTableAndData(item, cloudUserId);
-        if (!table) {
-          removeFromQueue(item.id);
-          continue;
-        }
-
-        let error;
-        let retried = false;
-
-        // Helper to execute the Supabase request with retry
-        const executeRequest = async () => {
-          if (item.action === 'create' || item.action === 'update') {
-            const { error: reqError } = await supabase.from(table).upsert(data);
-            return reqError;
-          } else if (item.action === 'delete') {
-            const { error: reqError } = await supabase.from(table).delete().eq('id', item.id);
-            return reqError;
-          }
-          return null;
-        };
-
-        // Execute with automatic JWT retry
-        try {
-          error = await retryOnceOnJwtExpired(executeRequest, getToken);
-        } catch (retryError: any) {
-          // If retry failed due to JWT expiration, set sync status and stop
-          if (isJwtExpiredError(retryError)) {
-            console.error('[Sync] JWT refresh failed after retry, setting sync status to needs_login');
+        const result = await retryOnceOnJwtExpired(
+          async () => await supabase.from(table).upsert(data, { onConflict: 'id' }),
+          getToken,
+        );
+        if (result.error) {
+          if (isJwtExpiredError(result.error)) {
             useSyncStore.getState().setSyncStatus('needs_login');
-            // Don't throw - preserve queue and stop gracefully
-            return;
+            throw result.error;
           }
-          // Re-throw non-JWT errors
-          throw retryError;
+          return { success: false, error: result.error, count: 0 };
         }
-
-        if (error) {
-          console.error(`[Sync] Error for ${item.type} ${item.id}:`, error);
-          // Keep item in queue for later retry
-          // If it was a JWT error and retry failed, set status and stop
-          if (isJwtExpiredError(error)) {
-            console.error('[Sync] JWT expired and refresh failed, setting sync status to needs_login');
-            useSyncStore.getState().setSyncStatus('needs_login');
-            return; // Stop sync gracefully, preserve queue
-          }
-        } else {
-          removeFromQueue(item.id);
-
-          // Mark as synced in local store if it was a create/update
-          if (item.action !== 'delete') {
-            markLocalAsSynced(item.type, item.id);
-          }
-        }
+        return { success: true, count: data.length };
       } catch (e: any) {
-        console.error('[Sync] Push exception:', e);
-        // If it's a JWT error, set status and stop gracefully
         if (isJwtExpiredError(e)) {
           useSyncStore.getState().setSyncStatus('needs_login');
-          return;
+          throw e;
         }
-        // Re-throw other errors to stop sync and preserve queue
-        throw e;
+        return { success: false, error: e, count: 0 };
       }
+    };
+
+    let friendsSynced = 0;
+    let transactionsSynced = 0;
+    let budgetsSynced = 0;
+    let itemsSynced = 0;
+
+    try {
+      // A) Push Friends first
+      if (dirtyFriends.length > 0) {
+        const friendsData = dirtyFriends.map((f) =>
+          mapFriendToDb(f, cloudUserId, clerkUserId),
+        );
+        const result = await executeUpsert('friends', friendsData);
+        if (result.success) {
+          friendsSynced = result.count;
+          dirtyFriends.forEach((f) => useFriendsStore.getState().markAsSynced(f.id));
+          console.log(`[Sync] Pushed ${friendsSynced} friends: success`);
+        } else {
+          console.error(`[Sync] Failed to push friends:`, result.error);
+          throw result.error;
+        }
+      }
+
+      // B) Push Transactions (after friends exist)
+      if (dirtyTransactions.length > 0) {
+        const transactionsData = dirtyTransactions.map((t) =>
+          mapTransactionToDb(t, cloudUserId, clerkUserId),
+        );
+        const result = await executeUpsert('transactions', transactionsData);
+        if (result.success) {
+          transactionsSynced = result.count;
+          dirtyTransactions.forEach((t) =>
+            useTransactionsStore.getState().markAsSynced(t.id),
+          );
+          console.log(`[Sync] Pushed ${transactionsSynced} transactions: success`);
+        } else {
+          console.error(`[Sync] Failed to push transactions:`, result.error);
+          throw result.error;
+        }
+      }
+
+      // C) Push Budgets
+      if (dirtyBudgets.length > 0) {
+        const budgetsData = dirtyBudgets.map((b) =>
+          mapBudgetToDb(b, cloudUserId, clerkUserId),
+        );
+        const result = await executeUpsert('budgets', budgetsData);
+        if (result.success) {
+          budgetsSynced = result.count;
+          dirtyBudgets.forEach((b) => useBudgetStore.getState().markAsSynced(b.id));
+          console.log(`[Sync] Pushed ${budgetsSynced} budgets: success`);
+        } else {
+          console.error(`[Sync] Failed to push budgets:`, result.error);
+          throw result.error;
+        }
+      }
+
+      // D) Push Budget Items (after budgets exist)
+      if (dirtyBudgetItems.length > 0) {
+        const itemsData = dirtyBudgetItems.map((bi) =>
+          mapBudgetItemToDb(bi, cloudUserId, clerkUserId),
+        );
+        const result = await executeUpsert('budget_items', itemsData);
+        if (result.success) {
+          itemsSynced = result.count;
+          // Mark items as synced (without marking budget dirty)
+          dirtyBudgetItems.forEach((item) => {
+            useBudgetStore.getState().markItemAsSynced(item.budgetId, item.id);
+          });
+          console.log(`[Sync] Pushed ${itemsSynced} budget items: success`);
+        } else {
+          console.error(`[Sync] Failed to push budget items:`, result.error);
+          throw result.error;
+        }
+      }
+
+      console.log(
+        `[Sync] Push complete: ${friendsSynced}/${dirtyFriends.length} friends, ${transactionsSynced}/${dirtyTransactions.length} transactions, ${budgetsSynced}/${dirtyBudgets.length} budgets, ${itemsSynced}/${dirtyBudgetItems.length} items synced`,
+      );
+    } catch (e: any) {
+      console.error('[Sync] Push failed:', e);
+      if (isJwtExpiredError(e)) {
+        useSyncStore.getState().setSyncStatus('needs_login');
+      }
+      throw e;
     }
   },
 
@@ -237,7 +295,7 @@ export const syncService = {
     }
   },
 
-  syncAll: async (cloudUserId: string, getToken: GetTokenFunction) => {
+  syncAll: async (cloudUserId: string, clerkUserId: string, getToken: GetTokenFunction) => {
     const { syncEnabled } = useSyncStore.getState();
 
     // Sync gating: if sync is disabled, don't sync
@@ -249,13 +307,11 @@ export const syncService = {
     // Token validation: if sync is enabled, token is required
     if (!hasSupabaseToken()) {
       console.log('[Sync] syncAll skipped: no token');
-      throw new Error(
-        'Sync is enabled but no authentication token available. Cannot sync without authentication.',
-      );
+      return; // Return silently
     }
 
     try {
-      await syncService.pushChanges(getToken);
+      await syncService.pushChanges(getToken, clerkUserId);
       await syncService.pullChanges(cloudUserId, getToken);
       useSyncStore.getState().setLastSync(Date.now());
       // Clear error status on successful sync
@@ -312,33 +368,6 @@ export const syncService = {
   },
 };
 
-const getTableAndData = (item: SyncQueueItem, cloudUserId: string) => {
-  switch (item.type) {
-    case 'friend':
-      return { table: 'friends', data: mapFriendToDb(item.payload, cloudUserId) };
-    case 'transaction':
-      return { table: 'transactions', data: mapTransactionToDb(item.payload, cloudUserId) };
-    case 'budget':
-      return { table: 'budgets', data: mapBudgetToDb(item.payload, cloudUserId) };
-    case 'budget_item':
-      return { table: 'budget_items', data: mapBudgetItemToDb(item.payload, cloudUserId) };
-    default:
-      return { table: null, data: null };
-  }
-};
-
-const markLocalAsSynced = (type: string, id: string) => {
-  switch (type) {
-    case 'friend':
-      useFriendsStore.getState().markAsSynced(id);
-      break;
-    case 'transaction':
-      useTransactionsStore.getState().markAsSynced(id);
-      break;
-    // budgets don't have 'markAsSynced' in store yet? They should.
-    // I didn't add it to BudgetStore. I should.
-  }
-};
 
 // Helper to safely convert timestamp to ISO string
 // Returns current date ISO string if timestamp is invalid
@@ -369,10 +398,11 @@ const safeDateToTimestamp = (dateValue: string | null | undefined): number => {
 };
 
 // Helpers to clean up data before sending to DB (e.g. remove 'items' from budget object)
-const mapFriendToDb = (f: Friend, cloudUserId: string) => {
+const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) => {
   return {
-    id: f.id,
-    owner_id: cloudUserId,
+    id: f.id, // TEXT (local string ID)
+    owner_id: cloudUserId, // UUID (FK to app_users)
+    user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
     name: f.name,
     bio: f.bio || null,
     created_at: safeTimestampToISO(f.createdAt),
@@ -380,10 +410,11 @@ const mapFriendToDb = (f: Friend, cloudUserId: string) => {
   };
 };
 
-const mapTransactionToDb = (t: Transaction, cloudUserId: string) => ({
-  id: t.id,
-  owner_id: cloudUserId,
-  friend_id: t.friendId, // map camel to snake
+const mapTransactionToDb = (t: Transaction, cloudUserId: string, clerkUserId: string) => ({
+  id: t.id, // TEXT (local string ID)
+  owner_id: cloudUserId, // UUID (FK to app_users)
+  user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
+  friend_id: t.friendId, // TEXT (FK to friends, map camel to snake)
   amount: Math.abs(t.amount), // Always positive, use sign for direction
   description: t.title || t.note || null, // Use title as description
   sign: t.sign || (t.amount < 0 ? -1 : 1), // 1 = add debt, -1 = reduce debt
@@ -391,11 +422,11 @@ const mapTransactionToDb = (t: Transaction, cloudUserId: string) => ({
   updated_at: new Date().toISOString(),
 });
 
-const mapBudgetToDb = (b: Budget, cloudUserId: string) => {
-  const { items, ...rest } = b;
+const mapBudgetToDb = (b: Budget, cloudUserId: string, clerkUserId: string) => {
   return {
-    id: b.id,
-    owner_id: cloudUserId,
+    id: b.id, // TEXT (local string ID)
+    owner_id: cloudUserId, // UUID (FK to app_users)
+    user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
     title: b.title,
     currency: b.currency,
     total_budget: b.totalBudget,
@@ -405,10 +436,11 @@ const mapBudgetToDb = (b: Budget, cloudUserId: string) => {
   };
 };
 
-const mapBudgetItemToDb = (bi: BudgetItem, cloudUserId: string) => ({
-  id: bi.id,
-  owner_id: cloudUserId,
-  budget_id: bi.budgetId,
+const mapBudgetItemToDb = (bi: BudgetItem, cloudUserId: string, clerkUserId: string) => ({
+  id: bi.id, // TEXT (local string ID)
+  owner_id: cloudUserId, // UUID (FK to app_users)
+  user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
+  budget_id: bi.budgetId, // TEXT (FK to budgets)
   title: bi.title,
   amount: bi.amount,
   created_at: safeTimestampToISO(bi.createdAt),
