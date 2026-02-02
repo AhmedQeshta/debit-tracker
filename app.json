@@ -23,7 +23,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ahmedqeshta.debittracker"
+      "package": "com.ahmedqeshta.debittracker",
+      "jsEngine": "hermes"
     },
     "web": {
       "favicon": "./assets/favicon.png"
