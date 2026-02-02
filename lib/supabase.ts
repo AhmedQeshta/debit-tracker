@@ -28,6 +28,14 @@ export const hasSupabaseToken = (): boolean => {
 };
 
 /**
+ * Clears the Supabase token
+ */
+export const clearSupabaseToken = (): void => {
+  currentToken = null;
+  console.log('[Supabase] Token cleared');
+};
+
+/**
  * Custom fetch wrapper that adds Authorization header when token exists
  */
 const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {

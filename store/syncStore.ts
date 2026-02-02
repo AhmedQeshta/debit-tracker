@@ -11,6 +11,8 @@ export const useSyncStore = create<ISyncState>()(
       isSyncing: false,
       syncEnabled: false, // Default to false
       lastSync: null,
+      cloudUserId: null,
+      syncStatus: null,
 
       addToQueue: (item: SyncQueueItem) =>
         set((state) => ({
@@ -29,6 +31,10 @@ export const useSyncStore = create<ISyncState>()(
       setSyncEnabled: (enabled: boolean) => set({ syncEnabled: enabled }),
 
       setLastSync: (timestamp: number) => set({ lastSync: timestamp }),
+
+      setCloudUserId: (id: string | null) => set({ cloudUserId: id }),
+
+      setSyncStatus: (status: ISyncState['syncStatus']) => set({ syncStatus: status }),
     }),
     {
       name: 'sync-storage',

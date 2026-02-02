@@ -1,16 +1,22 @@
 import { SyncQueueItem, Transaction, Friend, Budget } from '@/types/models';
 
+export type SyncStatus = 'idle' | 'needs_config' | 'needs_login' | 'error' | null;
+
 export interface ISyncState {
   queue: SyncQueueItem[];
   isSyncing: boolean;
   syncEnabled: boolean;
   lastSync: number | null;
+  cloudUserId: string | null;
+  syncStatus: SyncStatus;
   addToQueue: (item: SyncQueueItem) => void;
   removeFromQueue: (id: string) => void;
   setSyncing: (status: boolean) => void;
   clearQueue: () => void;
   setSyncEnabled: (enabled: boolean) => void;
   setLastSync: (timestamp: number) => void;
+  setCloudUserId: (id: string | null) => void;
+  setSyncStatus: (status: SyncStatus) => void;
 }
 
 export interface ITransactionsState {
