@@ -1,6 +1,24 @@
 import { SyncQueueItem, Transaction, Friend, Budget } from '@/types/models';
 
-export type SyncStatus = 'idle' | 'needs_config' | 'needs_login' | 'error' | null;
+export type SyncStatus = 'idle' | 'checking' | 'pulling' | 'pushing' | 'success' | 'needs_config' | 'needs_login' | 'error' | null;
+
+export interface DeviceSyncState {
+  hasHydratedFromCloud: boolean;
+  lastPullAt: number | null;
+}
+
+export interface NetworkState {
+  isConnected: boolean;
+  isInternetReachable?: boolean;
+  type?: string;
+}
+
+export interface SyncError {
+  code?: string;
+  message: string;
+  details?: any;
+  at: number;
+}
 
 export interface ISyncState {
   queue: SyncQueueItem[];
@@ -9,6 +27,12 @@ export interface ISyncState {
   lastSync: number | null;
   cloudUserId: string | null;
   syncStatus: SyncStatus;
+  deviceSyncState: DeviceSyncState;
+  lastError: SyncError | null;
+  network: NetworkState;
+  latencyMs?: number;
+  isSyncRunning: boolean;
+  pullProgress?: string; // Current step during pull: "friends", "transactions", "budgets", etc.
   addToQueue: (item: SyncQueueItem) => void;
   removeFromQueue: (id: string) => void;
   setSyncing: (status: boolean) => void;
@@ -17,6 +41,13 @@ export interface ISyncState {
   setLastSync: (timestamp: number) => void;
   setCloudUserId: (id: string | null) => void;
   setSyncStatus: (status: SyncStatus) => void;
+  setHasHydratedFromCloud: (hasHydrated: boolean) => void;
+  setLastPullAt: (timestamp: number | null) => void;
+  setLastError: (error: SyncError | null) => void;
+  setNetworkState: (state: NetworkState) => void;
+  setLatencyMs: (ms: number | undefined) => void;
+  setIsSyncRunning: (running: boolean) => void;
+  setPullProgress: (progress: string | undefined) => void;
 }
 
 export interface ITransactionsState {
@@ -50,6 +81,7 @@ export interface IBudgetState {
   addBudget: (title: string, currency: string, totalBudget: number, friendId: string) => string;
   updateBudget: (id: string, updates: Partial<Budget>) => void;
   deleteBudget: (id: string) => void;
+  setBudgets: (budgets: Budget[]) => void;
   mergeBudgets: (budgets: Budget[]) => void;
   markAsSynced: (id: string) => void;
   pinBudget: (id: string) => void;

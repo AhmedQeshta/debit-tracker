@@ -48,17 +48,64 @@ export const useBudgetStore = create<IBudgetState>()(
         });
         return allItems;
       },
+      setBudgets: (budgets) => set({ budgets }),
       mergeBudgets: (remoteBudgets: Budget[]) =>
         set((state) => {
+          // Use conflict resolution: merge with deletions support
           const localMap = new Map(state.budgets.map((b) => [b.id, b]));
+          const remoteIds = new Set(remoteBudgets.map((b) => b.id));
+          
+          // Process remote budgets with conflict resolution
           remoteBudgets.forEach((remote) => {
             const local = localMap.get(remote.id);
-            // Merge budgets
-            if (!local || (remote.updatedAt || 0) > (local.updatedAt || 0)) {
-              localMap.set(remote.id, remote); // Assuming remote includes items
+            if (!local) {
+              // Remote budget doesn't exist locally -> add it
+              localMap.set(remote.id, { ...remote, synced: true });
+            } else {
+              // Conflict resolution: use the one with newer updatedAt
+              const remoteUpdatedAt = remote.updatedAt || 0;
+              const localUpdatedAt = local.updatedAt || 0;
+              if (remoteUpdatedAt > localUpdatedAt) {
+                // Remote is newer -> use remote (including its items)
+                localMap.set(remote.id, { ...remote, synced: true });
+              } else {
+                // Local is newer or equal -> keep local (but mark as synced if remote exists)
+                // Also merge budget items with conflict resolution
+                const localItemsMap = new Map(local.items.map((item) => [item.id, item]));
+                const remoteItemsIds = new Set((remote.items || []).map((item) => item.id));
+                
+                // Process remote items
+                (remote.items || []).forEach((remoteItem) => {
+                  const localItem = localItemsMap.get(remoteItem.id);
+                  if (!localItem) {
+                    localItemsMap.set(remoteItem.id, { ...remoteItem, synced: true });
+                  } else {
+                    const remoteItemUpdatedAt = remoteItem.updatedAt || 0;
+                    const localItemUpdatedAt = localItem.updatedAt || 0;
+                    if (remoteItemUpdatedAt > localItemUpdatedAt) {
+                      localItemsMap.set(remoteItem.id, { ...remoteItem, synced: true });
+                    } else {
+                      localItemsMap.set(remoteItem.id, { ...localItem, synced: localItem.synced || true });
+                    }
+                  }
+                });
+                
+                // Remove local items that don't exist in remote
+                const mergedItems = Array.from(localItemsMap.values()).filter((item) => remoteItemsIds.has(item.id));
+                
+                localMap.set(remote.id, {
+                  ...local,
+                  items: mergedItems,
+                  synced: local.synced || true,
+                });
+              }
             }
           });
-          return { budgets: Array.from(localMap.values()) };
+          
+          // Remove local budgets that don't exist in remote (hard delete in DB)
+          const merged = Array.from(localMap.values()).filter((item) => remoteIds.has(item.id));
+          
+          return { budgets: merged };
         }),
       markAsSynced: (id: string) =>
         set((state) => ({
