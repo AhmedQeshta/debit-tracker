@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Text } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -6,11 +6,12 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useTransactionForm } from '@/hooks/transaction/useTransactionForm';
 import { useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { CATEGORIES } from '@/lib/data';
+import Header from '@/components/ui/Header';
 
-export default function AddTransaction() {
+export default function AddTransaction()
+{
   const {
     friends,
     friendId,
@@ -26,11 +27,7 @@ export default function AddTransaction() {
 
   return (
     <ScreenContainer>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={25} style={styles.ArrowLeft} color={Colors.text} />
-        <Text style={styles.title}>Add Transaction</Text>
-      </TouchableOpacity>
-
+      <Header openDrawer={() => router.push(`/(drawer)/friend/${friendId}`)} title="Add Transaction" isGoBack={true} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.form}>
           <Text style={styles.label}>Select Friend</Text>

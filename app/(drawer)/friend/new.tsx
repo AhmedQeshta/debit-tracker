@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -6,20 +6,20 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useFriendCreate } from '@/hooks/friend/useFriendCreate';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { Controller } from 'react-hook-form';
+import Header from '@/components/ui/Header';
 
-export default function AddFriend() {
+export default function AddFriend()
+{
   const { control, errors, handleSubmit, currency, setCurrency, loading, router } =
     useFriendCreate();
   const insets = useSafeAreaInsets();
   return (
     <ScreenContainer>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={25} style={styles.arrowLeft} color={Colors.text} />
-        <Text style={styles.title}>Add Friend</Text>
-      </TouchableOpacity>
+
+      <Header openDrawer={() => router.push('/(drawer)/(tabs)/friends')} title="Add Friend" isGoBack={true} />
+
       <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
         <Controller
           control={control}

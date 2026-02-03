@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { TransactionItem } from '@/components/transaction/TransactionItem';
 import { Button } from '@/components/ui/Button';
 import { Actions } from '@/components/ui/Actions';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Pencil, Trash2, Pin, PinOff, ArrowLeft } from 'lucide-react-native';
+import { Pencil, Trash2, Pin, PinOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
 import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 import { EmptySection } from '@/components/ui/EmptySection';
+import Header from '@/components/ui/Header';
 
 export default function FriendDetails()
 {
@@ -44,10 +45,9 @@ export default function FriendDetails()
   return (
     <ScreenContainer>
       <View style={styles.titleRow}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={25} color={Colors.text} />
-          <Text style={styles.title}>Friend Details</Text>
-        </TouchableOpacity>
+
+        <Header openDrawer={() => router.push('/(drawer)/(tabs)/friends')} title="Friend Details" isGoBack={true} />
+
         <View style={styles.userActions}>
           <Actions
             menuVisible={friendMenuVisible}

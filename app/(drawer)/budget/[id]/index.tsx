@@ -4,12 +4,12 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { ArrowLeft, Trash2, Pin, PinOff, Pencil } from 'lucide-react-native';
-import { IMenuItem } from '@/types/common';
+import { Trash2, Pin } from 'lucide-react-native';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
 import { formatCurrency } from '@/lib/utils';
 import { useState } from 'react';
 import { Actions } from '@/components/ui/Actions';
+import Header from '@/components/ui/Header';
 
 
 export default function BudgetDetail()
@@ -35,12 +35,8 @@ export default function BudgetDetail()
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={25} color={Colors.text} />
-            <Text style={styles.title}>{budget.title} Budget Details</Text>
-          </TouchableOpacity>
-        </View>
+        <Header openDrawer={() => router.push('/(drawer)/(tabs)/budget')} title={`${budget.title} Budget Details`} isGoBack={true} />
+
 
         {/* Budget Info Card */}
         <View style={styles.budgetInfoCard}>

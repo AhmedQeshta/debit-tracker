@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -6,17 +6,19 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useFriendEdit } from '@/hooks/friend/useFriendEdit';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { EmptySection } from '@/components/ui/EmptySection';
 import { Controller } from 'react-hook-form';
+import Header from '@/components/ui/Header';
 
-export default function EditFriend() {
+export default function EditFriend()
+{
   const { control, errors, handleSubmit, currency, setCurrency, friend, loading, router } =
     useFriendEdit();
   const insets = useSafeAreaInsets();
 
-  if (!friend) {
+  if (!friend)
+  {
     return (
       <EmptySection
         title={'Friend Not Found'}
@@ -28,10 +30,7 @@ export default function EditFriend() {
 
   return (
     <ScreenContainer>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={25} style={styles.arrowLeft} color={Colors.text} />
-        <Text style={styles.title}>Edit Friend</Text>
-      </TouchableOpacity>
+      <Header openDrawer={() => router.push(`/(drawer)/friend/${friend.id}`)} title="Edit Friend" isGoBack={true} />
 
       <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
         <Controller
