@@ -9,7 +9,8 @@ import { useOperations } from '@/hooks/useOperations';
 import { confirmDelete } from '@/lib/alert';
 import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
-export const useFriendDetail = () => {
+export const useFriendDetail = () =>
+{
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const friendId = safeId(id);
@@ -26,50 +27,73 @@ export const useFriendDetail = () => {
 
   const balance = useMemo(() => getBalance(friendId, transactions), [friendId, transactions]);
 
-  const handleEditFriend = (): void => {
+  const handleEditFriend = (): void =>
+  {
     if (!friendId) return;
     navigateToFriendEdit(friendId);
   };
 
-  const handleDeleteFriend = (): void => {
+  const handleDeleteFriend = async (): Promise<void> =>
+  {
     if (!friend || !friendId) return;
 
-    confirmDelete(
-      'Delete Friend',
-      'Are you sure you want to delete this friend and all records?',
-      async () => {
-        // Delete all transactions for this friend
-        // TODO: Batch delete or iterate. Iterate for now.
-        for (const t of transactions) {
-          deleteTransaction(t.id);
-          await mutate('transaction', 'delete', { id: t.id });
-        }
+    // confirmDelete(
+    //   'Delete Friend',
+    //   'Are you sure you want to delete this friend and all records?',
+    //   async () => {
+    //     // Delete all transactions for this friend
+    //     // TODO: Batch delete or iterate. Iterate for now.
+    //     for (const t of transactions) {
+    //       deleteTransaction(t.id);
+    //       await mutate('transaction', 'delete', { id: t.id });
+    //     }
 
-        // Delete the friend
-        deleteFriend(friendId);
-        await mutate('friend', 'delete', { id: friendId });
+    //     // Delete the friend
+    //     deleteFriend(friendId);
+    //     await mutate('friend', 'delete', { id: friendId });
 
-        navigateBack();
-      },
-    );
+    //     navigateBack();
+    //   },
+    // );
+
+    // Delete all transactions for this friend
+    // TODO: Batch delete or iterate. Iterate for now.
+    for (const t of transactions)
+    {
+      deleteTransaction(t.id);
+      await mutate('transaction', 'delete', { id: t.id });
+    }
+
+    // Delete the friend
+    deleteFriend(friendId);
+    await mutate('friend', 'delete', { id: friendId });
+
+    navigateBack();
   };
 
-  const handleDeleteTransaction = (transactionId: string): void => {
-    confirmDelete(
-      'Delete Transaction',
-      'Are you sure you want to delete this transaction?',
-      async () => {
-        deleteTransaction(transactionId);
-        await mutate('transaction', 'delete', { id: transactionId });
-      },
-    );
+  const handleDeleteTransaction = async (transactionId: string): Promise<void> =>
+  {
+    // confirmDelete(
+    //   'Delete Transaction',
+    //   'Are you sure you want to delete this transaction?',
+    //   async () =>
+    //   {
+    //     deleteTransaction(transactionId);
+    //     await mutate('transaction', 'delete', { id: transactionId });
+    //   },
+    // );
+
+    deleteTransaction(transactionId);
+    await mutate('transaction', 'delete', { id: transactionId });
   };
 
-  const handleEditTransaction = (transactionId: string): void => {
+  const handleEditTransaction = (transactionId: string): void =>
+  {
     router.push(`/(drawer)/transaction/${transactionId}/edit`);
   };
 
-  const handlePinToggle = (): void => {
+  const handlePinToggle = (): void =>
+  {
     if (!friend) return;
     togglePin(friend);
   };

@@ -29,11 +29,13 @@ export default function TransactionsScreen()
 
   const handleDelete = (id: string, title: string) =>
   {
-    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, async () =>
-    {
-      deleteTransaction(id);
-      await mutate('transaction', 'delete', { id });
-    });
+    // confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, async () =>
+    // {
+    //   deleteTransaction(id);
+    //   await mutate('transaction', 'delete', { id });
+    // });
+    deleteTransaction(id);
+    mutate('transaction', 'delete', { id });
   };
 
   return (

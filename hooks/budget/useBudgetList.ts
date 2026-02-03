@@ -26,11 +26,12 @@ export const useBudgetList = () =>
 
   const handleDelete = (budgetId: string, title: string): void =>
   {
-    confirmDelete(
-      "Delete Budget",
-      `Are you sure you want to delete "${title}"?`,
-      () => deleteBudget(budgetId)
-    );
+    // confirmDelete(
+    //   "Delete Budget",
+    //   `Are you sure you want to delete "${title}"?`,
+    //   () => deleteBudget(budgetId)
+    // );
+    deleteBudget(budgetId)
   };
 
   return {

@@ -12,8 +12,7 @@ import { ErrorScreen } from '@/components/ui/ErrorScreen';
 import { SplashManager, SyncManager } from '@/lib/syncAuth';
 import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
 import { MenuModalProvider } from '@/contexts/MenuModalContext';
-import { ActionMenuModal } from '@/components/common/ActionMenuModal';
-import { useActionMenu } from '@/hooks/common/useActionMenu';
+import { GlobalMenuModal } from '@/components/ui/GlobalMenuModal';
 
 
 if (!publishableKey)
@@ -41,18 +40,6 @@ const STACK_OPTIONS = {
 };
 
 
-
-function ActionMenuWrapper() {
-  const { visible, items, anchorRect, closeMenu } = useActionMenu();
-  return (
-    <ActionMenuModal
-      visible={visible}
-      anchorRect={anchorRect}
-      items={items}
-      onClose={closeMenu}
-    />
-  );
-}
 
 export default function RootLayout()
 {
@@ -82,7 +69,7 @@ export default function RootLayout()
               </Stack>
             </SafeAreaProvider>
           </GestureHandlerRootView>
-          <ActionMenuWrapper />
+          <GlobalMenuModal />
         </MenuModalProvider>
       </ClerkLoaded>
     </ClerkProvider>

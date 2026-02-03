@@ -60,11 +60,12 @@ export const useBudgetDetail = () =>
 
   const handleDeleteItem = (itemId: string, title: string): void =>
   {
-    confirmDelete(
-      "Delete Item",
-      `Are you sure you want to delete "${title}"?`,
-      () => removeItem(budgetId, itemId)
-    );
+    // confirmDelete(
+    //   "Delete Item",
+    //   `Are you sure you want to delete "${title}"?`,
+    //   () => removeItem(budgetId, itemId)
+    // );
+    removeItem(budgetId, itemId)
   };
 
   const handlePinToggle = (): void =>
@@ -76,15 +77,17 @@ export const useBudgetDetail = () =>
   const handleDeleteBudget = (): void =>
   {
     if (!budget) return;
-    confirmDelete(
-      "Delete Budget",
-      `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
-      () =>
-      {
-        deleteBudget(budget.id);
-        navigateToBudgetList();
-      }
-    );
+    // confirmDelete(
+    //   "Delete Budget",
+    //   `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
+    //   () =>
+    //   {
+    //     deleteBudget(budget.id);
+    //     navigateToBudgetList();
+    //   }
+    // );
+    deleteBudget(budget.id);
+    navigateToBudgetList();
   };
 
   const handleEdit = (): void =>

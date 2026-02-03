@@ -9,7 +9,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { confirmDelete } from '@/lib/alert';
 import { useNavigation } from './useNavigation';
 
-export const useHome = () => {
+export const useHome = () =>
+{
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { addToQueue } = useSyncStore();
@@ -40,9 +41,11 @@ export const useHome = () => {
     [allTransactions],
   );
 
-  const handlePinToggle = (friendId: string) => {
+  const handlePinToggle = (friendId: string) =>
+  {
     const friend = latestFriends.find((f) => f.id === friendId);
-    if (friend) {
+    if (friend)
+    {
       if (friend.pinned) unpinFriend(friendId);
       else pinFriend(friendId);
     }
@@ -67,75 +70,113 @@ export const useHome = () => {
     [getRemainingBudget],
   );
 
-  const handleBudgetPinToggle = (budgetId: string) => {
+  const handleBudgetPinToggle = (budgetId: string) =>
+  {
     const budget = allBudgets.find((b) => b.id === budgetId);
-    if (budget) {
+    if (budget)
+    {
       if (budget.pinned) unpinBudget(budgetId);
       else pinBudget(budgetId);
     }
   };
 
-  const handleBudgetDelete = (budgetId: string, title: string) => {
-    confirmDelete('Delete Budget', `Are you sure you want to delete "${title}"?`, () => {
-      deleteBudget(budgetId);
-    });
+  const handleBudgetDelete = (budgetId: string, title: string) =>
+  {
+    // confirmDelete('Delete Budget', `Are you sure you want to delete "${title}"?`, () => {
+    //   deleteBudget(budgetId);
+    // });
+    deleteBudget(budgetId);
   };
 
-  const handleFriendEdit = (friendId: string) => {
+  const handleFriendEdit = (friendId: string) =>
+  {
     navigateToFriendEdit(friendId);
   };
 
-  const handleFriendDelete = (friendId: string, friendName: string) => {
+  const handleFriendDelete = (friendId: string, friendName: string) =>
+  {
     const friendTransactions = useTransactionsStore
       .getState()
       .transactions.filter((t) => t.friendId === friendId);
 
-    confirmDelete(
-      'Delete Friend',
-      `Are you sure you want to delete "${friendName}" and all records?`,
-      () => {
-        // Delete all transactions for this friend
-        friendTransactions.forEach((t) => {
-          deleteTransaction(t.id);
-          addToQueue({
-            id: Math.random().toString(36).substring(7),
-            type: 'transaction',
-            action: 'delete',
-            payload: { id: t.id },
-          });
-        });
+    // confirmDelete(
+    //   'Delete Friend',
+    //   `Are you sure you want to delete "${friendName}" and all records?`,
+    //   () =>
+    //   {
+    //     // Delete all transactions for this friend
+    //     friendTransactions.forEach((t) =>
+    //     {
+    //       deleteTransaction(t.id);
+    //       addToQueue({
+    //         id: Math.random().toString(36).substring(7),
+    //         type: 'transaction',
+    //         action: 'delete',
+    //         payload: { id: t.id },
+    //       });
+    //     });
 
-        // Delete the friend
-        deleteFriend(friendId);
-        addToQueue({
-          id: Math.random().toString(36).substring(7),
-          type: 'friend',
-          action: 'delete',
-          payload: { id: friendId },
-        });
-      },
-    );
+    //     // Delete the friend
+    //     deleteFriend(friendId);
+    //     addToQueue({
+    //       id: Math.random().toString(36).substring(7),
+    //       type: 'friend',
+    //       action: 'delete',
+    //       payload: { id: friendId },
+    //     });
+    //   },
+    // );
+    // Delete all transactions for this friend
+    friendTransactions.forEach((t) =>
+    {
+      deleteTransaction(t.id);
+      addToQueue({
+        id: Math.random().toString(36).substring(7),
+        type: 'transaction',
+        action: 'delete',
+        payload: { id: t.id },
+      });
+    });
+
+    // Delete the friend
+    deleteFriend(friendId);
+    addToQueue({
+      id: Math.random().toString(36).substring(7),
+      type: 'friend',
+      action: 'delete',
+      payload: { id: friendId },
+    });
   };
 
-  const handleTransactionEdit = (id: string) => {
+  const handleTransactionEdit = (id: string) =>
+  {
     router.push(`/(drawer)/transaction/${id}/edit`);
   };
 
-  const handleTransactionDelete = (id: string) => {
-    const transaction = allTransactions.find((t) => t.id === id);
-    confirmDelete(
-      'Delete Transaction',
-      `Are you sure you want to delete "${transaction?.title || 'this transaction'}"?`,
-      () => {
-        deleteTransaction(id);
-        addToQueue({
-          id: Math.random().toString(36).substring(7),
-          type: 'transaction',
-          action: 'delete',
-          payload: { id },
-        });
-      },
-    );
+  const handleTransactionDelete = (id: string) =>
+  {
+    // const transaction = allTransactions.find((t) => t.id === id);
+    // confirmDelete(
+    //   'Delete Transaction',
+    //   `Are you sure you want to delete "${transaction?.title || 'this transaction'}"?`,
+    //   () =>
+    //   {
+    //     deleteTransaction(id);
+    //     addToQueue({
+    //       id: Math.random().toString(36).substring(7),
+    //       type: 'transaction',
+    //       action: 'delete',
+    //       payload: { id },
+    //     });
+    //   },
+    // );
+    deleteTransaction(id);
+    addToQueue({
+      id: Math.random().toString(36).substring(7),
+      type: 'transaction',
+      action: 'delete',
+      payload: { id },
+    });
   };
 
   return {

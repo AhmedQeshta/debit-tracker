@@ -6,21 +6,26 @@ import Constants from 'expo-constants';
 import { Menu, Mail, Phone, MapPin, Linkedin, Github, Globe } from 'lucide-react-native';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 
-export default function About() {
+export default function About()
+{
   const { openDrawer } = useDrawerContext();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 
-  const handleEmailPress = () => {
+  const handleEmailPress = () =>
+  {
     Linking.openURL('mailto:ahmed.qeshta.dev@gmail.com');
   };
 
-  const handlePhonePress = () => {
+  const handlePhonePress = () =>
+  {
     Linking.openURL('tel:+970592157001');
   };
 
-  const handleLinkPress = (url: string) => {
-    Linking.openURL(url).catch(() => {
+  const handleLinkPress = (url: string) =>
+  {
+    Linking.openURL(url).catch(() =>
+    {
       Alert.alert('Error', 'Could not open the link');
     });
   };

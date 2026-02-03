@@ -57,12 +57,11 @@ export interface IMenuItem
   danger?: boolean;
 }
 
-import type { AnchorRect, MenuItem } from '@/contexts/MenuModalContext';
-
 export interface IActionsProps
 {
+  menuVisible: boolean;
+  setMenuVisible: (visible: boolean) => void;
   menuItems: IMenuItem[];
-  openMenu: (anchorRect: AnchorRect, items: MenuItem[]) => void;
 }
 
 export interface IPinnedCardsProps

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
@@ -6,11 +6,10 @@ import { Trash2, Pencil } from 'lucide-react-native';
 import { ITransactionItemProps } from '@/types/transaction';
 import { getBalanceText } from '@/lib/utils';
 import { Actions } from '@/components/ui/Actions';
-import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITransactionItemProps) =>
 {
-  const { openMenu } = useActionMenu();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const menuItems = [];
   if (onEdit)
@@ -46,8 +45,9 @@ export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITr
       {menuItems.length > 0 && (
         <View style={styles.actions}>
           <Actions
+            menuVisible={menuVisible}
+            setMenuVisible={setMenuVisible}
             menuItems={menuItems}
-            openMenu={openMenu}
           />
         </View>
       )}

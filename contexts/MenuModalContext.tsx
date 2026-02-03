@@ -1,27 +1,18 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export interface AnchorRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface MenuItem {
-  icon: ReactNode;
-  label: string;
-  onPress: () => void;
-  danger?: boolean;
-}
-
 interface MenuModalState {
   visible: boolean;
-  anchorRect: AnchorRect | null;
-  menuItems: MenuItem[];
+  position: { top: number; right: number };
+  menuItems: Array<{
+    icon: ReactNode;
+    label: string;
+    onPress: () => void;
+    danger?: boolean;
+  }>;
 }
 
 interface MenuModalContextType {
-  openMenu: (anchorRect: AnchorRect, menuItems: MenuItem[]) => void;
+  openMenu: (position: { top: number; right: number }, menuItems: MenuModalState['menuItems']) => void;
   closeMenu: () => void;
   menuState: MenuModalState;
 }
@@ -31,14 +22,14 @@ const MenuModalContext = createContext<MenuModalContextType | undefined>(undefin
 export const MenuModalProvider = ({ children }: { children: ReactNode }) => {
   const [menuState, setMenuState] = useState<MenuModalState>({
     visible: false,
-    anchorRect: null,
+    position: { top: 0, right: 0 },
     menuItems: [],
   });
 
-  const openMenu = (anchorRect: AnchorRect, menuItems: MenuItem[]) => {
+  const openMenu = (position: { top: number; right: number }, menuItems: MenuModalState['menuItems']) => {
     setMenuState({
       visible: true,
-      anchorRect,
+      position,
       menuItems,
     });
   };

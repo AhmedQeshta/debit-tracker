@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getFriendName } from '@/lib/utils';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -8,12 +8,11 @@ import { useShallow } from 'zustand/react/shallow';
 import { Trash2, Pencil } from 'lucide-react-native';
 import { Actions } from '@/components/ui/Actions';
 import { ITransactionScreenItemProps } from '@/types/transaction';
-import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 
 export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionScreenItemProps) =>
 {
-  const { openMenu } = useActionMenu();
+  const [menuVisible, setMenuVisible] = useState(false);
   const friends = useFriendsStore(useShallow((state) => state.friends));
 
   const menuItems = [];
@@ -51,8 +50,9 @@ export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionSc
       {menuItems.length > 0 && (
         <View style={styles.actions}>
           <Actions
+            menuVisible={menuVisible}
+            setMenuVisible={setMenuVisible}
             menuItems={menuItems}
-            openMenu={openMenu}
           />
         </View>
       )}

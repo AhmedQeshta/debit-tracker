@@ -13,6 +13,7 @@ export const useFriendCard = (
   const { navigateToFriend, navigateToFriendEdit } = useNavigation();
   const translateX = useRef(new Animated.Value(0)).current;
   const [isPinning, setIsPinning] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const lastTranslateX = useRef(0);
 
   const handlePinToggle = (): void => {
@@ -100,5 +101,7 @@ export const useFriendCard = (
     onHandlerStateChange,
     isPinning,
     menuItems,
+    menuVisible,
+    setMenuVisible,
   };
 };
