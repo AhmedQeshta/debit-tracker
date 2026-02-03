@@ -6,13 +6,13 @@ import { Spacing } from '@/theme/spacing';
 import { IBudgetCardProps } from '@/types/budget';
 import { useRouter } from 'expo-router';
 import { Actions } from '@/components/ui/Actions';
-import { useState } from 'react';
 import { IMenuItem } from '@/types/common';
+import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 export const BudgetCard = ({ item, handlePinToggle, handleDelete, getTotalSpent, getRemainingBudget }: IBudgetCardProps) =>
 {
   const router = useRouter();
-  const [menuVisible, setMenuVisible] = useState(false);
+  const { openMenu } = useActionMenu();
   const totalSpent = getTotalSpent(item.id);
   const remaining = getRemainingBudget(item.id);
   const formatAmount = (amount: number) => formatCurrency(amount, item.currency);
@@ -55,9 +55,8 @@ export const BudgetCard = ({ item, handlePinToggle, handleDelete, getTotalSpent,
             </Text>
           </View>
           <Actions
-            menuVisible={menuVisible}
-            setMenuVisible={setMenuVisible}
             menuItems={menuItems}
+            openMenu={openMenu}
           />
         </View>
 

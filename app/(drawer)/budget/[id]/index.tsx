@@ -7,15 +7,15 @@ import { Spacing } from '@/theme/spacing';
 import { Trash2, Pin } from 'lucide-react-native';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
 import { formatCurrency } from '@/lib/utils';
-import { useState } from 'react';
 import { Actions } from '@/components/ui/Actions';
 import Header from '@/components/ui/Header';
+import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 
 export default function BudgetDetail()
 {
   const { budget, router, itemTitle, setItemTitle, itemAmount, setItemAmount, itemTitleError, setItemTitleError, itemAmountError, setItemAmountError, handleAddItem, handleDeleteItem, totalSpent, remaining, handlePinToggle, handleDeleteBudget, menuItems } = useBudgetDetail();
-  const [menuVisible, setMenuVisible] = useState(false);
+  const { openMenu } = useActionMenu();
 
 
 
@@ -48,9 +48,8 @@ export default function BudgetDetail()
               <Text style={styles.budgetInfoTitle}>{budget.title}</Text>
             </View>
             <Actions
-              menuVisible={menuVisible}
-              setMenuVisible={setMenuVisible}
               menuItems={menuItems}
+              openMenu={openMenu}
             />
           </View>
           <View style={styles.budgetInfoStats}>

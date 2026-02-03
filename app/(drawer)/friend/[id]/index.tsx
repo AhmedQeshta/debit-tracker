@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { TransactionItem } from '@/components/transaction/TransactionItem';
@@ -13,6 +13,7 @@ import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
 import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 import { EmptySection } from '@/components/ui/EmptySection';
 import Header from '@/components/ui/Header';
+import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 export default function FriendDetails()
 {
@@ -29,7 +30,7 @@ export default function FriendDetails()
     id,
   } = useFriendDetail();
   const insets = useSafeAreaInsets();
-  const [friendMenuVisible, setFriendMenuVisible] = useState(false);
+  const { openMenu } = useActionMenu();
 
   if (!friend)
   {
@@ -50,8 +51,6 @@ export default function FriendDetails()
 
         <View style={styles.userActions}>
           <Actions
-            menuVisible={friendMenuVisible}
-            setMenuVisible={setFriendMenuVisible}
             menuItems={[
               {
                 icon: friend.pinned ? (
@@ -74,6 +73,7 @@ export default function FriendDetails()
                 danger: true,
               },
             ]}
+            openMenu={openMenu}
           />
         </View>
       </View>

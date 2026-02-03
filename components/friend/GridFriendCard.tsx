@@ -1,13 +1,13 @@
 import { GridFriendCardProps } from '@/types/friend';
 import { View, Text, StyleSheet } from 'react-native';
 import { Actions } from '../ui/Actions';
-import { useState } from 'react';
 import { Colors } from '@/theme/colors';
 import { Pin } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
+import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 export const GridFriendCard = ({ friend, balance, menuItems }: GridFriendCardProps) => {
-  const [menuVisible, setMenuVisible] = useState(false);
+  const { openMenu } = useActionMenu();
 
   return (
     <View style={styles.gridItem}>
@@ -15,9 +15,8 @@ export const GridFriendCard = ({ friend, balance, menuItems }: GridFriendCardPro
         <View style={styles.gridCardHeader}>
           <View style={styles.gridActions}>
             <Actions
-              menuVisible={menuVisible}
-              setMenuVisible={setMenuVisible}
               menuItems={menuItems}
+              openMenu={openMenu}
             />
           </View>
         </View>

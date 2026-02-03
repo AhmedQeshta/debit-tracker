@@ -6,6 +6,7 @@ import { Pencil, Pin, Trash2, PinOff } from 'lucide-react-native';
 import { useFriendCard } from '@/hooks/friend/useFriendCard';
 import { IFriendCardProps } from '@/types/friend';
 import { Actions } from '@/components/ui/Actions';
+import { useActionMenu } from '@/hooks/common/useActionMenu';
 
 export const FriendCard = ({
   friend,
@@ -20,9 +21,8 @@ export const FriendCard = ({
     onGestureEvent,
     onHandlerStateChange,
     menuItems,
-    menuVisible,
-    setMenuVisible,
   } = useFriendCard(friend, handlePinToggle || (() => {}), handleFriendDelete);
+  const { openMenu } = useActionMenu();
 
   return (
     <View style={styles.wrapper}>
@@ -73,9 +73,8 @@ export const FriendCard = ({
               </View>
               {showActions && menuItems ? (
                 <Actions
-                  menuVisible={menuVisible}
-                  setMenuVisible={setMenuVisible}
                   menuItems={menuItems}
+                  openMenu={openMenu}
                 />
               ) : handlePinToggle ? (
                 <TouchableOpacity
