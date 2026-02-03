@@ -4,7 +4,8 @@ import { PositionedMenu } from '@/components/ui/PositionedMenu';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 
-export const GlobalMenuModal = () => {
+export const GlobalMenuModal = () =>
+{
   const { menuState, closeMenu } = useMenuModal();
 
   return (
@@ -21,12 +22,17 @@ export const GlobalMenuModal = () => {
               item.danger && styles.menuItemDanger,
               index === menuState.menuItems.length - 1 && styles.menuItemLast,
             ]}
-            onPress={() => {
-              // Close menu first
+            onPress={() =>
+            {
+              // Store the action function before closing
+              const action = item.onPress;
+              // Close menu first to ensure Alert appears on top
               closeMenu();
-              // Then execute the action after a small delay to ensure modal closes
-              setTimeout(() => {
-                item.onPress();
+              // Execute action after a small delay to ensure menu is closed
+              // This allows the Alert to appear on top of everything
+              setTimeout(() =>
+              {
+                action();
               }, 100);
             }}
             activeOpacity={0.7}>

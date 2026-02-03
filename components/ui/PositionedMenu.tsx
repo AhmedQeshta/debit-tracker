@@ -1,4 +1,4 @@
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 interface PositionedMenuProps
 {
@@ -14,17 +14,17 @@ export const PositionedMenu = ({ visible, onClose, position, children }: Positio
 
   return (
     <View style={styles.rootContainer} pointerEvents="box-none">
-      <Pressable
-        style={styles.overlay}
-        onPress={onClose}>
-        <View
-          style={[styles.menuWrapper, { top: position.top, right: position.right }]}
-          pointerEvents="box-none">
-          <View style={styles.menuContent} pointerEvents="auto">
-            {children}
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <View
+            style={[styles.menuWrapper, { top: position.top, right: position.right }]}
+            pointerEvents="box-none">
+            <View style={styles.menuContent} pointerEvents="auto">
+              {children}
+            </View>
           </View>
         </View>
-      </Pressable>
+      </TouchableWithoutFeedback>
     </View>
   );
 };
