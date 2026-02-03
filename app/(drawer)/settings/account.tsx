@@ -12,7 +12,7 @@ import { useAccount } from '@/hooks/settings/useAccount';
 export default function AccountManagement()
 {
 
-  const { control, handleSubmit, errors, loading, updatingEmail, showEmailInput, newEmail, setShowEmailInput, setNewEmail, handleEmailUpdate, handleEmailSubmit, updateName, user, isLoaded, isSignedIn, router } = useAccount();
+  const { control, handleSubmit, errors, loading, updatingEmail, showEmailInput, newEmail, setShowEmailInput, setNewEmail, handleEmailUpdate, handleEmailSubmit, updateName, updateEmail, user, isLoaded, isSignedIn, router } = useAccount();
   if (!isLoaded)
   {
     return (

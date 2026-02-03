@@ -8,7 +8,8 @@ export const useBudgetStore = create<IBudgetState>()(
   persist(
     (set, get) => ({
       budgets: [],
-      addBudget: (title: string, currency: string, totalBudget: number, friendId: string) => {
+      addBudget: (title: string, currency: string, totalBudget: number, friendId: string) =>
+      {
         const newBudget: Budget = {
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
           title,
@@ -32,67 +33,152 @@ export const useBudgetStore = create<IBudgetState>()(
         })),
       deleteBudget: (id: string) =>
         set((state) => ({
-          budgets: state.budgets.filter((b) => b.id !== id),
+          budgets: state.budgets.map((b) =>
+            b.id === id
+              ? {
+                ...b,
+                deletedAt: Date.now(),
+                synced: false,
+                // Also mark all items as deleted
+                items: b.items.map((item) => ({
+                  ...item,
+                  deletedAt: Date.now(),
+                  synced: false,
+                })),
+              }
+              : b,
+          ),
         })),
-      getDirtyBudgets: (): Budget[] => {
-        return get().budgets.filter((b) => !b.synced || b.synced === false);
+      getDirtyBudgets: (): Budget[] =>
+      {
+        return get().budgets.filter((b) =>
+        {
+          // Include budgets that are not synced or marked for deletion
+          return b.synced !== true || b.deletedAt !== undefined;
+        });
       },
-      getDirtyBudgetItems: (): BudgetItem[] => {
+      getDirtyBudgetItems: (): BudgetItem[] =>
+      {
         const allItems: BudgetItem[] = [];
-        get().budgets.forEach((budget) => {
-          budget.items.forEach((item) => {
-            if (!item.synced || item.synced === false) {
+        get().budgets.forEach((budget) =>
+        {
+          budget.items.forEach((item) =>
+          {
+            // Include items that are not synced OR marked for deletion
+            if (!item.synced || !item.synced || item.deletedAt !== undefined)
+            {
               allItems.push(item);
             }
           });
         });
         return allItems;
       },
+      getDeletedBudgets: (): Budget[] =>
+      {
+        return get().budgets.filter((b) => b.deletedAt !== undefined);
+      },
+      getDeletedBudgetItems: (): BudgetItem[] =>
+      {
+        const allItems: BudgetItem[] = [];
+        get().budgets.forEach((budget) =>
+        {
+          budget.items.forEach((item) =>
+          {
+            if (item.deletedAt !== undefined)
+            {
+              allItems.push(item);
+            }
+          });
+        });
+        return allItems;
+      },
+      removeDeletedBudget: (id: string) =>
+        set((state) => ({
+          budgets: state.budgets.filter((b) => b.id !== id),
+        })),
+      removeDeletedBudgetItem: (budgetId: string, itemId: string) =>
+        set((state) => ({
+          budgets: state.budgets.map((b) =>
+            b.id === budgetId
+              ? {
+                ...b,
+                items: b.items.filter((item) => item.id !== itemId),
+              }
+              : b,
+          ),
+        })),
       setBudgets: (budgets) => set({ budgets }),
       mergeBudgets: (remoteBudgets: Budget[]) =>
-        set((state) => {
+        set((state) =>
+        {
           // Use conflict resolution: merge with deletions support
           const localMap = new Map(state.budgets.map((b) => [b.id, b]));
           const remoteIds = new Set(remoteBudgets.map((b) => b.id));
-          
+
           // Process remote budgets with conflict resolution
-          remoteBudgets.forEach((remote) => {
+          remoteBudgets.forEach((remote) =>
+          {
             const local = localMap.get(remote.id);
-            if (!local) {
+            if (!local)
+            {
               // Remote budget doesn't exist locally -> add it
               localMap.set(remote.id, { ...remote, synced: true });
-            } else {
+            } else
+            {
               // Conflict resolution: use the one with newer updatedAt
               const remoteUpdatedAt = remote.updatedAt || 0;
               const localUpdatedAt = local.updatedAt || 0;
-              if (remoteUpdatedAt > localUpdatedAt) {
-                // Remote is newer -> use remote (including its items)
+              if (remoteUpdatedAt > localUpdatedAt)
+              {
+                // Remote is newer -> use remote (including its items, clear any local deletion)
                 localMap.set(remote.id, { ...remote, synced: true });
-              } else {
+              } else
+              {
                 // Local is newer or equal -> keep local (but mark as synced if remote exists)
                 // Also merge budget items with conflict resolution
                 const localItemsMap = new Map(local.items.map((item) => [item.id, item]));
                 const remoteItemsIds = new Set((remote.items || []).map((item) => item.id));
-                
+
                 // Process remote items
-                (remote.items || []).forEach((remoteItem) => {
+                (remote.items || []).forEach((remoteItem) =>
+                {
                   const localItem = localItemsMap.get(remoteItem.id);
-                  if (!localItem) {
+                  if (!localItem)
+                  {
                     localItemsMap.set(remoteItem.id, { ...remoteItem, synced: true });
-                  } else {
+                  } else
+                  {
                     const remoteItemUpdatedAt = remoteItem.updatedAt || 0;
                     const localItemUpdatedAt = localItem.updatedAt || 0;
-                    if (remoteItemUpdatedAt > localItemUpdatedAt) {
+                    if (remoteItemUpdatedAt > localItemUpdatedAt)
+                    {
+                      // Remote item is newer -> use remote (clear any local deletion)
                       localItemsMap.set(remoteItem.id, { ...remoteItem, synced: true });
-                    } else {
+                    } else
+                    {
                       localItemsMap.set(remoteItem.id, { ...localItem, synced: localItem.synced || true });
                     }
                   }
                 });
-                
-                // Remove local items that don't exist in remote
-                const mergedItems = Array.from(localItemsMap.values()).filter((item) => remoteItemsIds.has(item.id));
-                
+
+                // Handle local items not in remote:
+                // - If local has deletedAt → remove it (already deleted remotely, sync confirmed)
+                // - If local doesn't have deletedAt → keep it (might be new, not yet synced)
+                const mergedItems = Array.from(localItemsMap.values()).filter((item) =>
+                {
+                  if (remoteItemsIds.has(item.id))
+                  {
+                    return true; // Item exists in remote, keep it
+                  }
+                  // Item not in remote
+                  if (item.deletedAt !== undefined)
+                  {
+                    return false; // Was marked for deletion, now confirmed deleted remotely
+                  }
+                  // Item not in remote but not marked for deletion - might be new, keep it
+                  return true;
+                });
+
                 localMap.set(remote.id, {
                   ...local,
                   items: mergedItems,
@@ -101,10 +187,25 @@ export const useBudgetStore = create<IBudgetState>()(
               }
             }
           });
-          
-          // Remove local budgets that don't exist in remote (hard delete in DB)
-          const merged = Array.from(localMap.values()).filter((item) => remoteIds.has(item.id));
-          
+
+          // Handle local budgets not in remote:
+          // - If local has deletedAt → remove it (already deleted remotely, sync confirmed)
+          // - If local doesn't have deletedAt → keep it (might be new, not yet synced)
+          const merged = Array.from(localMap.values()).filter((item) =>
+          {
+            if (remoteIds.has(item.id))
+            {
+              return true; // Budget exists in remote, keep it
+            }
+            // Budget not in remote
+            if (item.deletedAt !== undefined)
+            {
+              return false; // Was marked for deletion, now confirmed deleted remotely
+            }
+            // Budget not in remote but not marked for deletion - might be new, keep it
+            return true;
+          });
+
           return { budgets: merged };
         }),
       markAsSynced: (id: string) =>
@@ -116,11 +217,11 @@ export const useBudgetStore = create<IBudgetState>()(
           budgets: state.budgets.map((b) =>
             b.id === budgetId
               ? {
-                  ...b,
-                  items: b.items.map((i) =>
-                    i.id === itemId ? { ...i, synced: true, updatedAt: Date.now() } : i,
-                  ),
-                }
+                ...b,
+                items: b.items.map((i) =>
+                  i.id === itemId ? { ...i, synced: true, updatedAt: Date.now() } : i,
+                ),
+              }
               : b,
           ),
         })),
@@ -144,7 +245,8 @@ export const useBudgetStore = create<IBudgetState>()(
             b.id === id ? { ...b, totalBudget: amount, synced: false, updatedAt: Date.now() } : b,
           ),
         })),
-      addItem: (budgetId: string, title: string, amount: number) => {
+      addItem: (budgetId: string, title: string, amount: number) =>
+      {
         const newItem: BudgetItem = {
           id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
           title,
@@ -158,11 +260,11 @@ export const useBudgetStore = create<IBudgetState>()(
           budgets: state.budgets.map((b) =>
             b.id === budgetId
               ? {
-                  ...b,
-                  items: [newItem, ...b.items],
-                  synced: false,
-                  updatedAt: Date.now(),
-                }
+                ...b,
+                items: [newItem, ...b.items],
+                synced: false,
+                updatedAt: Date.now(),
+              }
               : b,
           ),
         }));
@@ -172,27 +274,40 @@ export const useBudgetStore = create<IBudgetState>()(
           budgets: state.budgets.map((b) =>
             b.id === budgetId
               ? {
-                  ...b,
-                  items: b.items.filter((item) => item.id !== itemId),
-                  synced: false,
-                  updatedAt: Date.now(),
-                }
+                ...b,
+                items: b.items.map((item) =>
+                  item.id === itemId
+                    ? { ...item, deletedAt: Date.now(), synced: false }
+                    : item,
+                ),
+                synced: false,
+                updatedAt: Date.now(),
+              }
               : b,
           ),
         })),
-      getTotalSpent: (budgetId: string) => {
-        const budget = get().budgets.find((b) => b.id === budgetId);
+      getTotalSpent: (budgetId: string) =>
+      {
+        const budget = get().budgets.find((b) => b.id === budgetId && !b.deletedAt);
         if (!budget) return 0;
-        return budget.items.reduce((sum, item) => sum + item.amount, 0);
+        return budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0);
       },
-      getRemainingBudget: (budgetId: string) => {
-        const budget = get().budgets.find((b) => b.id === budgetId);
+      getRemainingBudget: (budgetId: string) =>
+      {
+        const budget = get().budgets.find((b) => b.id === budgetId && !b.deletedAt);
         if (!budget) return 0;
         const totalSpent = get().getTotalSpent(budgetId);
         return budget.totalBudget - totalSpent;
       },
-      getBudget: (id: string) => {
-        return get().budgets.find((b) => b.id === id);
+      getBudget: (id: string) =>
+      {
+        const budget = get().budgets.find((b) => b.id === id && !b.deletedAt);
+        if (!budget) return undefined;
+        // Filter out deleted items
+        return {
+          ...budget,
+          items: budget.items.filter((item) => !item.deletedAt),
+        };
       },
     }),
     {

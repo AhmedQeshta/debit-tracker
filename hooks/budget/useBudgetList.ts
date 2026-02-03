@@ -9,7 +9,7 @@ export const useBudgetList = () =>
 {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
-  const budgets = useBudgetStore(useShallow((state) => state.budgets));
+  const budgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
   const { pinBudget, unpinBudget, deleteBudget, getTotalSpent, getRemainingBudget } =
     useBudgetStore();
 

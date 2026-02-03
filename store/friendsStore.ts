@@ -25,41 +25,77 @@ export const useFriendsStore = create<IFriendsState>()(
         })),
       deleteFriend: (id) =>
         set((state) => ({
+          friends: state.friends.map((f) =>
+            f.id === id ? { ...f, deletedAt: Date.now(), synced: false } : f,
+          ),
+        })),
+      getDirtyFriends: (): Friend[] =>
+      {
+        return get().friends.filter((f) =>
+        {
+          // Include items that are not synced OR marked for deletion
+          return !f.synced || !f.synced || f.deletedAt !== undefined;
+        });
+      },
+      getDeletedFriends: (): Friend[] =>
+      {
+        return get().friends.filter((f) => f.deletedAt !== undefined);
+      },
+      removeDeletedFriend: (id) =>
+        set((state) => ({
           friends: state.friends.filter((f) => f.id !== id),
         })),
-      getDirtyFriends: (): Friend[] => {
-        return get().friends.filter((f) => !f.synced || f.synced === false);
-      },
       setFriends: (friends) => set({ friends }),
       mergeFriends: (remoteFriends) =>
-        set((state) => {
+        set((state) =>
+        {
           // Use conflict resolution: merge with deletions support
           const localMap = new Map(state.friends.map((f) => [f.id, f]));
           const remoteIds = new Set(remoteFriends.map((f) => f.id));
-          
+
           // Process remote items with conflict resolution
-          remoteFriends.forEach((remote) => {
+          remoteFriends.forEach((remote) =>
+          {
             const local = localMap.get(remote.id);
-            if (!local) {
+            if (!local)
+            {
               // Remote item doesn't exist locally -> add it
               localMap.set(remote.id, { ...remote, synced: true });
-            } else {
+            } else
+            {
               // Conflict resolution: use the one with newer updatedAt
               const remoteUpdatedAt = remote.updatedAt || 0;
               const localUpdatedAt = local.updatedAt || 0;
-              if (remoteUpdatedAt > localUpdatedAt) {
-                // Remote is newer -> use remote
+              if (remoteUpdatedAt > localUpdatedAt)
+              {
+                // Remote is newer -> use remote (clear any local deletion)
                 localMap.set(remote.id, { ...remote, synced: true });
-              } else {
+              } else
+              {
                 // Local is newer or equal -> keep local (but mark as synced if remote exists)
                 localMap.set(remote.id, { ...local, synced: local.synced || true });
               }
             }
           });
-          
-          // Remove local items that don't exist in remote (hard delete in DB)
-          const merged = Array.from(localMap.values()).filter((item) => remoteIds.has(item.id));
-          
+
+          // Handle local items not in remote:
+          // - If local has deletedAt → remove it (already deleted remotely, sync confirmed)
+          // - If local doesn't have deletedAt → keep it (might be new, not yet synced)
+          const merged = Array.from(localMap.values()).filter((item) =>
+          {
+            if (remoteIds.has(item.id))
+            {
+              return true; // Item exists in remote, keep it
+            }
+            // Item not in remote
+            if (item.deletedAt !== undefined)
+            {
+              return false; // Was marked for deletion, now confirmed deleted remotely
+            }
+            // Item not in remote but not marked for deletion - might be new, keep it
+            return true;
+          });
+
           return { friends: merged };
         }),
       markAsSynced: (id) =>

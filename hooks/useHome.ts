@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useBudgetStore } from '@/store/budgetStore';
-import { useSyncStore } from '@/store/syncStore';
 import { useShallow } from 'zustand/react/shallow';
 import { confirmDelete } from '@/lib/alert';
 import { useNavigation } from './useNavigation';
@@ -13,11 +12,10 @@ export const useHome = () =>
 {
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
-  const { addToQueue } = useSyncStore();
   const { navigateToFriendEdit } = useNavigation();
   const router = useRouter();
 
-  const allFriends = useFriendsStore(useShallow((state) => state.friends));
+  const allFriends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
 
   const latestFriends = useMemo(
     () =>
@@ -29,7 +27,7 @@ export const useHome = () =>
     [allFriends],
   );
 
-  const allTransactions = useTransactionsStore(useShallow((state) => state.transactions));
+  const allTransactions = useTransactionsStore(useShallow((state) => state.transactions.filter((t) => !t.deletedAt)));
 
   const latestTransactions = useMemo(
     () => calculateLatestTransactions(allTransactions),
@@ -51,7 +49,7 @@ export const useHome = () =>
     }
   };
 
-  const allBudgets = useBudgetStore(useShallow((state) => state.budgets));
+  const allBudgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
   const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
     useBudgetStore();
 
@@ -95,57 +93,22 @@ export const useHome = () =>
 
   const handleFriendDelete = (friendId: string, friendName: string) =>
   {
-    const friendTransactions = useTransactionsStore
+    // Delete all transactions for this friend first (get all, including already deleted ones)
+    const allFriendTransactions = useTransactionsStore
       .getState()
       .transactions.filter((t) => t.friendId === friendId);
 
-    // confirmDelete(
-    //   'Delete Friend',
-    //   `Are you sure you want to delete "${friendName}" and all records?`,
-    //   () =>
-    //   {
-    //     // Delete all transactions for this friend
-    //     friendTransactions.forEach((t) =>
-    //     {
-    //       deleteTransaction(t.id);
-    //       addToQueue({
-    //         id: Math.random().toString(36).substring(7),
-    //         type: 'transaction',
-    //         action: 'delete',
-    //         payload: { id: t.id },
-    //       });
-    //     });
-
-    //     // Delete the friend
-    //     deleteFriend(friendId);
-    //     addToQueue({
-    //       id: Math.random().toString(36).substring(7),
-    //       type: 'friend',
-    //       action: 'delete',
-    //       payload: { id: friendId },
-    //     });
-    //   },
-    // );
-    // Delete all transactions for this friend
-    friendTransactions.forEach((t) =>
+    allFriendTransactions.forEach((t) =>
     {
-      deleteTransaction(t.id);
-      addToQueue({
-        id: Math.random().toString(36).substring(7),
-        type: 'transaction',
-        action: 'delete',
-        payload: { id: t.id },
-      });
+      // Only delete if not already marked for deletion
+      if (!t.deletedAt)
+      {
+        deleteTransaction(t.id);
+      }
     });
 
-    // Delete the friend
+    // Delete the friend (stores handle sync tracking automatically)
     deleteFriend(friendId);
-    addToQueue({
-      id: Math.random().toString(36).substring(7),
-      type: 'friend',
-      action: 'delete',
-      payload: { id: friendId },
-    });
   };
 
   const handleTransactionEdit = (id: string) =>
@@ -155,28 +118,8 @@ export const useHome = () =>
 
   const handleTransactionDelete = (id: string) =>
   {
-    // const transaction = allTransactions.find((t) => t.id === id);
-    // confirmDelete(
-    //   'Delete Transaction',
-    //   `Are you sure you want to delete "${transaction?.title || 'this transaction'}"?`,
-    //   () =>
-    //   {
-    //     deleteTransaction(id);
-    //     addToQueue({
-    //       id: Math.random().toString(36).substring(7),
-    //       type: 'transaction',
-    //       action: 'delete',
-    //       payload: { id },
-    //     });
-    //   },
-    // );
+    // Delete transaction (store handles sync tracking automatically)
     deleteTransaction(id);
-    addToQueue({
-      id: Math.random().toString(36).substring(7),
-      type: 'transaction',
-      action: 'delete',
-      payload: { id },
-    });
   };
 
   return {

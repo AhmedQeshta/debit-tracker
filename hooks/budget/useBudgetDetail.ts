@@ -30,8 +30,8 @@ export const useBudgetDetail = () =>
   const [itemTitleError, setItemTitleError] = useState("");
   const [itemAmountError, setItemAmountError] = useState("");
 
-  // Calculate from budget object to make it reactive to changes
-  const totalSpent = budget ? budget.items.reduce((sum, item) => sum + item.amount, 0) : 0;
+  // Calculate from budget object to make it reactive to changes (exclude deleted items)
+  const totalSpent = budget ? budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0) : 0;
   const remaining = budget ? budget.totalBudget - totalSpent : 0;
 
   const handleAddItem = (): void =>
