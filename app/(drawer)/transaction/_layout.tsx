@@ -14,11 +14,11 @@ const STACK_OPTIONS = {
   },
 };
 
-export default function TransactionsLayout() {
+export default function TransactionsLayout()
+{
   return (
     <Stack screenOptions={STACK_OPTIONS}>
       <Stack.Screen name="new" options={{ title: 'Add Transaction', headerShown: false }} />
-      <Stack.Screen name="[id]/edit" options={{ title: 'Edit Transaction', headerShown: false }} />
     </Stack>
   );
 }

@@ -11,6 +11,8 @@ import { publishableKey, tokenCache } from '@/lib/token';
 import { ErrorScreen } from '@/components/ui/ErrorScreen';
 import { SplashManager, SyncManager } from '@/lib/syncAuth';
 import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
+import { MenuModalProvider } from '@/contexts/MenuModalContext';
+import { GlobalMenuModal } from '@/components/ui/GlobalMenuModal';
 
 
 if (!publishableKey)
@@ -56,16 +58,19 @@ export default function RootLayout()
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
-        <SyncManager />
-        <SplashManager />
-        <SyncLoadingOverlay />
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <SafeAreaProvider>
-            <Stack screenOptions={STACK_OPTIONS}>
-              <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-            </Stack>
-          </SafeAreaProvider>
-        </GestureHandlerRootView>
+        <MenuModalProvider>
+          <SyncManager />
+          <SplashManager />
+          <SyncLoadingOverlay />
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaProvider>
+              <Stack screenOptions={STACK_OPTIONS}>
+                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+              </Stack>
+            </SafeAreaProvider>
+          </GestureHandlerRootView>
+          <GlobalMenuModal />
+        </MenuModalProvider>
       </ClerkLoaded>
     </ClerkProvider>
   );
