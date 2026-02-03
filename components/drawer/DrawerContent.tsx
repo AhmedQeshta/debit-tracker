@@ -42,9 +42,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
           <MenuItemDrawer key={item.path} item={item} isActive={isActive} navigateTo={navigateTo} />
         ))}
 
-
         <SyncStatus />
-
 
         <MenuItemDrawer
           item={{ label: 'About Me', path: '/(drawer)/about', icon: Info }}

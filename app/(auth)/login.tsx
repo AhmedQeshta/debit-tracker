@@ -11,71 +11,139 @@ import { useLoginScreen } from '@/hooks/auth/useLoginScreen';
 
 export default function LoginScreen()
 {
-  const { control, handleSubmit, errors, loading, authError, onSignInPress, router } =
-    useLoginScreen();
+  const {
+    control,
+    handleSubmit,
+    errors,
+    loading,
+    authError,
+    onSignInPress,
+    onVerifySecondFactor,
+    needsSecondFactor,
+    resetSecondFactor,
+    router
+  } = useLoginScreen();
 
   return (
     <ScreenContainer>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <TouchableOpacity onPress={() => router.replace('/')} style={styles.closeButton}>
+          <Text style={styles.title}>
+            {needsSecondFactor ? 'Two-Factor Authentication' : 'Welcome Back'}
+          </Text>
+          <TouchableOpacity
+            onPress={() =>
+            {
+              if (needsSecondFactor)
+              {
+                resetSecondFactor();
+              } else
+              {
+                router.replace('/');
+              }
+            }}
+            style={styles.closeButton}>
             <X size={24} color={Colors.text} />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.subtitle}>Sign in to sync your data</Text>
+        <Text style={styles.subtitle}>
+          {needsSecondFactor
+            ? 'Enter the verification code sent to your email'
+            : 'Sign in to sync your data'}
+        </Text>
 
-        <Controller
-          control={control}
-          rules={{ required: true }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              label="Email"
-              placeholder="Enter your email"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              error={errors.email ? 'Email is required' : undefined}
+        {needsSecondFactor ? (
+          <>
+            <Controller
+              control={control}
+              rules={{ required: 'Verification code is required' }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Verification Code"
+                  placeholder="Enter 6-digit code"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  keyboardType="numeric"
+                  error={errors.code?.message}
+                />
+              )}
+              name="code"
             />
-          )}
-          name="email"
-        />
 
-        <Controller
-          control={control}
-          rules={{ required: true }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              secureTextEntry
-              error={errors.password ? 'Password is required' : undefined}
+            {authError && <Text style={styles.errorText}>{authError}</Text>}
+
+            <View style={styles.buttonContainer}>
+              <Button
+                title={loading ? 'Verifying...' : 'Verify Code'}
+                onPress={handleSubmit(onVerifySecondFactor)}
+                disabled={loading}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={resetSecondFactor}
+              style={styles.linkContainer}>
+              <Text style={styles.linkText}>Back to sign in</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <Controller
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Email"
+                  placeholder="Enter your email"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  error={errors.email ? 'Email is required' : undefined}
+                />
+              )}
+              name="email"
             />
-          )}
-          name="password"
-        />
 
-        {authError && <Text style={styles.errorText}>{authError}</Text>}
+            <Controller
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Password"
+                  placeholder="Enter your password"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  secureTextEntry
+                  error={errors.password ? 'Password is required' : undefined}
+                />
+              )}
+              name="password"
+            />
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title={loading ? 'Signing in...' : 'Sign In'}
-            onPress={handleSubmit(onSignInPress)}
-            disabled={loading}
-          />
-        </View>
+            {authError && <Text style={styles.errorText}>{authError}</Text>}
 
-        <OAuthButtons />
+            <View style={styles.buttonContainer}>
+              <Button
+                title={loading ? 'Signing in...' : 'Sign In'}
+                onPress={handleSubmit(onSignInPress)}
+                disabled={loading}
+              />
+            </View>
 
-        <TouchableOpacity onPress={() => router.push('/register')} style={styles.linkContainer}>
-          <Text style={styles.linkText}>Don&apos;t have an account? Sign up</Text>
-        </TouchableOpacity>
+            <OAuthButtons />
+
+            <TouchableOpacity
+              onPress={() => router.push('/register')}
+              style={styles.linkContainer}>
+              <Text style={styles.linkText}>Don&apos;t have an account? Sign up</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </ScreenContainer>
   );

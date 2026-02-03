@@ -13,7 +13,6 @@ export const SyncStatus = () =>
 
   return (
     <>
-      <View style={styles.divider} />
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.titleRow}>
@@ -130,7 +129,6 @@ export const SyncStatus = () =>
           </>
         )}
       </View>
-      <View style={styles.divider} />
     </>
 
   );
@@ -142,6 +140,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   header: {
     flexDirection: 'row',
