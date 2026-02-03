@@ -21,6 +21,7 @@ export default function LoginScreen()
     onVerifySecondFactor,
     needsSecondFactor,
     resetSecondFactor,
+    resendVerificationCode,
     router
   } = useLoginScreen();
 
@@ -81,6 +82,15 @@ export default function LoginScreen()
                 disabled={loading}
               />
             </View>
+
+            <TouchableOpacity
+              onPress={resendVerificationCode}
+              disabled={loading}
+              style={styles.linkContainer}>
+              <Text style={[styles.linkText, loading && styles.linkTextDisabled]}>
+                Resend verification code
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               onPress={resetSecondFactor}
@@ -178,6 +188,9 @@ const styles = StyleSheet.create({
   linkText: {
     color: Colors.primary,
     fontSize: 16,
+  },
+  linkTextDisabled: {
+    opacity: 0.5,
   },
   header: {
     flexDirection: 'row',

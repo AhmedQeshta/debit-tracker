@@ -38,6 +38,19 @@ export const useSettings = () =>
 
   const handleSignOut = () =>
   {
+    if (!isLoaded)
+    {
+      Alert.alert('Error', 'Please wait for authentication to load.');
+      return;
+    }
+
+    if (!isSignedIn)
+    {
+      Alert.alert('Info', 'You are not signed in.');
+      router.push('/(auth)/login');
+      return;
+    }
+
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -50,12 +63,16 @@ export const useSettings = () =>
           {
             try
             {
+              // Sign out from Clerk
               await signOut();
+
+              // Navigate to login - use replace to prevent going back
               router.replace('/(auth)/login');
-            } catch (error)
+            } catch (error: any)
             {
               console.error('Sign out error:', error);
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
+              const errorMessage = error?.errors?.[0]?.message || error?.message || 'Failed to sign out. Please try again.';
+              Alert.alert('Error', errorMessage);
             }
           },
         },

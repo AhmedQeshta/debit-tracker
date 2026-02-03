@@ -252,7 +252,7 @@ export const syncService = {
         email: undefined, // Friends don't have email in new schema
         bio: f.bio || '',
         imageUri: null, // Not in new schema
-        currency: '$', // Default, not in new schema
+        currency: f.currency || '$', // Read from database, default to '$' if not present
         createdAt: safeDateToTimestamp(f.created_at),
         updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
         synced: true,
@@ -670,6 +670,7 @@ const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) =>
     user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
     name: f.name,
     bio: f.bio || null,
+    currency: f.currency || '$',
     created_at: safeTimestampToISO(f.createdAt),
     updated_at: new Date().toISOString(),
   };

@@ -16,7 +16,9 @@ export const ScreenContainer = ({ children, scrollable = true }: IScreenContaine
         <ScrollView
           style={styles.container}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag">
           {children}
         </ScrollView>
       ) : (

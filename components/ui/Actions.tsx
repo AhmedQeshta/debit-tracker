@@ -8,18 +8,22 @@ import { useState, useRef } from 'react';
 
 
 
-export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProps) => {
+export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProps) =>
+{
   const buttonRef = useRef<View>(null);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const screenWidth = Dimensions.get('window').width;
 
-  const handleButtonLayout = () => {
-    buttonRef.current?.measureInWindow((x: number, y: number, width: number, height: number) => {
+  const handleButtonLayout = () =>
+  {
+    buttonRef.current?.measureInWindow((x: number, y: number, width: number, height: number) =>
+    {
       setButtonPosition({ x, y, width, height });
     });
   };
 
-  const handleButtonPress = (e: any) => {
+  const handleButtonPress = (e: any) =>
+  {
     e.stopPropagation();
     handleButtonLayout();
     setMenuVisible(true);
@@ -39,7 +43,7 @@ export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProp
           <MoreVertical size={20} color={Colors.text} />
         </TouchableOpacity>
       </View>
-      
+
       <Modal
         visible={menuVisible}
         transparent={true}
@@ -58,7 +62,8 @@ export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProp
                     item.danger && styles.menuItemDanger,
                     index === menuItems.length - 1 && styles.menuItemLast,
                   ]}
-                  onPress={() => {
+                  onPress={() =>
+                  {
                     setMenuVisible(false);
                     item.onPress();
                   }}
@@ -84,52 +89,52 @@ const styles = StyleSheet.create({
   actionsContainer: {
     position: 'relative',
   },
-   menuButton: {
-     padding: Spacing.xs,
-   },
-   menuOverlay: {
-     flex: 1,
-     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-   },
-   menuWrapper: {
-     position: 'absolute',
-     alignItems: 'flex-end',
-   },
-   menuContainer: {
-     backgroundColor: Colors.card,
-     borderRadius: Spacing.borderRadius.md,
-     borderWidth: 1,
-     borderColor: Colors.border,
-     minWidth: 180,
-     shadowColor: '#000',
-     shadowOffset: {
-       width: 0,
-       height: 2,
-     },
-     shadowOpacity: 0.25,
-     shadowRadius: 3.84,
-     elevation: 10,
-   },
-   menuItem: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     padding: Spacing.md,
-     gap: Spacing.sm,
-     borderBottomWidth: 1,
-     borderBottomColor: Colors.border,
-   },
-   menuItemLast: {
-     borderBottomWidth: 0,
-   },
-   menuItemDanger: {
-     // Danger styling is handled by text color
-   },
-   menuItemText: {
-     fontSize: 16,
-     color: Colors.text,
-     fontWeight: '500',
-   },
-   menuItemTextDanger: {
-     color: Colors.error,
-   },
- });
+  menuButton: {
+    padding: Spacing.xs,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  menuWrapper: {
+    position: 'absolute',
+    alignItems: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 10,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  menuItemLast: {
+    borderBottomWidth: 0,
+  },
+  menuItemDanger: {
+    // Danger styling is handled by text color
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  menuItemTextDanger: {
+    color: Colors.error,
+  },
+});

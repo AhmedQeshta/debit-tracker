@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS friends (
     owner_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     bio TEXT,
+    currency TEXT NOT NULL DEFAULT '$',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -50,6 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_friends_owner_id ON friends(owner_id);
 -- Add comments
 COMMENT ON TABLE friends IS 'Stores friends/contacts for each app user';
 COMMENT ON COLUMN friends.owner_id IS 'Reference to the app_user who owns this friend record';
+COMMENT ON COLUMN friends.currency IS 'Currency symbol for this friend (e.g., "$", "₪", "€")';
 
 -- =====================================================
 -- TRANSACTIONS TABLE
