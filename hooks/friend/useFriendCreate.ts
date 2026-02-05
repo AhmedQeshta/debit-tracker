@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { useFriendsStore } from '@/store/friendsStore';
-import { generateId } from '@/lib/utils';
-import { useNavigation } from '@/hooks/useNavigation';
-import { useForm } from 'react-hook-form';
-import { IFriendFormData } from '@/types/friend';
 import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
+import { generateId } from '@/lib/utils';
+import { useFriendsStore } from '@/store/friendsStore';
+import { IFriendFormData } from '@/types/friend';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export const useFriendCreate = () => {
   const router = useRouter();
@@ -31,17 +30,9 @@ export const useFriendCreate = () => {
   const bio = watch('bio');
   const currency = watch('currency');
 
-<<<<<<< HEAD
   const onSubmit = async (data: IFriendFormData): Promise<void> => {
     setLoading(true);
     try {
-=======
-  const onSubmit = async (data: IFriendFormData): Promise<void> =>
-  {
-    setLoading(true);
-    try
-    {
->>>>>>> 3841eb9 (add file and create the project)
       const newFriend = {
         id: generateId(),
         name: data.name.trim(),
@@ -57,12 +48,7 @@ export const useFriendCreate = () => {
       await mutate('friend', 'create', newFriend);
 
       router.push({ pathname: '/(drawer)/transaction/new', params: { friendId: newFriend.id } });
-<<<<<<< HEAD
     } finally {
-=======
-    } finally
-    {
->>>>>>> 3841eb9 (add file and create the project)
       setLoading(false);
     }
   };
