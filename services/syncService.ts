@@ -205,6 +205,12 @@ export const syncService = {
         deletedBudgets.length +
         deletedFriends.length;
 
+      // Initialize deletion counters (used in final log regardless of whether deletions occurred)
+      let budgetItemsDeleted = 0;
+      let transactionsDeleted = 0;
+      let budgetsDeleted = 0;
+      let friendsDeleted = 0;
+
       if (totalDeleted > 0)
       {
         console.log(
@@ -254,11 +260,6 @@ export const syncService = {
             return { success: false, error: e, count: 0 };
           }
         };
-
-        let budgetItemsDeleted = 0;
-        let transactionsDeleted = 0;
-        let budgetsDeleted = 0;
-        let friendsDeleted = 0;
 
         try
         {

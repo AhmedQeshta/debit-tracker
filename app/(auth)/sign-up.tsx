@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/Input';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
-import { useRegisterScreen } from '@/hooks/auth/useRegisterScreen';
+import { useSignUpScreen } from '@/hooks/auth/useSignUpScreen';
 
-export default function RegisterScreen()
+export default function SignUpScreen()
 {
   const {
     control,
@@ -21,7 +21,7 @@ export default function RegisterScreen()
     onPressVerify,
     pendingVerification,
     router,
-  } = useRegisterScreen();
+  } = useSignUpScreen();
 
   return (
     <ScreenContainer>
@@ -40,7 +40,13 @@ export default function RegisterScreen()
           <>
             <Controller
               control={control}
-              rules={{ required: true }}
+              rules={{
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address',
+                },
+              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="Email"
@@ -50,7 +56,7 @@ export default function RegisterScreen()
                   value={value}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  error={errors.email ? 'Email is required' : undefined}
+                  error={errors.email?.message}
                 />
               )}
               name="email"
@@ -58,7 +64,13 @@ export default function RegisterScreen()
 
             <Controller
               control={control}
-              rules={{ required: true }}
+              rules={{
+                required: 'Password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
+              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="Password"
@@ -67,11 +79,12 @@ export default function RegisterScreen()
                   onChangeText={onChange}
                   value={value}
                   secureTextEntry
-                  error={errors.password ? 'Password is required' : undefined}
+                  error={errors.password?.message}
                 />
               )}
               name="password"
             />
+            {authError && <Text style={styles.errorText}>{authError}</Text>}
             <View style={styles.buttonContainer}>
               <Button
                 title={loading ? 'Creating account...' : 'Sign Up'}
@@ -84,7 +97,7 @@ export default function RegisterScreen()
           <>
             <Controller
               control={control}
-              rules={{ required: true }}
+              rules={{ required: 'Verification code is required' }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="Verification Code"
@@ -93,11 +106,12 @@ export default function RegisterScreen()
                   onChangeText={onChange}
                   value={value}
                   keyboardType="numeric"
-                  error={errors.code ? 'Code is required' : undefined}
+                  error={errors.code?.message}
                 />
               )}
               name="code"
             />
+            {authError && <Text style={styles.errorText}>{authError}</Text>}
             <View style={styles.buttonContainer}>
               <Button
                 title={loading ? 'Verifying...' : 'Verify Email'}
@@ -110,11 +124,9 @@ export default function RegisterScreen()
 
         {!pendingVerification && <OAuthButtons />}
 
-        {authError && <Text style={styles.errorText}>{authError}</Text>}
-
         {!pendingVerification && (
           <TouchableOpacity
-            onPress={() => router.push('/(auth)/login')}
+            onPress={() => router.push('/(auth)/sign-in')}
             style={styles.linkContainer}>
             <Text style={styles.linkText}>Already have an account? Sign in</Text>
           </TouchableOpacity>
@@ -145,6 +157,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.error,
     marginTop: Spacing.sm,
+    fontSize: 14,
   },
   linkContainer: {
     marginTop: Spacing.lg,
@@ -172,3 +185,4 @@ const styles = StyleSheet.create({
     height: 32,
   },
 });
+

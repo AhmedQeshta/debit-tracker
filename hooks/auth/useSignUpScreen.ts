@@ -5,8 +5,9 @@ import { useSignUp, useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { formatClerkError, checkOfflineAndThrow } from '@/lib/clerkUtils';
 
-export const useRegisterScreen = () => {
+export const useSignUpScreen = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const { getToken } = useAuth();
   const router = useRouter();
@@ -28,6 +29,14 @@ export const useRegisterScreen = () => {
 
   const onSignUpPress = async (data: any) => {
     if (!isLoaded) return;
+
+    try {
+      await checkOfflineAndThrow();
+    } catch (err: any) {
+      setAuthError(err.message);
+      return;
+    }
+
     setLoading(true);
     setAuthError(null);
 
@@ -41,7 +50,7 @@ export const useRegisterScreen = () => {
 
       setPendingVerification(true);
     } catch (err: any) {
-      setAuthError(err.errors?.[0]?.message || 'Failed to sign up');
+      setAuthError(formatClerkError(err));
     } finally {
       setLoading(false);
     }
@@ -49,6 +58,14 @@ export const useRegisterScreen = () => {
 
   const onPressVerify = async (data: any) => {
     if (!isLoaded) return;
+
+    try {
+      await checkOfflineAndThrow();
+    } catch (err: any) {
+      setAuthError(err.message);
+      return;
+    }
+
     setLoading(true);
     setAuthError(null);
 
@@ -79,14 +96,16 @@ export const useRegisterScreen = () => {
 
         router.replace('/');
       } else {
-        console.error(JSON.stringify(completeSignUp, null, 2));
+        setAuthError(`Sign up incomplete. Status: ${completeSignUp.status}. Please try again.`);
+        console.error('Unexpected sign up status:', completeSignUp.status);
       }
     } catch (err: any) {
-      setAuthError(err.errors?.[0]?.message || 'Verification failed');
+      setAuthError(formatClerkError(err));
     } finally {
       setLoading(false);
     }
   };
+
   return {
     control,
     handleSubmit,
@@ -99,3 +118,4 @@ export const useRegisterScreen = () => {
     router,
   };
 };
+

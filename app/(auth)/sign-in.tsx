@@ -1,16 +1,15 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'; // Standard imports since UI components might need adaptation
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { X } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Button } from '@/components/ui/Button'; // Assuming we have this
-import { Input } from '@/components/ui/Input'; // Assuming we have this
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
-import { useLoginScreen } from '@/hooks/auth/useLoginScreen';
+import { useSignInScreen } from '@/hooks/auth/useSignInScreen';
 
-export default function LoginScreen()
-{
+export default function SignInScreen() {
   const {
     control,
     handleSubmit,
@@ -18,28 +17,32 @@ export default function LoginScreen()
     loading,
     authError,
     onSignInPress,
+    onVerifyFirstFactor,
     onVerifySecondFactor,
+    needsFirstFactor,
     needsSecondFactor,
-    resetSecondFactor,
-    resendVerificationCode,
-    router
-  } = useLoginScreen();
+    resetVerification,
+    router,
+  } = useSignInScreen();
+
+  const isVerificationStep = needsFirstFactor || needsSecondFactor;
 
   return (
     <ScreenContainer>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            {needsSecondFactor ? 'Two-Factor Authentication' : 'Welcome Back'}
+            {isVerificationStep
+              ? needsSecondFactor
+                ? 'Two-Factor Authentication'
+                : 'Verify Your Email'
+              : 'Welcome Back'}
           </Text>
           <TouchableOpacity
-            onPress={() =>
-            {
-              if (needsSecondFactor)
-              {
-                resetSecondFactor();
-              } else
-              {
+            onPress={() => {
+              if (isVerificationStep) {
+                resetVerification();
+              } else {
                 router.replace('/');
               }
             }}
@@ -49,12 +52,12 @@ export default function LoginScreen()
         </View>
 
         <Text style={styles.subtitle}>
-          {needsSecondFactor
+          {isVerificationStep
             ? 'Enter the verification code sent to your email'
             : 'Sign in to sync your data'}
         </Text>
 
-        {needsSecondFactor ? (
+        {isVerificationStep ? (
           <>
             <Controller
               control={control}
@@ -78,22 +81,15 @@ export default function LoginScreen()
             <View style={styles.buttonContainer}>
               <Button
                 title={loading ? 'Verifying...' : 'Verify Code'}
-                onPress={handleSubmit(onVerifySecondFactor)}
+                onPress={handleSubmit(
+                  needsFirstFactor ? onVerifyFirstFactor : onVerifySecondFactor
+                )}
                 disabled={loading}
               />
             </View>
 
             <TouchableOpacity
-              onPress={resendVerificationCode}
-              disabled={loading}
-              style={styles.linkContainer}>
-              <Text style={[styles.linkText, loading && styles.linkTextDisabled]}>
-                Resend verification code
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={resetSecondFactor}
+              onPress={resetVerification}
               style={styles.linkContainer}>
               <Text style={styles.linkText}>Back to sign in</Text>
             </TouchableOpacity>
@@ -102,7 +98,13 @@ export default function LoginScreen()
           <>
             <Controller
               control={control}
-              rules={{ required: true }}
+              rules={{
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address',
+                },
+              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="Email"
@@ -112,7 +114,7 @@ export default function LoginScreen()
                   value={value}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  error={errors.email ? 'Email is required' : undefined}
+                  error={errors.email?.message}
                 />
               )}
               name="email"
@@ -120,7 +122,7 @@ export default function LoginScreen()
 
             <Controller
               control={control}
-              rules={{ required: true }}
+              rules={{ required: 'Password is required' }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   label="Password"
@@ -129,7 +131,7 @@ export default function LoginScreen()
                   onChangeText={onChange}
                   value={value}
                   secureTextEntry
-                  error={errors.password ? 'Password is required' : undefined}
+                  error={errors.password?.message}
                 />
               )}
               name="password"
@@ -145,10 +147,16 @@ export default function LoginScreen()
               />
             </View>
 
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/forgot-password')}
+              style={styles.linkContainer}>
+              <Text style={styles.linkText}>Forgot password?</Text>
+            </TouchableOpacity>
+
             <OAuthButtons />
 
             <TouchableOpacity
-              onPress={() => router.push('/register')}
+              onPress={() => router.push('/(auth)/sign-up')}
               style={styles.linkContainer}>
               <Text style={styles.linkText}>Don&apos;t have an account? Sign up</Text>
             </TouchableOpacity>
@@ -180,6 +188,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.error,
     marginTop: Spacing.sm,
+    fontSize: 14,
   },
   linkContainer: {
     marginTop: Spacing.lg,
@@ -210,3 +219,4 @@ const styles = StyleSheet.create({
     height: 32,
   },
 });
+

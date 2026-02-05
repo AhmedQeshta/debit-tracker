@@ -31,7 +31,7 @@ export default function AccountManagement()
           <Text style={styles.errorText}>Please sign in to manage your account.</Text>
           <Button
             title="Go to Login"
-            onPress={() => router.push('/(auth)/login')}
+            onPress={() => router.push('/(auth)/sign-in')}
             variant="primary"
           />
         </View>
@@ -160,10 +160,13 @@ export default function AccountManagement()
           />
         </View>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.infoText}>
-            Note: To change your password or manage additional account settings, please visit the Clerk Dashboard.
-          </Text>
+        <View style={styles.passwordSection}>
+          <TouchableOpacity
+            style={styles.changePasswordButton}
+            onPress={() => router.push('/(drawer)/settings/change-password')}
+            activeOpacity={0.7}>
+            <Text style={styles.changePasswordText}>Change Password</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScreenContainer>
@@ -276,6 +279,29 @@ const styles = StyleSheet.create({
   },
   actionSection: {
     marginTop: Spacing.md,
+  },
+  passwordSection: {
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+    backgroundColor: Colors.card,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  changePasswordButton: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  changePasswordText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   infoSection: {
     marginTop: Spacing.lg,

@@ -99,3 +99,10 @@ export interface AccountFormData
   lastName: string;
   email: string;
 }
+
+export interface ChangePasswordFormData
+{
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

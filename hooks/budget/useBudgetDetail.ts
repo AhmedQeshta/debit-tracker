@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useBudgetStore } from "@/store/budgetStore";
 import { safeId, validateAmount, validateTitle } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useOperations } from "@/hooks/useOperations";
-import { confirmDelete } from "@/lib/alert";
 import { createMenuItems } from "@/components/budget/createMenuItems";
 
 
@@ -13,7 +12,18 @@ export const useBudgetDetail = () =>
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
-  const budget = useBudgetStore((state) => state.getBudget(budgetId));
+  // Select budget directly from store to avoid infinite loop (getBudget returns new object each time)
+  const rawBudget = useBudgetStore((state) => state.budgets.find((b) => b.id === budgetId && !b.deletedAt));
+  // Memoize filtered budget to create stable reference
+  const budget = useMemo(() =>
+  {
+    if (!rawBudget) return undefined;
+    // Filter out deleted items
+    return {
+      ...rawBudget,
+      items: rawBudget.items.filter((item) => !item.deletedAt),
+    };
+  }, [rawBudget]);
   const {
     addItem,
     removeItem,

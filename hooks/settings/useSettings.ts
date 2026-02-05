@@ -26,16 +26,6 @@ export const useSettings = () =>
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
 
-  const openAccountPortal = () =>
-  {
-    if (!user || !isSignedIn)
-    {
-      Alert.alert('Error', 'Please sign in to manage your account.');
-      return;
-    }
-    router.push('/(drawer)/settings/account');
-  };
-
   const handleSignOut = () =>
   {
     if (!isLoaded)
@@ -47,7 +37,7 @@ export const useSettings = () =>
     if (!isSignedIn)
     {
       Alert.alert('Info', 'You are not signed in.');
-      router.push('/(auth)/login');
+      router.push('/(auth)/sign-in');
       return;
     }
 
@@ -67,7 +57,7 @@ export const useSettings = () =>
               await signOut();
 
               // Navigate to login - use replace to prevent going back
-              router.replace('/(auth)/login');
+              router.replace('/(auth)/sign-in');
             } catch (error: any)
             {
               console.error('Sign out error:', error);
@@ -116,7 +106,7 @@ export const useSettings = () =>
 
   const handleSignIn = () =>
   {
-    router.push('/(auth)/login');
+    router.push('/(auth)/sign-in');
   };
 
   const formatLastSync = (timestamp: number | null) =>
@@ -149,7 +139,6 @@ export const useSettings = () =>
 
 
   return {
-    openAccountPortal,
     handleSignOut,
     handleClearLocalData,
     handleSignIn,

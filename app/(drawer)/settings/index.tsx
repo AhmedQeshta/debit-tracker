@@ -9,7 +9,7 @@ import { useSettings } from '@/hooks/settings/useSettings';
 
 export default function Settings()
 {
-  const { isLoaded, isSignedIn, user, openDrawer, handleSignOut, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, isLoggedIn, openAccountPortal } = useSettings();
+  const { isLoaded, isSignedIn, user, openDrawer, handleSignOut, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, isLoggedIn, router } = useSettings();
   if (!isLoaded)
   {
     return (
@@ -62,9 +62,10 @@ export default function Settings()
                 </View>
                 <Button
                   title="Manage account"
-                  onPress={openAccountPortal}
+                  onPress={() => router.push('/(drawer)/settings/account')}
                   variant="outline"
                 />
+
                 <Button
                   title="Sign out"
                   onPress={handleSignOut}

@@ -105,14 +105,16 @@ export const SyncStatus = () =>
             {!syncStatus && (
               <>
                 <View style={styles.row}>
-                  <View style={styles.statusItem}>
-                    {isOnline ? <Wifi size={14} color={Colors.success} /> : <WifiOff size={14} color={Colors.error} />}
-                    <Text style={styles.statusText}>{isOnline ? 'Online' : 'Offline'}</Text>
+                  <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
+                    {isOnline ? <Wifi size={14} stroke="#000" /> : <WifiOff size={14} stroke="#fff" />}
+                    <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
+                      {isOnline ? 'Online' : 'Offline'}
+                    </Text>
                   </View>
 
-                  <View style={styles.statusItem}>
-                    <Cloud size={14} color={Colors.success} />
-                    <Text style={styles.statusText}>Active</Text>
+                  <View style={[styles.badge, styles.activeBadge]}>
+                    <Cloud size={14} stroke="#000" />
+                    <Text style={styles.badgeText}>Active</Text>
                   </View>
                 </View>
 
@@ -165,14 +167,27 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
     marginTop: Spacing.xs,
   },
-  statusItem: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
   },
-  statusText: {
+  onlineBadge: {
+    backgroundColor: Colors.secondary,
+  },
+  offlineBadge: {
+    backgroundColor: Colors.error,
+  },
+  activeBadge: {
+    backgroundColor: Colors.secondary,
+  },
+  badgeText: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    fontWeight: 'bold',
+    color: '#000',
   },
   details: {
     marginTop: Spacing.xs,

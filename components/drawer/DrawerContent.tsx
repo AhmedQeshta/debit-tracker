@@ -24,7 +24,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
   const handleAuthAction = () =>
   {
     if (isSignedIn) signOut();
-    else router.push('/(auth)/login');
+    else router.push('/(auth)/sign-in');
     closeDrawer();
   };
 
