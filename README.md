@@ -25,12 +25,12 @@
 ## 📂 Project Structure
 
 ```text
-app/                 # Expo Router file-based screens
-components/          # Reusable UI components (Button, Input, etc.)
-store/              # Zustand stores for users, transactions, and sync
-services/           # Sync engine, Network monitoring, and Storage services
-theme/              # Centralized color palette and spacing tokens
-types/              # TypeScript model definitions
+    app/                 # Expo Router file-based screens
+    components/          # Reusable UI components (Button, Input, etc.)
+    store/              # Zustand stores for users, transactions, and sync
+    services/           # Sync engine, Network monitoring, and Storage services
+    theme/              # Centralized color palette and spacing tokens
+    types/              # TypeScript model definitions
 ```
 
 ## 🚀 Getting Started
