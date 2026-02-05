@@ -1,32 +1,27 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { MenuItemDrawer } from '@/components/drawer/MenuItemDrawer';
+import { SyncStatus } from '@/components/sync/SyncStatus';
+import { useSignOut } from '@/hooks/auth/useSignOut';
+import { MAIN_MENU_ITEMS } from '@/lib/menu';
 import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import
 {
   Info,
-  X,
   LogIn,
   LogOut,
+  X,
 } from 'lucide-react-native';
-import { Spacing } from '@/theme/spacing';
-import { useAuth, useUser } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
-import { MenuItemDrawer } from '@/components/drawer/MenuItemDrawer';
-import { MAIN_MENU_ITEMS } from '@/lib/menu';
-import { SyncStatus } from '@/components/sync/SyncStatus';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) =>
 {
-  const { isSignedIn, signOut } = useAuth();
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const router = useRouter();
+  const { handleAuthAction } = useSignOut(closeDrawer)
 
-  const handleAuthAction = () =>
-  {
-    if (isSignedIn) signOut();
-    else router.push('/(auth)/sign-in');
-    closeDrawer();
-  };
+
 
   return (
     <View style={[styles.drawerContent, { paddingTop: insets.top }]}>

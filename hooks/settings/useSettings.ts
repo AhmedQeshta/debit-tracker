@@ -1,20 +1,20 @@
-import { useAuth, useUser } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
-import Constants from 'expo-constants';
-import { useFriendsStore } from '@/store/friendsStore';
-import { useTransactionsStore } from '@/store/transactionsStore';
-import { useBudgetStore } from '@/store/budgetStore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
+import { useBudgetStore } from '@/store/budgetStore';
+import { useFriendsStore } from '@/store/friendsStore';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { useAuth, useUser } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 
 export const useSettings = () =>
 {
 
   const { openDrawer } = useDrawerContext();
-  const { isLoaded, isSignedIn, signOut } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const router = useRouter();
   const {
@@ -27,45 +27,8 @@ export const useSettings = () =>
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const { showConfirm } = useConfirmDialog();
-  const { toastSuccess, toastError, toastInfo } = useToast();
+  const { toastSuccess, toastError } = useToast();
 
-  const handleSignOut = () =>
-  {
-    if (!isLoaded)
-    {
-      toastError('Please wait for authentication to load.');
-      return;
-    }
-
-    if (!isSignedIn)
-    {
-      toastInfo('You are not signed in.');
-      router.push('/(auth)/sign-in');
-      return;
-    }
-
-    showConfirm(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      async () =>
-      {
-        try
-        {
-          // Sign out from Clerk
-          await signOut();
-
-          // Navigate to login - use replace to prevent going back
-          router.replace('/(auth)/sign-in');
-        } catch (error: any)
-        {
-          console.error('Sign out error:', error);
-          const errorMessage = error?.errors?.[0]?.message || error?.message || 'Failed to sign out. Please try again.';
-          toastError(errorMessage);
-        }
-      },
-      { confirmText: 'Sign Out' }
-    );
-  };
 
   const handleClearLocalData = () =>
   {
@@ -130,7 +93,6 @@ export const useSettings = () =>
 
 
   return {
-    handleSignOut,
     handleClearLocalData,
     handleSignIn,
     formatLastSync,

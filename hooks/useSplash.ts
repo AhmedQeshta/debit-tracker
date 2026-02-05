@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import { useRouter } from 'expo-router';
 
 /**
  * Manages splash screen visibility.
  * Phase 1 (fast): Hydrate stores and render router → hide splash
  * Phase 2 (async): Sync operations happen after first render (handled by useCloudSync)
+ * 
+ * NOTE: This hook is kept for backward compatibility, but AppBootstrap handles splash now.
  */
 export const useSplash = () => {
-  const router = useRouter();
   const hasHiddenRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -24,7 +24,7 @@ export const useSplash = () => {
       }
 
       try {
-        // Wait a tiny bit for router to be ready (non-blocking)
+        // Small delay to ensure router is ready (non-blocking)
         // Stores are already hydrated by Zustand persist middleware
         await new Promise((resolve) => setTimeout(resolve, 50));
         await SplashScreen.hideAsync();
@@ -38,24 +38,21 @@ export const useSplash = () => {
       }
     };
 
-    // Timeout fallback: hide splash after max 2 seconds regardless
+    // Timeout fallback: hide splash after max 800ms regardless
     timeoutRef.current = setTimeout(() => {
-      console.log('[Splash] Timeout reached, forcing hide');
+      console.log('[Splash] Timeout reached (800ms), forcing hide');
       hideSplash();
-    }, 2000) as unknown as NodeJS.Timeout;
+    }, 800) as unknown as NodeJS.Timeout;
 
-
-    // Hide splash when router is ready (or immediately if already ready)
-    if (router) {
-      hideSplash();
-    }
+    // Hide splash immediately (stores are already hydrated by Zustand)
+    hideSplash();
 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [router]);
+  }, []);
 
   return {};
 };

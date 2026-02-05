@@ -106,3 +106,16 @@ export interface ChangePasswordFormData
   newPassword: string;
   confirmPassword: string;
 }
+
+/**
+ * Startup profiler timestamps
+ */
+export interface StartupTimings
+{
+  hydrateStart: number;
+  hydrateEnd: number | null;
+  splashHide: number | null;
+  firstRender: number | null;
+  syncStart: number | null;
+  syncEnd: number | null;
+}

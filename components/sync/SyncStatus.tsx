@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Switch } from 'react-native';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
-import { Cloud, RefreshCw, Wifi, WifiOff, AlertCircle } from 'lucide-react-native';
 import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
 import { getProgressText } from '@/lib/utils';
 import { selectPendingCount } from '@/selectors/dashboardSelectors';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { AlertCircle, Cloud, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { OfflineBanner } from './OfflineBanner';
 
 export const SyncStatus = () =>
 {
@@ -16,6 +17,13 @@ export const SyncStatus = () =>
   return (
     <>
       <View style={styles.container}>
+        {/* Show offline banner prominently when offline */}
+        {!isOnline && (
+          <View style={styles.offlineBannerContainer}>
+            <OfflineBanner />
+          </View>
+        )}
+
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>Cloud Sync</Text>
@@ -146,6 +154,9 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  offlineBannerContainer: {
+    marginBottom: Spacing.sm,
   },
   header: {
     flexDirection: 'row',
