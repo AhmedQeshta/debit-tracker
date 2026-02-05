@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
@@ -8,6 +7,8 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useBudgetStore } from '@/store/budgetStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import { useToast } from '@/contexts/ToastContext';
 
 export const useSettings = () =>
 {
@@ -25,82 +26,72 @@ export const useSettings = () =>
   } = useSyncStatus();
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
+  const { showConfirm } = useConfirmDialog();
+  const { toastSuccess, toastError, toastInfo } = useToast();
 
   const handleSignOut = () =>
   {
     if (!isLoaded)
     {
-      Alert.alert('Error', 'Please wait for authentication to load.');
+      toastError('Please wait for authentication to load.');
       return;
     }
 
     if (!isSignedIn)
     {
-      Alert.alert('Info', 'You are not signed in.');
+      toastInfo('You are not signed in.');
       router.push('/(auth)/sign-in');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Sign Out',
       'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
+      async () =>
+      {
+        try
         {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () =>
-          {
-            try
-            {
-              // Sign out from Clerk
-              await signOut();
+          // Sign out from Clerk
+          await signOut();
 
-              // Navigate to login - use replace to prevent going back
-              router.replace('/(auth)/sign-in');
-            } catch (error: any)
-            {
-              console.error('Sign out error:', error);
-              const errorMessage = error?.errors?.[0]?.message || error?.message || 'Failed to sign out. Please try again.';
-              Alert.alert('Error', errorMessage);
-            }
-          },
-        },
-      ]
+          // Navigate to login - use replace to prevent going back
+          router.replace('/(auth)/sign-in');
+        } catch (error: any)
+        {
+          console.error('Sign out error:', error);
+          const errorMessage = error?.errors?.[0]?.message || error?.message || 'Failed to sign out. Please try again.';
+          toastError(errorMessage);
+        }
+      },
+      { confirmText: 'Sign Out' }
     );
   };
 
   const handleClearLocalData = () =>
   {
-    Alert.alert(
+    showConfirm(
       'Clear Local Data',
       'This will delete all your local data including friends, transactions, and budgets. This action cannot be undone. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
+      async () =>
+      {
+        try
         {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () =>
-          {
-            try
-            {
-              // Clear all stores using their set methods
-              useFriendsStore.getState().setFriends([]);
-              useTransactionsStore.getState().setTransactions([]);
-              useBudgetStore.getState().setBudgets([]);
+          // Clear all stores using their set methods
+          useFriendsStore.getState().setFriends([]);
+          useTransactionsStore.getState().setTransactions([]);
+          useBudgetStore.getState().setBudgets([]);
 
-              // Clear AsyncStorage (this will also clear persisted Zustand state)
-              await AsyncStorage.clear();
+          // Clear AsyncStorage (this will also clear persisted Zustand state)
+          await AsyncStorage.clear();
 
-              Alert.alert('Success', 'All local data has been cleared.');
-            } catch (error)
-            {
-              console.error('Clear data error:', error);
-              Alert.alert('Error', 'Failed to clear local data. Please try again.');
-            }
-          },
-        },
-      ]
+          toastSuccess('All local data has been cleared.');
+        } catch (error)
+        {
+          console.error('Clear data error:', error);
+          toastError('Failed to clear local data. Please try again.');
+        }
+      },
+      { confirmText: 'Clear' }
     );
   };
 

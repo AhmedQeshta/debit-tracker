@@ -33,8 +33,9 @@ export const useFriendsStore = create<IFriendsState>()(
       {
         return get().friends.filter((f) =>
         {
-          // Include items that are not synced OR marked for deletion
-          return !f.synced || !f.synced || f.deletedAt !== undefined;
+          // Include items that are not synced AND not deleted
+          // Deleted items are handled separately by getDeletedFriends()
+          return !f.synced && f.deletedAt === undefined;
         });
       },
       getDeletedFriends: (): Friend[] =>

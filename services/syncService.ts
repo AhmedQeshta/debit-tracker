@@ -51,11 +51,17 @@ export const syncService = {
       return; // Return silently
     }
 
-    // Get all dirty items from stores
+    // Get all dirty items from stores (excludes deleted items)
     const dirtyFriends = useFriendsStore.getState().getDirtyFriends();
     const dirtyTransactions = useTransactionsStore.getState().getDirtyTransactions();
     const dirtyBudgets = useBudgetStore.getState().getDirtyBudgets();
     const dirtyBudgetItems = useBudgetStore.getState().getDirtyBudgetItems();
+
+    // Get deleted items separately
+    const deletedBudgetItems = useBudgetStore.getState().getDeletedBudgetItems();
+    const deletedTransactions = useTransactionsStore.getState().getDeletedTransactions();
+    const deletedBudgets = useBudgetStore.getState().getDeletedBudgets();
+    const deletedFriends = useFriendsStore.getState().getDeletedFriends();
 
     const totalDirty =
       dirtyFriends.length +
@@ -63,9 +69,16 @@ export const syncService = {
       dirtyBudgets.length +
       dirtyBudgetItems.length;
 
-    if (totalDirty === 0)
+    const totalDeleted =
+      deletedBudgetItems.length +
+      deletedTransactions.length +
+      deletedBudgets.length +
+      deletedFriends.length;
+
+    // If no dirty items AND no deletions, nothing to sync
+    if (totalDirty === 0 && totalDeleted === 0)
     {
-      console.log('[Sync] No dirty items to push');
+      console.log('[Sync] No dirty items or deletions to push');
       return;
     }
 
@@ -194,16 +207,7 @@ export const syncService = {
       }
 
       // E) Handle deletions (children first, then parents)
-      const deletedBudgetItems = useBudgetStore.getState().getDeletedBudgetItems();
-      const deletedTransactions = useTransactionsStore.getState().getDeletedTransactions();
-      const deletedBudgets = useBudgetStore.getState().getDeletedBudgets();
-      const deletedFriends = useFriendsStore.getState().getDeletedFriends();
-
-      const totalDeleted =
-        deletedBudgetItems.length +
-        deletedTransactions.length +
-        deletedBudgets.length +
-        deletedFriends.length;
+      // Note: deleted items are already fetched above, reusing them here
 
       // Initialize deletion counters (used in final log regardless of whether deletions occurred)
       let budgetItemsDeleted = 0;
@@ -527,8 +531,9 @@ export const syncService = {
 
     try
     {
-      await syncService.pushChanges(getToken, clerkUserId);
+      // Pull first, then push (as per requirements)
       await syncService.pullChanges(cloudUserId, getToken);
+      await syncService.pushChanges(getToken, clerkUserId);
       useSyncStore.getState().setLastSync(Date.now());
       // Clear error status on successful sync
       useSyncStore.getState().setSyncStatus(null);

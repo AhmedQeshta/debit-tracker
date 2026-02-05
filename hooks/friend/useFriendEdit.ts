@@ -5,7 +5,8 @@ import { safeId } from '@/lib/utils';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useForm } from 'react-hook-form';
 import { IFriendFormData } from '@/types/friend';
-import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
+import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useToast } from '@/contexts/ToastContext';
 
 export const useFriendEdit = () => {
   const router = useRouter();
@@ -14,7 +15,8 @@ export const useFriendEdit = () => {
   const friend = useFriendsStore((state) => state.friends.find((f) => f.id === friendId));
   const { updateFriend } = useFriendsStore();
   const { navigateBack } = useNavigation();
-  const { mutate } = useSyncMutation();
+  const { syncNow } = useCloudSync();
+  const { toastSuccess } = useToast();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -57,10 +59,22 @@ export const useFriendEdit = () => {
         bio: data.bio,
         currency: data.currency,
         synced: false,
+        updatedAt: Date.now(),
       };
 
       updateFriend(updatedFriend);
-      await mutate('friend', 'update', updatedFriend);
+      
+      // Trigger sync to push edit to Supabase
+      try
+      {
+        await syncNow();
+        toastSuccess('Friend updated successfully');
+      }
+      catch (error)
+      {
+        console.error('[Sync] Failed to sync after edit:', error);
+        toastSuccess('Friend updated locally');
+      }
 
       navigateBack();
     } finally {

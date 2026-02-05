@@ -5,10 +5,12 @@ import { Spacing } from '@/theme/spacing';
 import { Cloud, RefreshCw, Wifi, WifiOff, AlertCircle } from 'lucide-react-native';
 import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
 import { getProgressText } from '@/lib/utils';
+import { selectPendingCount } from '@/selectors/dashboardSelectors';
 
 export const SyncStatus = () =>
 {
-  const { isLoggedIn, syncEnabled, setSyncEnabled, isSyncing, syncStatus, handleSync, isOnline, isNetworkWeak, pullProgress, handleRetry, lastError, isTimeoutError, queue, lastSync } = useSyncStatus();
+  const { isLoggedIn, syncEnabled, setSyncEnabled, isSyncing, syncStatus, handleSync, isOnline, isNetworkWeak, pullProgress, handleRetry, lastError, isTimeoutError, lastSync } = useSyncStatus();
+  const pendingCount = selectPendingCount();
   if (!isLoggedIn) return null;
 
   return (
@@ -119,7 +121,7 @@ export const SyncStatus = () =>
                 </View>
 
                 <View style={styles.details}>
-                  <Text style={styles.detailText}>Pending: {queue.length}</Text>
+                  <Text style={styles.detailText}>Pending: {pendingCount}</Text>
                   {lastSync && (
                     <Text style={styles.detailText}>
                       Last Sync: {new Date(lastSync).toLocaleTimeString()}
