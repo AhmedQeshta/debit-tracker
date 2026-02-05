@@ -1,7 +1,10 @@
 import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
 import { ErrorScreen } from '@/components/ui/ErrorScreen';
 import { GlobalMenuModal } from '@/components/ui/GlobalMenuModal';
+import { Toast } from '@/components/ui/Toast';
 import { MenuModalProvider } from '@/contexts/MenuModalContext';
+import { ToastProvider } from '@/contexts/ToastContext';
+import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { SplashManager, SyncManager } from '@/lib/syncAuth';
 import { publishableKey, tokenCache } from '@/lib/token';
 import { ClerkLoaded, ClerkProvider } from '@clerk/clerk-expo';
@@ -44,19 +47,24 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
-        <MenuModalProvider>
-          <SyncManager />
-          <SplashManager />
-          <SyncLoadingOverlay />
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <SafeAreaProvider>
-              <Stack screenOptions={STACK_OPTIONS}>
-                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-              </Stack>
-            </SafeAreaProvider>
-          </GestureHandlerRootView>
-          <GlobalMenuModal />
-        </MenuModalProvider>
+        <ToastProvider>
+          <ConfirmDialogProvider>
+            <MenuModalProvider>
+              <SyncManager />
+              <SplashManager />
+              <SyncLoadingOverlay />
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <SafeAreaProvider>
+                  <Stack screenOptions={STACK_OPTIONS}>
+                    <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+                  </Stack>
+                </SafeAreaProvider>
+              </GestureHandlerRootView>
+              <GlobalMenuModal />
+              <Toast />
+            </MenuModalProvider>
+          </ConfirmDialogProvider>
+        </ToastProvider>
       </ClerkLoaded>
     </ClerkProvider>
   );

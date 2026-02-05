@@ -4,10 +4,8 @@ import { useCloudSync } from '@/hooks/sync/useCloudSync';
 export const useSyncStatus = () =>
 {
 
-  const { queue, lastSync, isSyncing, syncEnabled, setSyncEnabled, syncStatus, lastError, network, pullProgress } = useSyncStore();
+  const { lastSync, isSyncing, syncEnabled, setSyncEnabled, syncStatus, lastError, network, pullProgress } = useSyncStore();
   const { isOnline, isLoggedIn, syncNow, pullAllDataForNewDevice, isNewDevice } = useCloudSync();
-
-
 
   const handleSync = () =>
   {
@@ -33,7 +31,6 @@ export const useSyncStatus = () =>
     }
   };
 
-
   const isNetworkWeak = network.isConnected === false || network.isInternetReachable === false;
   const isTimeoutError = lastError?.code === 'TIMEOUT';
 
@@ -49,7 +46,6 @@ export const useSyncStatus = () =>
     handleRetry,
     lastError,
     isTimeoutError,
-    queue,
     lastSync,
     isLoggedIn
   }

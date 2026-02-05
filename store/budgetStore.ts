@@ -53,8 +53,9 @@ export const useBudgetStore = create<IBudgetState>()(
       {
         return get().budgets.filter((b) =>
         {
-          // Include budgets that are not synced or marked for deletion
-          return b.synced !== true || b.deletedAt !== undefined;
+          // Include budgets that are not synced AND not deleted
+          // Deleted budgets are handled separately by getDeletedBudgets()
+          return b.synced !== true && b.deletedAt === undefined;
         });
       },
       getDirtyBudgetItems: (): BudgetItem[] =>
@@ -64,8 +65,9 @@ export const useBudgetStore = create<IBudgetState>()(
         {
           budget.items.forEach((item) =>
           {
-            // Include items that are not synced OR marked for deletion
-            if (!item.synced || !item.synced || item.deletedAt !== undefined)
+            // Include items that are not synced AND not deleted
+            // Deleted items are handled separately by getDeletedBudgetItems()
+            if (!item.synced && item.deletedAt === undefined)
             {
               allItems.push(item);
             }

@@ -1,37 +1,19 @@
-import { getGlobalDebit, getTotalPaidBack, getBalance } from '@/lib/utils';
+import { getBalance } from '@/lib/utils';
+import { selectDashboardStats, selectPendingCount } from '@/selectors/dashboardSelectors';
 import { subscribeToNetwork } from '@/services/net';
-import { useTransactionsStore } from '@/store/transactionsStore';
-import { useFriendsStore } from '@/store/friendsStore';
 import { useBudgetStore } from '@/store/budgetStore';
+import { useFriendsStore } from '@/store/friendsStore';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import { useCallback, useEffect, useState } from 'react';
 
 export const useDashboard = () =>
 {
-  const friends = useFriendsStore(useShallow((state) => state.friends));
-  const transactions = useTransactionsStore(useShallow((state) => state.transactions));
-  const budgets = useBudgetStore(useShallow((state) => state.budgets));
   const [isOnline, setIsOnline] = useState(true);
-
-  // Calculate actual pending syncs from dirty items (items with synced: false)
-  const queueSize = useMemo(() =>
-  {
-    const dirtyFriends = friends.filter((f) => f.synced === false);
-    const dirtyTransactions = transactions.filter((t) => t.synced === false);
-    const dirtyBudgets = budgets.filter((b) => b.synced === false);
-
-    // Count dirty budget items
-    const dirtyBudgetItems = budgets.reduce((count, budget) =>
-    {
-      const dirtyItems = budget.items.filter((item) => item.synced === false);
-      return count + dirtyItems.length;
-    }, 0);
-
-    return dirtyFriends.length + dirtyTransactions.length + dirtyBudgets.length + dirtyBudgetItems;
-  }, [friends, transactions, budgets]);
-
   const router = useRouter();
+
+  // Use selectors for all stats - single source of truth
+  const stats = selectDashboardStats();
+  const pendingCount = selectPendingCount();
 
   const { unpinFriend } = useFriendsStore();
   const { unpinBudget, getTotalSpent, getRemainingBudget } = useBudgetStore();
@@ -45,35 +27,18 @@ export const useDashboard = () =>
     return () => unsubscribe();
   }, []);
 
-  const globalDebit = useMemo(() => getGlobalDebit(transactions), [transactions]);
-  const totalPaidBack = useMemo(() => getTotalPaidBack(transactions), [transactions]);
-
-  const pinnedFriends = useMemo(() =>
-  {
-    return friends.filter((friend) => friend.pinned);
-  }, [friends]);
-
-  const pinnedCount = pinnedFriends.length;
-
-  const pinnedBudgets = useMemo(() =>
-  {
-    return budgets.filter((budget) => budget.pinned);
-  }, [budgets]);
-
-  const pinnedBudgetCount = pinnedBudgets.length;
-
-  const getFriendBalance = useMemo(
-    () => (friendId: string) => getBalance(friendId, transactions),
-    [transactions],
+  const getFriendBalance = useCallback(
+    (friendId: string) => getBalance(friendId, stats.transactions),
+    [stats.transactions],
   );
 
-  const getBudgetTotalSpent = useMemo(
-    () => (budgetId: string) => getTotalSpent(budgetId),
+  const getBudgetTotalSpent = useCallback(
+    (budgetId: string) => getTotalSpent(budgetId),
     [getTotalSpent],
   );
 
-  const getBudgetRemaining = useMemo(
-    () => (budgetId: string) => getRemainingBudget(budgetId),
+  const getBudgetRemaining = useCallback(
+    (budgetId: string) => getRemainingBudget(budgetId),
     [getRemainingBudget],
   );
 
@@ -90,15 +55,15 @@ export const useDashboard = () =>
   };
 
   return {
-    friends,
-    queueSize,
+    friends: stats.friends,
+    queueSize: pendingCount,
     isOnline,
-    globalDebit,
-    totalPaidBack,
-    pinnedFriends,
-    pinnedCount,
-    pinnedBudgets,
-    pinnedBudgetCount,
+    globalDebit: stats.totalDebit,
+    totalPaidBack: stats.totalPaidBack,
+    pinnedFriends: stats.pinnedFriends,
+    pinnedCount: stats.pinnedFriends.length,
+    pinnedBudgets: stats.pinnedBudgets,
+    pinnedBudgetCount: stats.pinnedBudgets.length,
     getFriendBalance,
     getBudgetTotalSpent,
     getBudgetRemaining,

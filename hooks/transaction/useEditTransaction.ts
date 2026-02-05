@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useToast } from '@/contexts/ToastContext';
+import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { safeId } from '@/lib/utils';
 import { useTransactionsStore } from '@/store/transactionsStore';
-import { useSyncStore } from '@/store/syncStore';
-import { generateId, safeId } from '@/lib/utils';
-import { useForm } from 'react-hook-form';
 import { IEditTransactionFormData } from '@/types/transaction';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-export const useEditTransaction = () => {
+export const useEditTransaction = () =>
+{
   const { id } = useLocalSearchParams<{ id: string }>();
   const transactionId = safeId(id);
   const router = useRouter();
   const { transactions, updateTransaction } = useTransactionsStore();
-  const { addToQueue } = useSyncStore();
+  const { syncNow } = useCloudSync();
+  const { toastSuccess } = useToast();
   const [loading, setLoading] = useState(false);
 
   const transaction = transactions.find((t) => t.id === transactionId);
@@ -28,8 +31,10 @@ export const useEditTransaction = () => {
     },
   });
 
-  useEffect(() => {
-    if (transaction) {
+  useEffect(() =>
+  {
+    if (transaction)
+    {
       reset({
         amount: Math.abs(transaction.amount).toString(),
         description: transaction.title,
@@ -37,11 +42,13 @@ export const useEditTransaction = () => {
     }
   }, [transaction, reset]);
 
-  const onSubmit = async (data: IEditTransactionFormData) => {
+  const onSubmit = async (data: IEditTransactionFormData) =>
+  {
     if (!transaction) return;
 
     setLoading(true);
-    try {
+    try
+    {
       const isNegative = transaction.amount < 0;
       const amountNum = parseFloat(data.amount);
       const finalAmount = isNegative ? -Math.abs(amountNum) : Math.abs(amountNum);
@@ -51,18 +58,26 @@ export const useEditTransaction = () => {
         amount: finalAmount,
         title: data.description,
         synced: false,
+        updatedAt: Date.now(),
       };
 
       updateTransaction(updatedTransaction);
-      addToQueue({
-        id: generateId(),
-        type: 'transaction',
-        action: 'update',
-        payload: updatedTransaction,
-      });
 
-      router.back();
-    } finally {
+      // Trigger sync to push edit to Supabase
+      try
+      {
+        await syncNow();
+        toastSuccess('Transaction updated successfully');
+      }
+      catch (error)
+      {
+        console.error('[Sync] Failed to sync after edit:', error);
+        toastSuccess('Transaction updated locally');
+      }
+
+      router.push(`/(drawer)/friend/${transaction.friendId}`);
+    } finally
+    {
       setLoading(false);
     }
   };

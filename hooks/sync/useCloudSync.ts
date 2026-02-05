@@ -9,9 +9,10 @@ import { ensureAppUser } from '@/services/userService';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useBudgetStore } from '@/store/budgetStore';
+import { selectPendingCount } from '@/selectors/dashboardSelectors';
 
 export const useCloudSync = () => {
-  const { syncEnabled, setSyncEnabled, isSyncing, setSyncing, lastSync, queue } = useSyncStore();
+  const { syncEnabled, setSyncEnabled, isSyncing, setSyncing, lastSync } = useSyncStore();
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
   const [isOnline, setIsOnline] = useState(true);
@@ -20,6 +21,74 @@ export const useCloudSync = () => {
   const lastAutoSyncRef = useRef<{ userId: string | null; syncEnabled: boolean }>({ userId: null, syncEnabled: false });
   const retryAttemptsRef = useRef(0);
   const MAX_RETRY_ATTEMPTS = 3;
+  const previousUserIdRef = useRef<string | null>(null);
+  const syncAutoEnabledRef = useRef(false);
+
+  // Helper to clear all local data
+  const clearAllLocalData = useCallback(() => {
+    console.log('[Sync] Clearing all local data for user switch');
+    useFriendsStore.getState().setFriends([]);
+    useTransactionsStore.getState().setTransactions([]);
+    useBudgetStore.getState().setBudgets([]);
+    useSyncStore.getState().setHasHydratedFromCloud(false);
+    useSyncStore.getState().setLastPullAt(null);
+  }, []);
+
+  // Detect user switching and clear local data
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const currentUserId = userId || null;
+    const previousUserId = previousUserIdRef.current;
+
+    // User switched (different user logged in)
+    if (previousUserId !== null && currentUserId !== null && previousUserId !== currentUserId) {
+      console.log('[Sync] User switch detected, clearing local data');
+      clearSupabaseToken();
+      tokenBoundRef.current = false;
+      useSyncStore.getState().setCloudUserId(null);
+      useSyncStore.getState().setSyncStatus(null);
+      clearAllLocalData();
+      lastAutoSyncRef.current = { userId: null, syncEnabled: false };
+      syncAutoEnabledRef.current = false;
+    }
+
+    // User logged out
+    if (previousUserId !== null && currentUserId === null) {
+      console.log('[Sync] User logged out, clearing local data');
+      clearSupabaseToken();
+      tokenBoundRef.current = false;
+      useSyncStore.getState().setCloudUserId(null);
+      useSyncStore.getState().setSyncStatus(null);
+      clearAllLocalData();
+      lastAutoSyncRef.current = { userId: null, syncEnabled: false };
+      syncAutoEnabledRef.current = false;
+    }
+
+    previousUserIdRef.current = currentUserId;
+  }, [isLoaded, userId, clearAllLocalData]);
+
+  // Enable sync by default when online + logged in
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    // Auto-enable sync when conditions are met (only once per session)
+    if (
+      isSignedIn &&
+      isOnline &&
+      !syncAutoEnabledRef.current &&
+      !syncEnabled
+    ) {
+      console.log('[Sync] Auto-enabling sync (online + logged in)');
+      setSyncEnabled(true);
+      syncAutoEnabledRef.current = true;
+    }
+
+    // Reset auto-enable flag when user logs out or goes offline
+    if (!isSignedIn || !isOnline) {
+      syncAutoEnabledRef.current = false;
+    }
+  }, [isLoaded, isSignedIn, isOnline, syncEnabled, setSyncEnabled]);
 
   // Clear token and cloudUserId when logged out or sync disabled
   useEffect(() => {
@@ -414,7 +483,7 @@ export const useCloudSync = () => {
   }, [syncEnabled, isSyncing, userId, isOnline, isLoaded, isSignedIn, getToken]);
 
   // Expose helpers
-  const hasPendingChanges = queue.length > 0;
+  const hasPendingChanges = selectPendingCount() > 0;
 
   return {
     syncEnabled,

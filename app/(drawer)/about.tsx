@@ -1,14 +1,16 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Linking } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
 import { Menu, Mail, Phone, MapPin, Linkedin, Github, Globe } from 'lucide-react-native';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function About()
 {
   const { openDrawer } = useDrawerContext();
+  const { toastError } = useToast();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 
@@ -26,7 +28,7 @@ export default function About()
   {
     Linking.openURL(url).catch(() =>
     {
-      Alert.alert('Error', 'Could not open the link');
+      toastError('Could not open the link');
     });
   };
 

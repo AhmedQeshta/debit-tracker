@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { formatClerkError, checkOfflineAndThrow } from '@/lib/clerkUtils';
-import { Alert } from 'react-native';
+import { useToast } from '@/contexts/ToastContext';
 
 interface ChangePasswordFormData
 {
@@ -17,6 +17,7 @@ export const useChangePassword = () =>
   const { user, isLoaded: userLoaded } = useUser();
   const { isLoaded: authLoaded } = useAuth();
   const router = useRouter();
+  const { toastSuccess, toastError } = useToast();
   const {
     control,
     handleSubmit,
@@ -70,17 +71,10 @@ export const useChangePassword = () =>
         signOutOfOtherSessions: false, // Keep other sessions active
       });
 
-      // Success - show alert and reset form
-      Alert.alert('Success', 'Your password has been changed successfully.', [
-        {
-          text: 'OK',
-          onPress: () =>
-          {
-            reset();
-            router.push('/(drawer)/settings/account');
-          },
-        },
-      ]);
+      // Success - show toast and reset form
+      toastSuccess('Your password has been changed successfully.');
+      reset();
+      router.push('/(drawer)/settings/account');
     } catch (err: any)
     {
       // Enhanced error extraction for Clerk errors

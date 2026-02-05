@@ -33,8 +33,9 @@ export const useTransactionsStore = create<ITransactionsState>()(
       {
         return get().transactions.filter((t) =>
         {
-          // Include items that are not synced OR marked for deletion
-          return !t.synced || !t.synced || t.deletedAt !== undefined;
+          // Include items that are not synced AND not deleted
+          // Deleted items are handled separately by getDeletedTransactions()
+          return !t.synced && t.deletedAt === undefined;
         });
       },
       getDeletedTransactions: (): Transaction[] =>

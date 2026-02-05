@@ -11,13 +11,18 @@ import NavigateTo from '@/components/ui/NavigateTo';
 import { sortedTransactions } from '@/lib/utils';
 import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
 import { useRouter } from 'expo-router';
-import { confirmDelete } from '@/lib/alert';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import { useToast } from '@/contexts/ToastContext';
+import { useCloudSync } from '@/hooks/sync/useCloudSync';
 
 export default function TransactionsScreen()
 {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const { deleteTransaction } = useTransactionsStore();
+  const { showConfirm } = useConfirmDialog();
+  const { toastSuccess } = useToast();
+  const { syncNow } = useCloudSync();
   const transactions = useTransactionsStore(useShallow((state) => state.transactions.filter((t) => !t.deletedAt)));
 
   const handleEdit = (id: string) =>
@@ -27,8 +32,23 @@ export default function TransactionsScreen()
 
   const handleDelete = (id: string, title: string) =>
   {
-    // Delete transaction (store handles sync tracking automatically)
-    deleteTransaction(id);
+    showConfirm(
+      'Delete Transaction',
+      `Are you sure you want to delete "${title}"?`,
+      async () => {
+        // Delete transaction (store handles sync tracking automatically)
+        deleteTransaction(id);
+        toastSuccess('Transaction deleted successfully');
+        
+        // Trigger sync to push deletion to Supabase
+        try {
+          await syncNow();
+        } catch (error) {
+          console.error('[Sync] Failed to sync after delete:', error);
+        }
+      },
+      { confirmText: 'Delete' }
+    );
   };
 
   return (

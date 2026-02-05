@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { showError } from '@/lib/alert';
+import { useToast } from '@/contexts/ToastContext';
 import { generateId, getFinalAmount } from '@/lib/utils';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -15,6 +15,7 @@ export const useTransactionForm = () => {
   const friends = useFriendsStore(useShallow((state) => state.friends));
   const { addTransaction } = useTransactionsStore();
   const { mutate } = useSyncMutation();
+  const { toastError, toastSuccess } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +44,7 @@ export const useTransactionForm = () => {
   const onSubmit = async (data: ITransactionFormData) => {
     const amountNum = parseFloat(data.amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      showError('Error', 'Please enter a valid amount');
+      toastError('Please enter a valid amount');
       return;
     }
 
@@ -65,6 +66,7 @@ export const useTransactionForm = () => {
 
       addTransaction(newTransaction);
       await mutate('transaction', 'create', newTransaction);
+      toastSuccess('Transaction added successfully');
 
       router.push(`/(drawer)/friend/${data.friendId}`);
     } finally {
