@@ -58,18 +58,17 @@ types/              # TypeScript model definitions
    npm install
    ```
 
-3. Set up environment variables:
+<<<<<<< HEAD 3. Set up environment variables:
 
-   Create a `.env` file in the root directory:
+Create a `.env` file in the root directory:
 
-   ```env
-   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+```env
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
 4. Configure Clerk JWT Template:
-
    - Go to your Clerk Dashboard → JWT Templates
    - Create a new JWT template named **"supabase"**
    - Add the following claims:
@@ -78,7 +77,6 @@ types/              # TypeScript model definitions
    - Save the template
 
 5. Set up Supabase Database:
-
    - Run the migration file: `supabase/migrations/001_create_app_users_and_fix_schema.sql`
    - This creates the `app_users`, `friends`, `transactions`, `budgets`, and `budget_items` tables
    - Enables Row Level Security (RLS) with policies based on `app_users.clerk_id`
@@ -96,6 +94,7 @@ types/              # TypeScript model definitions
 ## 📱 Asset Requirements
 
 **Important**: The following icon images must be square (equal width and height):
+
 - `./assets/icon.png` - App icon (recommended: 1024x1024)
 - `./assets/adaptive-icon.png` - Android adaptive icon foreground (recommended: 1024x1024)
 
@@ -126,6 +125,7 @@ The app uses a robust offline-first sync pattern:
 ### Row Level Security (RLS)
 
 All tables use RLS policies that check:
+
 - `app_users.clerk_id = (auth.jwt() ->> 'sub')` for user records
 - `owner_id` belongs to the authenticated user for friends, transactions, budgets, and budget items
 
@@ -143,7 +143,7 @@ All tables use RLS policies that check:
 
 The app uses a fast, non-blocking splash screen strategy:
 
-1. **Phase 1 (Fast, <300ms)**: 
+1. **Phase 1 (Fast, <300ms)**:
    - Hydrate local stores (Zustand persist)
    - Render router
    - Hide splash immediately
@@ -156,4 +156,44 @@ The app uses a fast, non-blocking splash screen strategy:
 
 3. **Timeout Fallback**: Splash hides after max 2 seconds regardless of state
 
-**Key**: Network requests and sync operations never block the splash screen or initial render.
+# **Key**: Network requests and sync operations never block the splash screen or initial render.
+
+2. Start the app
+
+   ```bash
+   npx expo start
+   ```
+
+In the output, you'll find options to open the app in a
+
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
+```bash
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+  > > > > > > > ff6d732 (Initial commit)

@@ -1,22 +1,18 @@
-import 'react-native-reanimated';
+import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
+import { ErrorScreen } from '@/components/ui/ErrorScreen';
+import { GlobalMenuModal } from '@/components/ui/GlobalMenuModal';
+import { MenuModalProvider } from '@/contexts/MenuModalContext';
+import { SplashManager, SyncManager } from '@/lib/syncAuth';
+import { publishableKey, tokenCache } from '@/lib/token';
+import { ClerkLoaded, ClerkProvider } from '@clerk/clerk-expo';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../theme/colors';
-import { useSplash } from '@/hooks/useSplash';
-import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
-import { useCloudSync } from '@/hooks/sync/useCloudSync';
-import { publishableKey, tokenCache } from '@/lib/token';
-import { ErrorScreen } from '@/components/ui/ErrorScreen';
-import { SplashManager, SyncManager } from '@/lib/syncAuth';
-import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
-import { MenuModalProvider } from '@/contexts/MenuModalContext';
-import { GlobalMenuModal } from '@/components/ui/GlobalMenuModal';
 
-
-if (!publishableKey)
-{
+if (!publishableKey) {
   console.warn(
     'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
   );
@@ -39,14 +35,10 @@ const STACK_OPTIONS = {
   headerShown: false,
 };
 
-
-
-export default function RootLayout()
-{
+export default function RootLayout() {
   // useSplash();
 
-  if (!publishableKey)
-  {
+  if (!publishableKey) {
     return (
       <ErrorScreen
         title="Missing Configuration"

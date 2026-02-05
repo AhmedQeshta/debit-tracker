@@ -15,11 +15,11 @@ module.exports = defineConfig([
       'react/prop-types': 'off', // Using TypeScript instead
       'react/display-name': 'off', // Not needed for React Native
       'react-hooks/exhaustive-deps': 'warn', // Warn about missing dependencies
-      
+
       // General code quality
       'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow console.warn and console.error
       'no-unused-vars': 'off', // TypeScript handles this via @typescript-eslint
-      
+
       // Code style for React Native
       'prefer-const': 'warn',
       'no-var': 'error',
