@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useBudgetStore } from "@/store/budgetStore";
 import { safeId, validateAmount, validateTitle } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useOperations } from "@/hooks/useOperations";
-import { confirmDelete } from "@/lib/alert";
 import { createMenuItems } from "@/components/budget/createMenuItems";
 
 
@@ -13,7 +12,18 @@ export const useBudgetDetail = () =>
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
-  const budget = useBudgetStore((state) => state.getBudget(budgetId));
+  // Select budget directly from store to avoid infinite loop (getBudget returns new object each time)
+  const rawBudget = useBudgetStore((state) => state.budgets.find((b) => b.id === budgetId && !b.deletedAt));
+  // Memoize filtered budget to create stable reference
+  const budget = useMemo(() =>
+  {
+    if (!rawBudget) return undefined;
+    // Filter out deleted items
+    return {
+      ...rawBudget,
+      items: rawBudget.items.filter((item) => !item.deletedAt),
+    };
+  }, [rawBudget]);
   const {
     addItem,
     removeItem,
@@ -30,8 +40,8 @@ export const useBudgetDetail = () =>
   const [itemTitleError, setItemTitleError] = useState("");
   const [itemAmountError, setItemAmountError] = useState("");
 
-  // Calculate from budget object to make it reactive to changes
-  const totalSpent = budget ? budget.items.reduce((sum, item) => sum + item.amount, 0) : 0;
+  // Calculate from budget object to make it reactive to changes (exclude deleted items)
+  const totalSpent = budget ? budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0) : 0;
   const remaining = budget ? budget.totalBudget - totalSpent : 0;
 
   const handleAddItem = (): void =>
@@ -60,11 +70,12 @@ export const useBudgetDetail = () =>
 
   const handleDeleteItem = (itemId: string, title: string): void =>
   {
-    confirmDelete(
-      "Delete Item",
-      `Are you sure you want to delete "${title}"?`,
-      () => removeItem(budgetId, itemId)
-    );
+    // confirmDelete(
+    //   "Delete Item",
+    //   `Are you sure you want to delete "${title}"?`,
+    //   () => removeItem(budgetId, itemId)
+    // );
+    removeItem(budgetId, itemId)
   };
 
   const handlePinToggle = (): void =>
@@ -76,15 +87,17 @@ export const useBudgetDetail = () =>
   const handleDeleteBudget = (): void =>
   {
     if (!budget) return;
-    confirmDelete(
-      "Delete Budget",
-      `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
-      () =>
-      {
-        deleteBudget(budget.id);
-        navigateToBudgetList();
-      }
-    );
+    // confirmDelete(
+    //   "Delete Budget",
+    //   `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
+    //   () =>
+    //   {
+    //     deleteBudget(budget.id);
+    //     navigateToBudgetList();
+    //   }
+    // );
+    deleteBudget(budget.id);
+    navigateToBudgetList();
   };
 
   const handleEdit = (): void =>

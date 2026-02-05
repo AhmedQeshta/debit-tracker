@@ -34,6 +34,8 @@ export const Input = ({
         autoCapitalize={autoCapitalize}
         secureTextEntry={secureTextEntry}
         onBlur={onBlur}
+        editable={true}
+        selectTextOnFocus={false}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>

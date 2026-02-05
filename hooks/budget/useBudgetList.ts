@@ -9,7 +9,7 @@ export const useBudgetList = () =>
 {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
-  const budgets = useBudgetStore(useShallow((state) => state.budgets));
+  const budgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
   const { pinBudget, unpinBudget, deleteBudget, getTotalSpent, getRemainingBudget } =
     useBudgetStore();
 
@@ -26,11 +26,12 @@ export const useBudgetList = () =>
 
   const handleDelete = (budgetId: string, title: string): void =>
   {
-    confirmDelete(
-      "Delete Budget",
-      `Are you sure you want to delete "${title}"?`,
-      () => deleteBudget(budgetId)
-    );
+    // confirmDelete(
+    //   "Delete Budget",
+    //   `Are you sure you want to delete "${title}"?`,
+    //   () => deleteBudget(budgetId)
+    // );
+    deleteBudget(budgetId)
   };
 
   return {

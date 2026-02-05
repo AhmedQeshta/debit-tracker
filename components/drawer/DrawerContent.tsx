@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Colors } from '@/theme/colors';
 import
-  {
-    Info,
-    X,
-    LogIn,
-    LogOut,
-  } from 'lucide-react-native';
+{
+  Info,
+  X,
+  LogIn,
+  LogOut,
+} from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -24,7 +24,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
   const handleAuthAction = () =>
   {
     if (isSignedIn) signOut();
-    else router.push('/(auth)/login');
+    else router.push('/(auth)/sign-in');
     closeDrawer();
   };
 
@@ -42,11 +42,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
           <MenuItemDrawer key={item.path} item={item} isActive={isActive} navigateTo={navigateTo} />
         ))}
 
-        <View style={styles.divider} />
-
         <SyncStatus />
-
-        <View style={styles.divider} />
 
         <MenuItemDrawer
           item={{ label: 'About Me', path: '/(drawer)/about', icon: Info }}
@@ -105,12 +101,6 @@ const styles = StyleSheet.create({
   drawerMenu: {
     flex: 1,
     paddingTop: Spacing.md,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: Spacing.sm,
-    marginHorizontal: Spacing.md,
   },
   footer: {
     padding: Spacing.md,

@@ -1,19 +1,21 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { ArrowLeft } from 'lucide-react-native';
 import { useBudgetEdit } from '@/hooks/budget/useBudgetEdit';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { Controller } from 'react-hook-form';
+import Header from '@/components/ui/Header';
 
-export default function EditBudget() {
+export default function EditBudget()
+{
   const { control, errors, handleSubmit, currency, setCurrency, budget, loading, router } =
     useBudgetEdit();
 
-  if (!budget) {
+  if (!budget)
+  {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -26,10 +28,7 @@ export default function EditBudget() {
 
   return (
     <ScreenContainer>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={25} color={Colors.text} />
-        <Text style={styles.title}>Edit Budget</Text>
-      </TouchableOpacity>
+      <Header openDrawer={() => router.push(`/(drawer)/budget/${budget.id}`)} title="Edit Budget" isGoBack={true} />
       <View style={styles.form}>
         <Controller
           control={control}

@@ -6,7 +6,7 @@ import
   LayoutDashboard,
   Calculator,
   ArrowRightLeft,
-
+  Settings,
 } from 'lucide-react-native';
 
 export const MAIN_MENU_ITEMS: IMenuItemDrawer[] = [
@@ -15,4 +15,5 @@ export const MAIN_MENU_ITEMS: IMenuItemDrawer[] = [
   { label: 'Transactions', path: '/(drawer)/(tabs)/transactions', icon: ArrowRightLeft },
   { label: 'Budget Calculator', path: '/(drawer)/(tabs)/budget', icon: Calculator },
   { label: 'Dashboard', path: '/(drawer)/(tabs)/dashboard', icon: LayoutDashboard },
+  { label: 'Settings', path: '/(drawer)/settings', icon: Settings },
 ];

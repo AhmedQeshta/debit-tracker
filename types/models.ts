@@ -11,6 +11,7 @@ export interface Friend {
   lastSync?: number;
   synced: boolean;
   pinned: boolean;
+  deletedAt?: number; // Timestamp when marked for deletion (pending sync)
 }
 
 export interface Transaction {
@@ -25,6 +26,7 @@ export interface Transaction {
   createdAt: number;
   updatedAt?: number;
   synced: boolean;
+  deletedAt?: number; // Timestamp when marked for deletion (pending sync)
 }
 
 export interface SyncQueueItem {
@@ -43,6 +45,7 @@ export interface BudgetItem {
   createdAt: number;
   updatedAt?: number;
   synced?: boolean;
+  deletedAt?: number; // Timestamp when marked for deletion (pending sync)
 }
 
 export interface Budget {
@@ -56,4 +59,5 @@ export interface Budget {
   createdAt: number;
   updatedAt?: number;
   synced?: boolean;
+  deletedAt?: number; // Timestamp when marked for deletion (pending sync)
 }

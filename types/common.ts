@@ -1,11 +1,13 @@
-export interface IActionCardProps {
+export interface IActionCardProps
+{
   icon: React.ComponentType<{ size?: number; color?: string }>;
   title: string;
   onPress: () => void;
   disabled?: boolean;
 }
 
-export interface IButtonProps {
+export interface IButtonProps
+{
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'error' | 'outline';
@@ -13,7 +15,8 @@ export interface IButtonProps {
   disabled?: boolean;
 }
 
-export interface IInputProps {
+export interface IInputProps
+{
   label?: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -26,37 +29,43 @@ export interface IInputProps {
   onBlur?: () => void;
 }
 
-export interface IScreenContainerProps {
+export interface IScreenContainerProps
+{
   children: React.ReactNode;
   scrollable?: boolean;
 }
 
-export interface IDrawerContextType {
+export interface IDrawerContextType
+{
   openDrawer: () => void;
   closeDrawer: () => void;
   toggleDrawer: () => void;
 }
 
-export interface IEmptySectionProps {
+export interface IEmptySectionProps
+{
   title: string;
   description: string;
   icon?: 'transactions' | 'users' | 'budgets' | '';
 }
 
-export interface IMenuItem {
+export interface IMenuItem
+{
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
   danger?: boolean;
 }
 
-export interface IActionsProps {
+export interface IActionsProps
+{
   menuVisible: boolean;
   setMenuVisible: (visible: boolean) => void;
   menuItems: IMenuItem[];
 }
 
-export interface IPinnedCardsProps {
+export interface IPinnedCardsProps
+{
   title: string;
   count: number;
   items: any[];
@@ -69,14 +78,31 @@ export interface IPinnedCardsProps {
 }
 
 
-export interface IMenuItemDrawer {
+export interface IMenuItemDrawer
+{
   label: string;
   path: string;
   icon: React.ElementType;
 }
 
-export interface IMenuItemDrawerProps {
+export interface IMenuItemDrawerProps
+{
   item: IMenuItemDrawer;
   isActive: (path: string) => boolean;
   navigateTo: (path: string) => void;
+}
+
+
+export interface AccountFormData
+{
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface ChangePasswordFormData
+{
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }

@@ -12,15 +12,13 @@ import { sortedTransactions } from '@/lib/utils';
 import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
 import { useRouter } from 'expo-router';
 import { confirmDelete } from '@/lib/alert';
-import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 
 export default function TransactionsScreen()
 {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const { deleteTransaction } = useTransactionsStore();
-  const { mutate } = useSyncMutation();
-  const transactions = useTransactionsStore(useShallow((state) => state.transactions));
+  const transactions = useTransactionsStore(useShallow((state) => state.transactions.filter((t) => !t.deletedAt)));
 
   const handleEdit = (id: string) =>
   {
@@ -29,11 +27,8 @@ export default function TransactionsScreen()
 
   const handleDelete = (id: string, title: string) =>
   {
-    confirmDelete('Delete Transaction', `Are you sure you want to delete "${title}"?`, async () =>
-    {
-      deleteTransaction(id);
-      await mutate('transaction', 'delete', { id });
-    });
+    // Delete transaction (store handles sync tracking automatically)
+    deleteTransaction(id);
   };
 
   return (

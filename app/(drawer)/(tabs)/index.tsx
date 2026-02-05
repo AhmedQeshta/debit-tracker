@@ -15,7 +15,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { ActionCard } from '@/components/ui/ActionCard';
 import Header from '@/components/ui/Header';
 
-export default function Home() {
+export default function Home()
+{
   const router = useRouter();
   const { openDrawer } = useDrawerContext();
   // Get latest transactions sorted by date (most recent first), limit to 5
@@ -68,7 +69,8 @@ export default function Home() {
               icon={'users'}
             />
           ) : (
-            latestFriends.map((friend) => {
+            latestFriends.map((friend) =>
+            {
               return (
                 <FriendCard
                   key={friend.id}
@@ -114,7 +116,8 @@ export default function Home() {
               icon={'transactions'}
             />
           ) : (
-            latestTransactions.map((transaction) => {
+            latestTransactions.map((transaction) =>
+            {
               const friend = friends.find((f) => f.id === transaction.friendId);
               return (
                 <TransactionItem

@@ -193,8 +193,165 @@ export const syncService = {
         }
       }
 
+      // E) Handle deletions (children first, then parents)
+      const deletedBudgetItems = useBudgetStore.getState().getDeletedBudgetItems();
+      const deletedTransactions = useTransactionsStore.getState().getDeletedTransactions();
+      const deletedBudgets = useBudgetStore.getState().getDeletedBudgets();
+      const deletedFriends = useFriendsStore.getState().getDeletedFriends();
+
+      const totalDeleted =
+        deletedBudgetItems.length +
+        deletedTransactions.length +
+        deletedBudgets.length +
+        deletedFriends.length;
+
+      // Initialize deletion counters (used in final log regardless of whether deletions occurred)
+      let budgetItemsDeleted = 0;
+      let transactionsDeleted = 0;
+      let budgetsDeleted = 0;
+      let friendsDeleted = 0;
+
+      if (totalDeleted > 0)
+      {
+        console.log(
+          `[Sync] Processing deletions: ${deletedBudgetItems.length} budget items, ${deletedTransactions.length} transactions, ${deletedBudgets.length} budgets, ${deletedFriends.length} friends`,
+        );
+
+        // Helper to execute delete with retry
+        const executeDelete = async (table: string, ids: string[]) =>
+        {
+          if (ids.length === 0) return { success: true, count: 0 };
+          try
+          {
+            // Delete in batches to avoid query size limits
+            const batchSize = 100;
+            let deletedCount = 0;
+            for (let i = 0; i < ids.length; i += batchSize)
+            {
+              const batch = ids.slice(i, i + batchSize);
+              const result = await retryOnceOnJwtExpired(
+                async () =>
+                  await supabase
+                    .from(table)
+                    .delete()
+                    .eq('owner_id', cloudUserId)
+                    .in('id', batch),
+                getToken,
+              );
+              if (result.error)
+              {
+                if (isJwtExpiredError(result.error))
+                {
+                  useSyncStore.getState().setSyncStatus('needs_login');
+                  throw result.error;
+                }
+                return { success: false, error: result.error, count: deletedCount };
+              }
+              deletedCount += batch.length;
+            }
+            return { success: true, count: deletedCount };
+          } catch (e: any)
+          {
+            if (isJwtExpiredError(e))
+            {
+              useSyncStore.getState().setSyncStatus('needs_login');
+              throw e;
+            }
+            return { success: false, error: e, count: 0 };
+          }
+        };
+
+        try
+        {
+          // 1. Delete Budget Items first (children)
+          if (deletedBudgetItems.length > 0)
+          {
+            const itemIds = deletedBudgetItems.map((item) => item.id);
+            const result = await executeDelete('budget_items', itemIds);
+            if (result.success)
+            {
+              budgetItemsDeleted = result.count;
+              // Remove from store after successful deletion
+              deletedBudgetItems.forEach((item) =>
+                useBudgetStore.getState().removeDeletedBudgetItem(item.budgetId, item.id),
+              );
+              console.log(`[Sync] Deleted ${budgetItemsDeleted} budget items: success`);
+            } else
+            {
+              console.error(`[Sync] Failed to delete budget items:`, result.error);
+              // Keep in store for retry
+            }
+          }
+
+          // 2. Delete Transactions (children of friends)
+          if (deletedTransactions.length > 0)
+          {
+            const transactionIds = deletedTransactions.map((t) => t.id);
+            const result = await executeDelete('transactions', transactionIds);
+            if (result.success)
+            {
+              transactionsDeleted = result.count;
+              // Remove from store after successful deletion
+              deletedTransactions.forEach((t) =>
+                useTransactionsStore.getState().removeDeletedTransaction(t.id),
+              );
+              console.log(`[Sync] Deleted ${transactionsDeleted} transactions: success`);
+            } else
+            {
+              console.error(`[Sync] Failed to delete transactions:`, result.error);
+              // Keep in store for retry
+            }
+          }
+
+          // 3. Delete Budgets (parents, children already deleted)
+          if (deletedBudgets.length > 0)
+          {
+            const budgetIds = deletedBudgets.map((b) => b.id);
+            const result = await executeDelete('budgets', budgetIds);
+            if (result.success)
+            {
+              budgetsDeleted = result.count;
+              // Remove from store after successful deletion
+              deletedBudgets.forEach((b) => useBudgetStore.getState().removeDeletedBudget(b.id));
+              console.log(`[Sync] Deleted ${budgetsDeleted} budgets: success`);
+            } else
+            {
+              console.error(`[Sync] Failed to delete budgets:`, result.error);
+              // Keep in store for retry
+            }
+          }
+
+          // 4. Delete Friends last (parents, children already deleted)
+          if (deletedFriends.length > 0)
+          {
+            const friendIds = deletedFriends.map((f) => f.id);
+            const result = await executeDelete('friends', friendIds);
+            if (result.success)
+            {
+              friendsDeleted = result.count;
+              // Remove from store after successful deletion
+              deletedFriends.forEach((f) => useFriendsStore.getState().removeDeletedFriend(f.id));
+              console.log(`[Sync] Deleted ${friendsDeleted} friends: success`);
+            } else
+            {
+              console.error(`[Sync] Failed to delete friends:`, result.error);
+              // Keep in store for retry
+            }
+          }
+        } catch (e: any)
+        {
+          console.error('[Sync] Deletion processing failed:', e);
+          if (isJwtExpiredError(e))
+          {
+            useSyncStore.getState().setSyncStatus('needs_login');
+          }
+          // Don't throw - allow upserts to complete even if deletions fail
+          // Deletions will retry on next sync
+        }
+      }
+
       console.log(
-        `[Sync] Push complete: ${friendsSynced}/${dirtyFriends.length} friends, ${transactionsSynced}/${dirtyTransactions.length} transactions, ${budgetsSynced}/${dirtyBudgets.length} budgets, ${itemsSynced}/${dirtyBudgetItems.length} items synced`,
+        `[Sync] Push complete: ${friendsSynced}/${dirtyFriends.length} friends, ${transactionsSynced}/${dirtyTransactions.length} transactions, ${budgetsSynced}/${dirtyBudgets.length} budgets, ${itemsSynced}/${dirtyBudgetItems.length} items synced. Deletions: ${budgetItemsDeleted} items, ${transactionsDeleted} transactions, ${budgetsDeleted} budgets, ${friendsDeleted} friends`,
       );
     } catch (e: any)
     {
@@ -252,7 +409,7 @@ export const syncService = {
         email: undefined, // Friends don't have email in new schema
         bio: f.bio || '',
         imageUri: null, // Not in new schema
-        currency: '$', // Default, not in new schema
+        currency: f.currency || '$', // Read from database, default to '$' if not present
         createdAt: safeDateToTimestamp(f.created_at),
         updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
         synced: true,
@@ -670,6 +827,7 @@ const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) =>
     user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
     name: f.name,
     bio: f.bio || null,
+    currency: f.currency || '$',
     created_at: safeTimestampToISO(f.createdAt),
     updated_at: new Date().toISOString(),
   };
