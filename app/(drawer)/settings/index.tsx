@@ -10,7 +10,7 @@ import { ActivityIndicator, Image, StyleSheet, Switch, Text, View } from 'react-
 
 export default function Settings()
 {
-  const { isLoaded, isSignedIn, user, openDrawer, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, isLoggedIn, router } = useSettings();
+  const { isLoaded, isSignedIn, user, openDrawer, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, router } = useSettings();
 
   const { handleAuthAction } = useSignOut();
 
