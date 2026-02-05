@@ -1,18 +1,18 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useAccount } from '@/hooks/settings/useAccount';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
 import { ArrowLeft, User } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
-import { useAccount } from '@/hooks/settings/useAccount';
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 export default function AccountManagement()
 {
 
-  const { control, handleSubmit, errors, loading, updatingEmail, showEmailInput, newEmail, setShowEmailInput, setNewEmail, handleEmailUpdate, handleEmailSubmit, updateName, updateEmail, user, isLoaded, isSignedIn, router } = useAccount();
+  const { control, handleSubmit, errors, loading, updatingEmail, showEmailInput, newEmail, setShowEmailInput, setNewEmail, handleEmailUpdate, handleEmailSubmit, updateName, user, isLoaded, isSignedIn, router } = useAccount();
   if (!isLoaded)
   {
     return (

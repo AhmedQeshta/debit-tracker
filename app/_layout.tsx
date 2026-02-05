@@ -5,7 +5,7 @@ import { Toast } from '@/components/ui/Toast';
 import { MenuModalProvider } from '@/contexts/MenuModalContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
-import { SplashManager, SyncManager } from '@/lib/syncAuth';
+import { AppBootstrap } from '@/lib/syncAuth';
 import { publishableKey, tokenCache } from '@/lib/token';
 import { ClerkLoaded, ClerkProvider } from '@clerk/clerk-expo';
 import { Stack } from 'expo-router';
@@ -50,8 +50,7 @@ export default function RootLayout() {
         <ToastProvider>
           <ConfirmDialogProvider>
             <MenuModalProvider>
-              <SyncManager />
-              <SplashManager />
+              <AppBootstrap />
               <SyncLoadingOverlay />
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <SafeAreaProvider>

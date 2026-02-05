@@ -1,15 +1,19 @@
-import { View, Text, StyleSheet, Switch, ActivityIndicator, Image } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
 import { Button } from '@/components/ui/Button';
 import Header from '@/components/ui/Header';
-import { Settings as SettingsIcon, User } from 'lucide-react-native';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useSignOut } from '@/hooks/auth/useSignOut';
 import { useSettings } from '@/hooks/settings/useSettings';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { Settings as SettingsIcon, User } from 'lucide-react-native';
+import { ActivityIndicator, Image, StyleSheet, Switch, Text, View } from 'react-native';
 
 export default function Settings()
 {
-  const { isLoaded, isSignedIn, user, openDrawer, handleSignOut, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, isLoggedIn, router } = useSettings();
+  const { isLoaded, isSignedIn, user, openDrawer, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, isLoggedIn, router } = useSettings();
+
+  const { handleAuthAction } = useSignOut();
+
   if (!isLoaded)
   {
     return (
@@ -68,7 +72,7 @@ export default function Settings()
 
                 <Button
                   title="Sign out"
-                  onPress={handleSignOut}
+                  onPress={handleAuthAction}
                   variant="error"
                 />
               </>
@@ -89,42 +93,42 @@ export default function Settings()
         </View>
 
         {/* Sync Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <SettingsIcon size={20} color={Colors.primary} />
-            <Text style={styles.sectionTitle}>Sync</Text>
-          </View>
-          <View style={styles.sectionContent}>
-            <View style={styles.syncRow}>
-              <Text style={styles.syncLabel}>Cloud Sync</Text>
-              <Switch
-                value={syncEnabled}
-                onValueChange={setSyncEnabled}
-                trackColor={{ false: Colors.border, true: Colors.primary }}
-                thumbColor="#fff"
-              />
+        {isSignedIn && user
+          ? <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <SettingsIcon size={20} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Sync</Text>
             </View>
-            {syncEnabled && (
-              <>
-                <View style={styles.syncInfo}>
-                  <Text style={styles.syncInfoLabel}>Status:</Text>
-                  <Text style={styles.syncInfoValue}>{getSyncStatusText()}</Text>
-                </View>
-                {lastSync && (
+            <View style={styles.sectionContent}>
+              <View style={styles.syncRow}>
+                <Text style={styles.syncLabel}>Cloud Sync</Text>
+                <Switch
+                  value={syncEnabled}
+                  onValueChange={setSyncEnabled}
+                  trackColor={{ false: Colors.border, true: Colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              {syncEnabled && (
+                <>
                   <View style={styles.syncInfo}>
-                    <Text style={styles.syncInfoLabel}>Last sync:</Text>
-                    <Text style={styles.syncInfoValue}>{formatLastSync(lastSync)}</Text>
+                    <Text style={styles.syncInfoLabel}>Status:</Text>
+                    <Text style={styles.syncInfoValue}>{getSyncStatusText()}</Text>
                   </View>
-                )}
-                {syncEnabled && !isLoggedIn && (
-                  <View style={styles.syncHint}>
-                    <Text style={styles.syncHintText}>Sign in to sync</Text>
-                  </View>
-                )}
-              </>
-            )}
+                  {lastSync && (
+                    <View style={styles.syncInfo}>
+                      <Text style={styles.syncInfoLabel}>Last sync:</Text>
+                      <Text style={styles.syncInfoValue}>{formatLastSync(lastSync)}</Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
           </View>
-        </View>
+          : <View style={styles.section}>
+            <Text style={styles.note}>To use the sync feature, please sign in to your account.</Text>
+          </View>
+        }
 
         {/* App Section */}
         <View style={styles.section}>
@@ -298,5 +302,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
+  note: {
+    fontWeight: '600',
+    color: Colors.text,
+    padding: Spacing.sm,
+    marginVertical: Spacing.sm
+  }
 });
 

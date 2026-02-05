@@ -1,6 +1,21 @@
-import { supabase, hasSupabaseToken } from '@/lib/supabase';
+import { hasSupabaseToken, supabase } from '@/lib/supabase';
+import { GetTokenFunction, isJwtExpiredError, retryOnceOnJwtExpired } from '@/services/authSync';
 import { useSyncStore } from '@/store/syncStore';
-import { retryOnceOnJwtExpired, isJwtExpiredError, GetTokenFunction } from '@/services/authSync';
+
+/**
+ * Timeout wrapper for network calls (5 seconds for ensureAppUser)
+ */
+const ENSURE_USER_TIMEOUT_MS = 5000;
+
+const withTimeout = <T>(promise: Promise<T>, ms: number = ENSURE_USER_TIMEOUT_MS): Promise<T> =>
+{
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Network timeout after ${ms}ms`)), ms),
+    ),
+  ]);
+};
 
 /**
  * Ensures an app_user record exists in Supabase for the given Clerk user.
@@ -40,13 +55,13 @@ export const ensureAppUser = async (
 
   try
   {
-    // Helper to execute with retry
+    // Helper to execute with retry and timeout
     const executeWithRetry = async <T>(queryFn: () => Promise<T>): Promise<T> =>
     {
-      return retryOnceOnJwtExpired(queryFn, getToken);
+      return withTimeout(retryOnceOnJwtExpired(queryFn, getToken), ENSURE_USER_TIMEOUT_MS);
     };
 
-    // Query for existing record ONLY by clerk_id
+    // Query for existing record ONLY by clerk_id (with timeout)
     const { data: existing, error: queryError } = await executeWithRetry(
       async () =>
         await supabase.from('app_users').select('id').eq('clerk_id', clerkUser.id).maybeSingle(),
@@ -75,6 +90,7 @@ export const ensureAppUser = async (
 
     console.log('[UserService] ensureAppUser payload:', upsertData);
 
+    // Upsert with timeout
     const { data: upserted, error: upsertError } = await executeWithRetry(
       async () =>
         await supabase.from('app_users').upsert(upsertData, { onConflict: 'clerk_id' }).select().single(),
@@ -106,6 +122,13 @@ export const ensureAppUser = async (
     };
   } catch (error: any)
   {
+    // Check for timeout error
+    if (error?.message?.includes('timeout') || error?.message?.includes('Network timeout'))
+    {
+      console.warn('[UserService] ensureAppUser timed out after 5s (likely offline)');
+      throw new Error('Network timeout. Check your connection and retry.');
+    }
+
     console.error('[UserService] ensureAppUser error:', error);
     // If JWT expired and retry failed, set sync status
     if (isJwtExpiredError(error))

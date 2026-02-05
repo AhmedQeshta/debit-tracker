@@ -1,19 +1,18 @@
-import { useCloudSync } from '@/hooks/sync/useCloudSync';
-import { useSplash } from '@/hooks/useSplash';
+import { useAppBootstrap } from '@/hooks/app/useAppBootstrap';
 
 // Re-export types and functions from authSync service for backward compatibility
+export { isJwtExpiredError, getFreshSupabaseJwt as refreshSupabaseJwt } from '@/services/authSync';
 export type { GetTokenFunction } from '@/services/authSync';
-export { getFreshSupabaseJwt as refreshSupabaseJwt, isJwtExpiredError } from '@/services/authSync';
 
-export function SyncManager()
+/**
+ * AppBootstrap component that orchestrates:
+ * - Store hydration
+ * - Splash screen management
+ * - Network monitoring
+ * - Background sync
+ */
+export function AppBootstrap()
 {
-  useCloudSync();
-  return null;
-}
-
-
-export function SplashManager()
-{
-  useSplash();
+  useAppBootstrap();
   return null;
 }
