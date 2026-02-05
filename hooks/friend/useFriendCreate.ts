@@ -10,7 +10,6 @@ import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 export const useFriendCreate = () => {
   const router = useRouter();
   const { addFriend } = useFriendsStore();
-  const { navigateBack } = useNavigation();
   const { mutate } = useSyncMutation();
   const [loading, setLoading] = useState(false);
 
@@ -32,9 +31,17 @@ export const useFriendCreate = () => {
   const bio = watch('bio');
   const currency = watch('currency');
 
+<<<<<<< HEAD
   const onSubmit = async (data: IFriendFormData): Promise<void> => {
     setLoading(true);
     try {
+=======
+  const onSubmit = async (data: IFriendFormData): Promise<void> =>
+  {
+    setLoading(true);
+    try
+    {
+>>>>>>> 3841eb9 (add file and create the project)
       const newFriend = {
         id: generateId(),
         name: data.name.trim(),
@@ -50,7 +57,12 @@ export const useFriendCreate = () => {
       await mutate('friend', 'create', newFriend);
 
       router.push({ pathname: '/(drawer)/transaction/new', params: { friendId: newFriend.id } });
+<<<<<<< HEAD
     } finally {
+=======
+    } finally
+    {
+>>>>>>> 3841eb9 (add file and create the project)
       setLoading(false);
     }
   };

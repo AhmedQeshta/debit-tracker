@@ -12,12 +12,6 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../theme/colors';
 
-if (!publishableKey) {
-  console.warn(
-    'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env',
-  );
-}
-
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
