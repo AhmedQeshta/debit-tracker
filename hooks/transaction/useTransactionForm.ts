@@ -1,14 +1,14 @@
-import { useState } from 'react';
 import { useToast } from '@/contexts/ToastContext';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { generateId, getFinalAmount } from '@/lib/utils';
-import { useTransactionsStore } from '@/store/transactionsStore';
 import { useFriendsStore } from '@/store/friendsStore';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useShallow } from 'zustand/react/shallow';
-import { useForm } from 'react-hook-form';
+import { useTransactionsStore } from '@/store/transactionsStore';
 import { Transaction } from '@/types/models';
 import { ITransactionFormData } from '@/types/transaction';
-import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useShallow } from 'zustand/react/shallow';
 
 export const useTransactionForm = () => {
   const { friendId: initialFriendId } = useLocalSearchParams<{ friendId: string }>();
@@ -50,20 +50,19 @@ export const useTransactionForm = () => {
 
     setLoading(true);
     try {
-      const finalAmount = getFinalAmount(data.amount, data.isNegative);
+      const finalAmount = getFinalAmount(data.amount);
       const newTransaction: Transaction = {
         id: generateId(),
         friendId: data.friendId,
         title: data.title,
         amount: finalAmount,
-        sign: finalAmount < 0 ? 1 : -1, // 1 = add debt (negative amount), -1 = reduce debt (positive amount)
+        sign: data.isNegative ? -1 : 1, // 1 = add debt (negative amount), -1 = reduce debt (positive amount)
         category: data.category,
         date: data.date,
         note: data.note,
         createdAt: Date.now(),
         synced: false,
       };
-
       addTransaction(newTransaction);
       await mutate('transaction', 'create', newTransaction);
       toastSuccess('Transaction added successfully');

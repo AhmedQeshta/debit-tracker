@@ -13,9 +13,9 @@ let currentToken: string | null = null;
 export const setSupabaseToken = (token: string | null): void => {
   currentToken = token;
   if (token) {
-    console.log('[Supabase] Token bound');
+    console.warn(`[Supabase] Token bound (len: ${token.length}, last4: ${token.slice(-4)})`);
   } else {
-    console.log('[Supabase] Token cleared');
+    console.warn('[Supabase] Token cleared');
   }
 };
 
@@ -40,18 +40,18 @@ export const clearSupabaseToken = (): void => {
  */
 const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
   const headers = new Headers(options?.headers);
-  
+
   // Add Authorization header if token exists
   if (currentToken) {
     headers.set('Authorization', `Bearer ${currentToken}`);
   }
-  
+
   // Merge with existing headers
   const fetchOptions: RequestInit = {
     ...options,
     headers,
   };
-  
+
   return fetch(url, fetchOptions);
 };
 
