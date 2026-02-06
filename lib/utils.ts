@@ -1,5 +1,5 @@
 import { Colors } from '@/theme/colors';
-import { Budget, Transaction, Friend } from '@/types/models';
+import { Budget, Friend, Transaction } from '@/types/models';
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) =>
 {
@@ -141,10 +141,11 @@ export const validateFriendName = (name: string): string | null =>
 
 export const generateId = (): string => Math.random().toString(36).substring(2, 15);
 
+export const sortedTransactions = (transactions: Transaction[]) =>
+  [...transactions].sort((a, b) => b.date - a.date);
 
-export const sortedTransactions = (transactions: Transaction[]) => [...transactions].sort((a, b) => b.date - a.date);
-
-export const getFriendName = (friends: Friend[], id: string) => friends.find((f) => f.id === id)?.name || 'Unknown Friend';
+export const getFriendName = (friends: Friend[], id: string) =>
+  friends.find((f) => f.id === id)?.name || 'Unknown Friend';
 
 export const getProgressText = (pullProgress: string | any) =>
 {
@@ -161,4 +162,3 @@ export const getProgressText = (pullProgress: string | any) =>
       return 'Downloading your data...';
   }
 };
-
