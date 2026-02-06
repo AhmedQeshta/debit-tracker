@@ -10,20 +10,23 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-export const useFriendDetail = () =>
-{
+export const useFriendDetail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const friendId = safeId(id);
-  const friend = useFriendsStore((state) => state.friends.find((f) => f.id === friendId && !f.deletedAt));
+  const friend = useFriendsStore((state) =>
+    state.friends.find((f) => f.id === friendId && !f.deletedAt),
+  );
   const { deleteFriend } = useFriendsStore();
   // Get all transactions for display (excluding deleted)
   const transactions = useTransactionsStore(
-    useShallow((state) => state.transactions.filter((t) => t.friendId === friendId && !t.deletedAt)),
+    useShallow((state) =>
+      state.transactions.filter((t) => t.friendId === friendId && !t.deletedAt),
+    ),
   );
   const { deleteTransaction } = useTransactionsStore();
 
-  const { navigateToFriendEdit, navigateBack } = useNavigation();
+  const { navigateToFriendEdit } = useNavigation();
   const { handleFriendPinToggle: togglePin } = useOperations();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
@@ -31,31 +34,26 @@ export const useFriendDetail = () =>
 
   const balance = useMemo(() => getBalance(friendId, transactions), [friendId, transactions]);
 
-  const handleEditFriend = (): void =>
-  {
+  const handleEditFriend = (): void => {
     if (!friendId) return;
     navigateToFriendEdit(friendId);
   };
 
-  const handleDeleteFriend = (): void =>
-  {
+  const handleDeleteFriend = (): void => {
     if (!friend || !friendId) return;
 
     showConfirm(
       'Delete Friend',
       `Are you sure you want to delete "${friend.name}"? This will also delete all associated transactions.`,
-      async () =>
-      {
+      async () => {
         // Delete all transactions for this friend first (get all, including already deleted ones)
         const allFriendTransactions = useTransactionsStore
           .getState()
           .transactions.filter((t) => t.friendId === friendId);
 
-        for (const t of allFriendTransactions)
-        {
+        for (const t of allFriendTransactions) {
           // Only delete if not already marked for deletion
-          if (!t.deletedAt)
-          {
+          if (!t.deletedAt) {
             deleteTransaction(t.id);
           }
         }
@@ -65,54 +63,47 @@ export const useFriendDetail = () =>
         toastSuccess('Friend deleted successfully');
 
         // Trigger sync to push deletions to Supabase
-        try
-        {
+        try {
           await syncNow();
-        } catch (error)
-        {
+        } catch (error) {
           console.error('[Sync] Failed to sync after delete:', error);
         }
 
         router.push('/(drawer)/(tabs)/friends');
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
-  const handleDeleteTransaction = (transactionId: string): void =>
-  {
+  const handleDeleteTransaction = (transactionId: string): void => {
     const transaction = transactions.find((t) => t.id === transactionId);
     if (!transaction) return;
 
     showConfirm(
       'Delete Transaction',
       `Are you sure you want to delete "${transaction.title}"?`,
-      async () =>
-      {
+      async () => {
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(transactionId);
-        toastSuccess('Transaction deleted successfully');
+        // toastSuccess('Transaction deleted successfully');
 
         // Trigger sync to push deletion to Supabase
-        try
-        {
+        try {
           await syncNow();
-        } catch (error)
-        {
+          toastSuccess('Transaction deleted successfully');
+        } catch (error) {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
-  const handleEditTransaction = (transactionId: string): void =>
-  {
+  const handleEditTransaction = (transactionId: string): void => {
     router.push(`/(drawer)/transaction/${transactionId}/edit`);
   };
 
-  const handlePinToggle = (): void =>
-  {
+  const handlePinToggle = (): void => {
     if (!friend) return;
     togglePin(friend);
   };
