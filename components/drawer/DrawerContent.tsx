@@ -5,23 +5,13 @@ import { MAIN_MENU_ITEMS } from '@/lib/menu';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useAuth, useUser } from '@clerk/clerk-expo';
-import
-{
-  Info,
-  LogIn,
-  LogOut,
-  X,
-} from 'lucide-react-native';
+import { Info, LogIn, LogOut, X } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
-export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) =>
-{
+export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) => {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const { handleAuthAction } = useSignOut(closeDrawer)
-
-
+  const { handleAuthAction } = useSignOut(closeDrawer);
 
   return (
     <View style={[styles.drawerContent, { paddingTop: insets.top }]}>
@@ -32,7 +22,10 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.drawerMenu}>
+      <ScrollView
+        style={styles.drawerMenu}
+        contentContainerStyle={{ paddingBottom: Spacing.xl }}
+        showsVerticalScrollIndicator={false}>
         {MAIN_MENU_ITEMS.map((item) => (
           <MenuItemDrawer key={item.path} item={item} isActive={isActive} navigateTo={navigateTo} />
         ))}
@@ -46,7 +39,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
         />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.md) }]}>
         {isSignedIn ? (
           <View style={styles.profileSection}>
             <View style={styles.profileInfo}>

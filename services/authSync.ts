@@ -18,8 +18,7 @@ export type JwtFetchResult = {
  */
 const TOKEN_FETCH_TIMEOUT_MS = 5000;
 
-const withTimeout = <T>(promise: Promise<T>, ms: number = TOKEN_FETCH_TIMEOUT_MS): Promise<T> =>
-{
+const withTimeout = <T>(promise: Promise<T>, ms: number = TOKEN_FETCH_TIMEOUT_MS): Promise<T> => {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -31,8 +30,7 @@ const withTimeout = <T>(promise: Promise<T>, ms: number = TOKEN_FETCH_TIMEOUT_MS
 /**
  * Checks if an error is a Clerk JWT template missing error
  */
-const isTemplateMissingError = (error: any): boolean =>
-{
+const isTemplateMissingError = (error: any): boolean => {
   if (!error) return false;
 
   const errorMessage = error.message || error.toString() || '';
@@ -40,9 +38,9 @@ const isTemplateMissingError = (error: any): boolean =>
 
   return (
     errorStr.includes('no jwt template') ||
-    errorStr.includes('jwt template') && errorStr.includes('not exist') ||
-    errorStr.includes('jwt template') && errorStr.includes('does not exist') ||
-    errorStr.includes('template') && errorStr.includes('not found')
+    (errorStr.includes('jwt template') && errorStr.includes('not exist')) ||
+    (errorStr.includes('jwt template') && errorStr.includes('does not exist')) ||
+    (errorStr.includes('template') && errorStr.includes('not found'))
   );
 };
 
@@ -53,16 +51,13 @@ const isTemplateMissingError = (error: any): boolean =>
  * @param getToken - Clerk's getToken function from useAuth()
  * @returns Result object with token and optional error type
  */
-export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<JwtFetchResult> =>
-{
-  try
-  {
+export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<JwtFetchResult> => {
+  try {
     console.log('[AuthSync] Fetching Supabase JWT from Clerk...');
     // Wrap token fetch with 5s timeout
     const token = await withTimeout(getToken({ template: 'supabase' }), TOKEN_FETCH_TIMEOUT_MS);
 
-    if (!token)
-    {
+    if (!token) {
       console.warn('[AuthSync] Failed to get token: no token returned');
       return { token: null, error: 'other' };
     }
@@ -70,22 +65,19 @@ export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<J
     setSupabaseToken(token);
     console.log('[AuthSync] JWT fetched and bound to Supabase');
     return { token };
-  } catch (error: any)
-  {
+  } catch (error: any) {
     // Check for timeout error
-    if (error?.message?.includes('timeout') || error?.message?.includes('Network timeout'))
-    {
+    if (error?.message?.includes('timeout') || error?.message?.includes('Network timeout')) {
       console.warn('[AuthSync] Token fetch timed out after 5s (likely offline)');
       return { token: null, error: 'timeout' };
     }
 
-    if (isTemplateMissingError(error))
-    {
+    if (isTemplateMissingError(error)) {
       const devMessage =
         "[AuthSync] JWT template 'supabase' not found. " +
-        "Create it in Clerk Dashboard → JWT Templates → Create Template " +
+        'Create it in Clerk Dashboard → JWT Templates → Create Template ' +
         "(name: 'supabase', claims: sub={{user.id}}, email={{user.primary_email_address}}). " +
-        "Make sure the template exists in the same environment (dev/prod) as your app.";
+        'Make sure the template exists in the same environment (dev/prod) as your app.';
       console.error(devMessage);
       return { token: null, error: 'template_missing' };
     }
@@ -102,38 +94,35 @@ export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<J
  * @param error - The error object from a Supabase request
  * @returns true if the error is a JWT expiration/authentication error
  */
-export const isJwtExpiredError = (error: any): boolean =>
-{
+export const isJwtExpiredError = (error: any): boolean => {
   if (!error) return false;
 
   // Check for HTTP status codes (401 Unauthorized, 403 Forbidden)
-  if (error.status === 401 || error.status === 403)
-  {
+  if (error.status === 401 || error.status === 403) {
     return true;
   }
 
   // Check for PGRST303 error code (Supabase PostgREST JWT expired)
-  if (error.code === 'PGRST303')
-  {
+  if (error.code === 'PGRST303') {
     return true;
   }
 
   // Check for "JWT expired" in message
-  if (error.message && typeof error.message === 'string')
-  {
+  if (error.message && typeof error.message === 'string') {
     const msg = error.message.toLowerCase();
-    if (msg.includes('jwt expired') || msg.includes('token expired') || msg.includes('unauthorized'))
-    {
+    if (
+      msg.includes('jwt expired') ||
+      msg.includes('token expired') ||
+      msg.includes('unauthorized')
+    ) {
       return true;
     }
   }
 
   // Check for "JWT expired" in details
-  if (error.details && typeof error.details === 'string')
-  {
+  if (error.details && typeof error.details === 'string') {
     const details = error.details.toLowerCase();
-    if (details.includes('jwt expired') || details.includes('token expired'))
-    {
+    if (details.includes('jwt expired') || details.includes('token expired')) {
       return true;
     }
   }
@@ -152,28 +141,27 @@ export const isJwtExpiredError = (error: any): boolean =>
 export const retryOnceOnJwtExpired = async <T>(
   fn: () => Promise<T>,
   getToken: GetTokenFunction,
-): Promise<T> =>
-{
-  try
-  {
+): Promise<T> => {
+  try {
     return await fn();
-  } catch (error: any)
-  {
-    if (isJwtExpiredError(error))
-    {
-      console.log('[AuthSync] JWT expired, clearing token and refreshing...');
+  } catch (error: any) {
+    if (isJwtExpiredError(error)) {
+      console.warn('[AuthSync] JWT expired, clearing token and refreshing...');
 
       // Clear the expired token before refreshing
       clearSupabaseToken();
 
       const result = await getFreshSupabaseJwt(getToken);
 
-      if (result.token)
-      {
-        console.log('[AuthSync] Token refreshed, retrying operation...');
-        return await fn();
-      } else
-      {
+      if (result.token) {
+        console.warn('[AuthSync] Token refreshed, retrying operation...');
+        try {
+          return await fn();
+        } catch (retryError: any) {
+          console.error('[AuthSync] Retry operation failed:', retryError);
+          throw retryError;
+        }
+      } else {
         console.error('[AuthSync] Failed to refresh token, cannot retry');
         throw error;
       }
@@ -181,4 +169,3 @@ export const retryOnceOnJwtExpired = async <T>(
     throw error;
   }
 };
-

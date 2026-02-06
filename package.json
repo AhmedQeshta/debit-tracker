@@ -11,6 +11,10 @@
     "android:offline": "expo start --android --offline",
     "ios:offline": "expo start --ios --offline",
     "web:offline": "expo start --web --offline",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "expo export",
     "build:android:preview": "eas build --platform android --profile preview",
     "build:android:production": "eas build --platform android --profile production",
     "build:android:local": "eas build --platform android --profile preview --local"

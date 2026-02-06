@@ -1,33 +1,27 @@
-import { View, StyleSheet, TouchableOpacity, ScrollView, Text } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import Header from '@/components/ui/Header';
+import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTransactionForm } from '@/hooks/transaction/useTransactionForm';
+import { CATEGORIES } from '@/lib/data';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useTransactionForm } from '@/hooks/transaction/useTransactionForm';
 import { useRouter } from 'expo-router';
 import { Controller } from 'react-hook-form';
-import { CATEGORIES } from '@/lib/data';
-import Header from '@/components/ui/Header';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function AddTransaction()
-{
-  const {
-    friends,
-    friendId,
-    setFriendId,
-    isNegative,
-    setIsNegative,
-    control,
-    handleSubmit,
-    errors,
-    loading,
-  } = useTransactionForm();
+export default function AddTransaction() {
+  const { friends, friendId, setFriendId, isNegative, control, handleSubmit, errors, loading } =
+    useTransactionForm();
   const router = useRouter();
 
   return (
     <ScreenContainer>
-      <Header openDrawer={() => router.push(`/(drawer)/friend/${friendId}`)} title="Add Transaction" isGoBack={true} />
+      <Header
+        openDrawer={() => router.push(`/(drawer)/friend/${friendId}`)}
+        title="Add Transaction"
+        isGoBack={true}
+      />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.form}>
           <Text style={styles.label}>Select Friend</Text>
@@ -56,18 +50,24 @@ export default function AddTransaction()
 
           <View style={styles.amountHeader}>
             <Text style={styles.label}>Amount</Text>
-            <View style={styles.signToggle}>
-              <TouchableOpacity
-                style={[styles.signButton, !isNegative && styles.signButtonActivePositive]}
-                onPress={() => setIsNegative(false)}>
-                <Text style={styles.signText}>+</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.signButton, isNegative && styles.signButtonActiveNegative]}
-                onPress={() => setIsNegative(true)}>
-                <Text style={styles.signText}>-</Text>
-              </TouchableOpacity>
-            </View>
+            <Controller
+              control={control}
+              name="isNegative"
+              render={({ field: { value, onChange } }) => (
+                <View style={styles.signToggle}>
+                  <TouchableOpacity
+                    style={[styles.signButton, !value && styles.signButtonActivePositive]}
+                    onPress={() => onChange(false)}>
+                    <Text style={styles.signText}>+</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.signButton, value && styles.signButtonActiveNegative]}
+                    onPress={() => onChange(true)}>
+                    <Text style={styles.signText}>-</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
           </View>
 
           <Controller

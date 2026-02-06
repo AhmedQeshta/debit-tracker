@@ -5,10 +5,9 @@ import { useSyncStore } from '@/store/syncStore';
 /**
  * Timeout wrapper for network calls (5 seconds for ensureAppUser)
  */
-const ENSURE_USER_TIMEOUT_MS = 5000;
+const ENSURE_USER_TIMEOUT_MS = 15000;
 
-const withTimeout = <T>(promise: Promise<T>, ms: number = ENSURE_USER_TIMEOUT_MS): Promise<T> =>
-{
+const withTimeout = <T>(promise: Promise<T>, ms: number = ENSURE_USER_TIMEOUT_MS): Promise<T> => {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -28,13 +27,11 @@ const withTimeout = <T>(promise: Promise<T>, ms: number = ENSURE_USER_TIMEOUT_MS
 export const ensureAppUser = async (
   clerkUser: any,
   getToken: GetTokenFunction,
-): Promise<{ ok: boolean; skipped?: boolean; reason?: string; appUser?: { id: string } }> =>
-{
+): Promise<{ ok: boolean; skipped?: boolean; reason?: string; appUser?: { id: string } }> => {
   const { syncEnabled } = useSyncStore.getState();
 
   // STRICT GATING: if sync is disabled, or no token, or no user -> skip
-  if (!syncEnabled || !hasSupabaseToken() || !clerkUser)
-  {
+  if (!syncEnabled || !hasSupabaseToken() || !clerkUser) {
     console.log('[UserService] ensureAppUser skipped:', {
       syncEnabled,
       hasToken: hasSupabaseToken(),
@@ -47,17 +44,14 @@ export const ensureAppUser = async (
     };
   }
 
-  if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder'))
-  {
+  if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
     console.log('[UserService] Sync skipped: Placeholder configuration');
     return { ok: false, skipped: true, reason: 'placeholder_config' };
   }
 
-  try
-  {
+  try {
     // Helper to execute with retry and timeout
-    const executeWithRetry = async <T>(queryFn: () => Promise<T>): Promise<T> =>
-    {
+    const executeWithRetry = async <T>(queryFn: () => Promise<T>): Promise<T> => {
       return withTimeout(retryOnceOnJwtExpired(queryFn, getToken), ENSURE_USER_TIMEOUT_MS);
     };
 
@@ -67,8 +61,7 @@ export const ensureAppUser = async (
         await supabase.from('app_users').select('id').eq('clerk_id', clerkUser.id).maybeSingle(),
     );
 
-    if (queryError && !isJwtExpiredError(queryError))
-    {
+    if (queryError && !isJwtExpiredError(queryError)) {
       console.error('[UserService] Error querying app_users:', queryError);
       throw queryError;
     }
@@ -83,8 +76,7 @@ export const ensureAppUser = async (
 
     // If record exists, include the existing UUID for update
     // IMPORTANT: never use clerkUser.id here
-    if (existing?.id)
-    {
+    if (existing?.id) {
       upsertData.id = existing.id;
     }
 
@@ -93,22 +85,23 @@ export const ensureAppUser = async (
     // Upsert with timeout
     const { data: upserted, error: upsertError } = await executeWithRetry(
       async () =>
-        await supabase.from('app_users').upsert(upsertData, { onConflict: 'clerk_id' }).select().single(),
+        await supabase
+          .from('app_users')
+          .upsert(upsertData, { onConflict: 'clerk_id' })
+          .select()
+          .single(),
     );
 
-    if (upsertError)
-    {
+    if (upsertError) {
       console.error('[UserService] Error ensuring user record:', upsertError);
       // If JWT expired and retry failed, set sync status
-      if (isJwtExpiredError(upsertError))
-      {
+      if (isJwtExpiredError(upsertError)) {
         useSyncStore.getState().setSyncStatus('needs_login');
       }
       throw upsertError;
     }
 
-    if (!upserted || !upserted.id)
-    {
+    if (!upserted || !upserted.id) {
       throw new Error('Failed to create or retrieve app_user record');
     }
 
@@ -120,22 +113,18 @@ export const ensureAppUser = async (
       ok: true,
       appUser: { id: upserted.id },
     };
-  } catch (error: any)
-  {
+  } catch (error: any) {
     // Check for timeout error
-    if (error?.message?.includes('timeout') || error?.message?.includes('Network timeout'))
-    {
+    if (error?.message?.includes('timeout') || error?.message?.includes('Network timeout')) {
       console.warn('[UserService] ensureAppUser timed out after 5s (likely offline)');
       throw new Error('Network timeout. Check your connection and retry.');
     }
 
     console.error('[UserService] ensureAppUser error:', error);
     // If JWT expired and retry failed, set sync status
-    if (isJwtExpiredError(error))
-    {
+    if (isJwtExpiredError(error)) {
       useSyncStore.getState().setSyncStatus('needs_login');
     }
     throw error;
   }
 };
-
