@@ -32,7 +32,6 @@ export const hasSupabaseToken = (): boolean => {
  */
 export const clearSupabaseToken = (): void => {
   currentToken = null;
-  console.log('[Supabase] Token cleared');
 };
 
 /**

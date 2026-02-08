@@ -33,7 +33,6 @@ export const SyncInitializer = () => {
 
   // Helper to clear all local data
   const clearAllLocalData = useCallback(() => {
-    console.log('[Sync] Clearing all local data for user switch');
     useFriendsStore.getState().setFriends([]);
     useTransactionsStore.getState().setTransactions([]);
     useBudgetStore.getState().setBudgets([]);
@@ -50,7 +49,6 @@ export const SyncInitializer = () => {
 
     // User switched (different user logged in)
     if (previousUserId !== null && currentUserId !== null && previousUserId !== currentUserId) {
-      console.log('[Sync] User switch detected, clearing local data');
       clearSupabaseToken();
       tokenBoundRef.current = false;
       useSyncStore.getState().setCloudUserId(null);
@@ -62,7 +60,6 @@ export const SyncInitializer = () => {
 
     // User logged out
     if (previousUserId !== null && currentUserId === null) {
-      console.log('[Sync] User logged out, clearing local data');
       clearSupabaseToken();
       tokenBoundRef.current = false;
       useSyncStore.getState().setCloudUserId(null);
@@ -81,7 +78,6 @@ export const SyncInitializer = () => {
 
     // Auto-enable sync when conditions are met (only once per session)
     if (isSignedIn && isOnline && !syncAutoEnabledRef.current && !syncEnabled) {
-      console.log('[Sync] Auto-enabling sync (online + logged in)');
       setSyncEnabled(true);
       syncAutoEnabledRef.current = true;
     }
@@ -90,7 +86,7 @@ export const SyncInitializer = () => {
     if (!isSignedIn || !isOnline) {
       syncAutoEnabledRef.current = false;
     }
-  }, [isLoaded, isSignedIn, syncEnabled, setSyncEnabled]);
+  }, [isLoaded, isSignedIn, syncEnabled, setSyncEnabled, isOnline]);
 
   // Clear token and cloudUserId when logged out or sync disabled
   useEffect(() => {
@@ -132,7 +128,6 @@ export const SyncInitializer = () => {
         if (isOnline) {
           try {
             await ensureAppUser(user, getToken);
-            // if (result.ok) console.log('[Sync] App user ensured');
           } catch (e) {
             console.error('[Sync] Failed to ensure app user:', e);
           }
@@ -197,13 +192,21 @@ export const SyncInitializer = () => {
       // Check if this is a new device
       if (isNewDevice) {
         // isNewDevice is updated from hook
-        console.log('[Sync] New device detected, pulling all data...');
         pullAllDataForNewDevice();
       } else {
         syncNow();
       }
     }
-  }, [syncEnabled, isSignedIn, userId, isLoaded, isNewDevice, pullAllDataForNewDevice, syncNow]);
+  }, [
+    syncEnabled,
+    isSignedIn,
+    userId,
+    isLoaded,
+    isOnline,
+    isNewDevice,
+    pullAllDataForNewDevice,
+    syncNow,
+  ]);
 
   return null;
 };
