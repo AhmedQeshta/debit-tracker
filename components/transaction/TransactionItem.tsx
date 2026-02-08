@@ -1,27 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Actions } from '@/components/ui/Actions';
+import { getBalanceText, getBalanceWithSign } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Trash2, Pencil } from 'lucide-react-native';
 import { ITransactionItemProps } from '@/types/transaction';
-import { getBalanceText } from '@/lib/utils';
-import { Actions } from '@/components/ui/Actions';
+import { Pencil, Trash2 } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITransactionItemProps) =>
-{
+export const TransactionItem = ({
+  transaction,
+  currency,
+  onDelete,
+  onEdit,
+}: ITransactionItemProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const menuItems = [];
-  if (onEdit)
-  {
+  if (onEdit) {
     menuItems.push({
       icon: <Pencil size={18} color={Colors.text} />,
       label: 'Edit Transaction',
       onPress: () => onEdit(transaction.id),
     });
   }
-  if (onDelete)
-  {
+  if (onDelete) {
     menuItems.push({
       icon: <Trash2 size={18} color={Colors.error} />,
       label: 'Delete Transaction',
@@ -30,6 +32,8 @@ export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITr
     });
   }
 
+  const balance = getBalanceWithSign(transaction.amount, transaction.sign);
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -37,8 +41,8 @@ export const TransactionItem = ({ transaction, currency, onDelete, onEdit }: ITr
         <Text style={styles.date}>{new Date(transaction.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={styles.rightSide}>
-        <Text style={[styles.amount, transaction.amount < 0 ? styles.negative : styles.positive]}>
-          {getBalanceText(transaction.amount, currency)}
+        <Text style={[styles.amount, balance < 0 ? styles.negative : styles.positive]}>
+          {getBalanceText(balance, currency)}
         </Text>
         {!transaction.synced && <Text style={styles.syncStatus}>Pending Sync</Text>}
       </View>
