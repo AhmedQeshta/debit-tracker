@@ -8,8 +8,12 @@ export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
 export const getBalance = (friendId: string, allTransactions: Transaction[]) => {
   return allTransactions
     .filter((t) => t.friendId === friendId)
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + getBalanceWithSign(t.amount,t.sign), 0);
 };
+
+export const getBalanceWithSign = (amount:number,sign:number) =>{
+  return amount * sign;
+}
 
 export const filterFriends = (friends: Friend[], search: string) => {
   return friends.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()));

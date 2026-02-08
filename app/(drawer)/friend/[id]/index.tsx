@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { TransactionItem } from '@/components/transaction/TransactionItem';
-import { Button } from '@/components/ui/Button';
 import { Actions } from '@/components/ui/Actions';
+import { Button } from '@/components/ui/Button';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Pencil, Trash2, Pin, PinOff } from 'lucide-react-native';
+import { Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
-import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 import { EmptySection } from '@/components/ui/EmptySection';
 import Header from '@/components/ui/Header';
+import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
+import { getBalanceStatus, getBalanceText } from '@/lib/utils';
 
 export default function FriendDetails()
 {
@@ -31,8 +31,7 @@ export default function FriendDetails()
   const insets = useSafeAreaInsets();
   const [friendMenuVisible, setFriendMenuVisible] = useState(false);
 
-  if (!friend)
-  {
+  if (!friend){
     return (
       <EmptySection
         title={'Friend Not Found'}

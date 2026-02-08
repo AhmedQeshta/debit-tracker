@@ -1,3 +1,4 @@
+import { SyncInitializer } from '@/components/sync/SyncInitializer';
 import { useAppBootstrap } from '@/hooks/app/useAppBootstrap';
 
 // Re-export types and functions from authSync service for backward compatibility
@@ -6,13 +7,13 @@ export type { GetTokenFunction } from '@/services/authSync';
 
 /**
  * AppBootstrap component that orchestrates:
- * - Store hydration
- * - Splash screen management
- * - Network monitoring
- * - Background sync
+ * - Splash screen management (via hook)
+ * - Sync initialization (via component)
  */
-export function AppBootstrap()
-{
+export function AppBootstrap() {
+  // Handle splash screen hiding
   useAppBootstrap();
-  return null;
+
+  // Render sync initializer (logic-only component)
+  return <SyncInitializer />;
 }
