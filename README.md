@@ -76,7 +76,17 @@
      - `email`: `{{user.primary_email_address}}` (optional)
    - Save the template
 
-5. Set up Supabase Database:
+5. Configure Google OAuth Redirect URI in Clerk:
+   - Go to your Clerk Dashboard → User & Authentication → Social Connections → Google
+   - Ensure Google OAuth is enabled
+   - In the **Redirect URLs** section, add the following redirect URIs:
+     - For **Production Builds**: `debit-tracker://`
+     - For **Development (Expo Go)**: Check the console logs when running the app - it will show the generated redirect URI (typically `exp://` format)
+   - **Important**: The redirect URI must match exactly what the app sends. The app logs the redirect URI being used in the console for debugging.
+   - Save the configuration
+   - **Note**: Development keys in Google OAuth Console don't restrict redirect URIs, but the redirect URI must still be properly configured in Clerk Dashboard for the OAuth flow to complete successfully.
+
+6. Set up Supabase Database:
    - Run the migration file: `supabase/migrations/001_create_app_users_and_fix_schema.sql`
    - This creates the `app_users`, `friends`, `transactions`, `budgets`, and `budget_items` tables
    - Enables Row Level Security (RLS) with policies based on `app_users.clerk_id`
