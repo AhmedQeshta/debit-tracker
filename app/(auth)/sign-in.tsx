@@ -104,10 +104,6 @@ export default function SignInScreen() {
                 </Text>
               </TouchableOpacity>
             )}
-
-            <TouchableOpacity onPress={resetVerification} style={styles.linkContainer}>
-              <Text style={styles.linkText}>Back to sign in</Text>
-            </TouchableOpacity>
           </>
         ) : (
           <>
