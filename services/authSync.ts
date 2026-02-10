@@ -53,7 +53,6 @@ const isTemplateMissingError = (error: any): boolean => {
  */
 export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<JwtFetchResult> => {
   try {
-    console.log('[AuthSync] Fetching Supabase JWT from Clerk...');
     // Wrap token fetch with 5s timeout
     const token = await withTimeout(getToken({ template: 'supabase' }), TOKEN_FETCH_TIMEOUT_MS);
 
@@ -63,7 +62,6 @@ export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<J
     }
 
     setSupabaseToken(token);
-    console.log('[AuthSync] JWT fetched and bound to Supabase');
     return { token };
   } catch (error: any) {
     // Check for timeout error

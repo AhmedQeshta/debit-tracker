@@ -32,11 +32,6 @@ export const ensureAppUser = async (
 
   // STRICT GATING: if sync is disabled, or no token, or no user -> skip
   if (!syncEnabled || !hasSupabaseToken() || !clerkUser) {
-    console.log('[UserService] ensureAppUser skipped:', {
-      syncEnabled,
-      hasToken: hasSupabaseToken(),
-      hasUser: !!clerkUser,
-    });
     return {
       ok: false,
       skipped: true,
@@ -45,7 +40,6 @@ export const ensureAppUser = async (
   }
 
   if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
-    console.log('[UserService] Sync skipped: Placeholder configuration');
     return { ok: false, skipped: true, reason: 'placeholder_config' };
   }
 
@@ -80,8 +74,6 @@ export const ensureAppUser = async (
       upsertData.id = existing.id;
     }
 
-    console.log('[UserService] ensureAppUser payload:', upsertData);
-
     // Upsert with timeout
     const { data: upserted, error: upsertError } = await executeWithRetry(
       async () =>
@@ -107,7 +99,6 @@ export const ensureAppUser = async (
 
     // Store cloudUserId in syncStore
     useSyncStore.getState().setCloudUserId(upserted.id);
-    console.log('[UserService] app_user ensured, cloudUserId stored:', upserted.id);
 
     return {
       ok: true,

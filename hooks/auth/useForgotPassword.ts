@@ -1,7 +1,7 @@
-import { useSignIn, useAuth } from '@clerk/clerk-expo';
+import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
+import { useAuth, useSignIn } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { formatClerkError, checkOfflineAndThrow } from '@/lib/clerkUtils';
 
 export const useForgotPassword = () => {
   const { signIn, setActive, isLoaded: signInLoaded } = useSignIn();
@@ -50,8 +50,20 @@ export const useForgotPassword = () => {
       // Create sign-in attempt with email (for password reset)
       await signIn.create({ identifier: email });
 
+      const resetFactor = signIn.supportedFirstFactors?.find(
+        (factor) => factor.strategy === 'reset_password_email_code',
+      );
+
+      if (!resetFactor || !('emailAddressId' in resetFactor)) {
+        setError('Unable to start password reset. Please try again.');
+        return;
+      }
+
       // Prepare first factor with reset password email code strategy
-      await signIn.prepareFirstFactor({ strategy: 'reset_password_email_code' });
+      await signIn.prepareFirstFactor({
+        strategy: 'reset_password_email_code',
+        emailAddressId: resetFactor.emailAddressId,
+      });
 
       setStep('code');
     } catch (err: any) {

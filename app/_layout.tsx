@@ -33,8 +33,6 @@ const STACK_OPTIONS = {
 };
 
 export default function RootLayout() {
-  // useSplash();
-
   if (!publishableKey) {
     return (
       <ErrorScreen

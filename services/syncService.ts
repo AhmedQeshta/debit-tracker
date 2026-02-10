@@ -30,28 +30,17 @@ const withTimeout = <T>(promise: Promise<T>, ms: number = SYNC_TIMEOUT_MS): Prom
 export const syncService = {
   pushChanges: async (getToken: GetTokenFunction, clerkUserId: string) => {
     // Sync gating: if sync is disabled, don't write to Supabase
-    if (!useSyncStore.getState().syncEnabled) {
-      console.log('[Sync] pushChanges skipped: sync disabled');
+    if (
+      !useSyncStore.getState().syncEnabled ||
+      !hasSupabaseToken() ||
+      process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')
+    )
       return;
-    }
-
-    // Token validation: if sync is enabled, token is required
-    if (!hasSupabaseToken()) {
-      console.log('[Sync] pushChanges skipped: no token');
-      return; // Return silently, don't throw
-    }
-
-    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
-      console.log('[Sync] Sync skipped: Placeholder configuration');
-      return;
-    }
 
     // Get cloudUserId from store (UUID for owner_id FK)
     const { cloudUserId } = useSyncStore.getState();
-    if (!cloudUserId) {
-      console.log('[Sync] pushChanges skipped: no cloudUserId (user not ensured)');
-      return; // Return silently
-    }
+
+    if (!cloudUserId) return;
 
     // Get all dirty items from stores (excludes deleted items)
     const dirtyFriends = useFriendsStore.getState().getDirtyFriends();
@@ -79,13 +68,8 @@ export const syncService = {
 
     // If no dirty items AND no deletions, nothing to sync
     if (totalDirty === 0 && totalDeleted === 0) {
-      console.log('[Sync] No dirty items or deletions to push');
       return;
     }
-
-    console.log(
-      `[Sync] Starting push: ${dirtyFriends.length} friends, ${dirtyTransactions.length} transactions, ${dirtyBudgets.length} budgets, ${dirtyBudgetItems.length} items`,
-    );
 
     // Helper to execute upsert with retry
     const executeUpsert = async (table: string, data: any[]) => {
@@ -112,20 +96,13 @@ export const syncService = {
       }
     };
 
-    let friendsSynced = 0;
-    let transactionsSynced = 0;
-    let budgetsSynced = 0;
-    let itemsSynced = 0;
-
     try {
       // A) Push Friends first
       if (dirtyFriends.length > 0) {
         const friendsData = dirtyFriends.map((f) => mapFriendToDb(f, cloudUserId, clerkUserId));
         const result = await executeUpsert('friends', friendsData);
         if (result.success) {
-          friendsSynced = result.count;
           dirtyFriends.forEach((f) => useFriendsStore.getState().markAsSynced(f.id));
-          console.log(`[Sync] Pushed ${friendsSynced} friends: success`);
         } else {
           console.error(`[Sync] Failed to push friends:`, result.error);
           throw result.error;
@@ -139,9 +116,7 @@ export const syncService = {
         );
         const result = await executeUpsert('transactions', transactionsData);
         if (result.success) {
-          transactionsSynced = result.count;
           dirtyTransactions.forEach((t) => useTransactionsStore.getState().markAsSynced(t.id));
-          console.log(`[Sync] Pushed ${transactionsSynced} transactions: success`);
         } else {
           console.error(`[Sync] Failed to push transactions:`, result.error);
           throw result.error;
@@ -153,9 +128,7 @@ export const syncService = {
         const budgetsData = dirtyBudgets.map((b) => mapBudgetToDb(b, cloudUserId, clerkUserId));
         const result = await executeUpsert('budgets', budgetsData);
         if (result.success) {
-          budgetsSynced = result.count;
           dirtyBudgets.forEach((b) => useBudgetStore.getState().markAsSynced(b.id));
-          console.log(`[Sync] Pushed ${budgetsSynced} budgets: success`);
         } else {
           console.error(`[Sync] Failed to push budgets:`, result.error);
           throw result.error;
@@ -169,32 +142,16 @@ export const syncService = {
         );
         const result = await executeUpsert('budget_items', itemsData);
         if (result.success) {
-          itemsSynced = result.count;
-          // Mark items as synced (without marking budget dirty)
           dirtyBudgetItems.forEach((item) => {
             useBudgetStore.getState().markItemAsSynced(item.budgetId, item.id);
           });
-          console.log(`[Sync] Pushed ${itemsSynced} budget items: success`);
         } else {
           console.error(`[Sync] Failed to push budget items:`, result.error);
           throw result.error;
         }
       }
 
-      // E) Handle deletions (children first, then parents)
-      // Note: deleted items are already fetched above, reusing them here
-
-      // Initialize deletion counters (used in final log regardless of whether deletions occurred)
-      let budgetItemsDeleted = 0;
-      let transactionsDeleted = 0;
-      let budgetsDeleted = 0;
-      let friendsDeleted = 0;
-
       if (totalDeleted > 0) {
-        console.log(
-          `[Sync] Processing deletions: ${deletedBudgetItems.length} budget items, ${deletedTransactions.length} transactions, ${deletedBudgets.length} budgets, ${deletedFriends.length} friends`,
-        );
-
         // Helper to execute delete with retry
         const executeDelete = async (table: string, ids: string[]) => {
           if (ids.length === 0) return { success: true, count: 0 };
@@ -234,12 +191,9 @@ export const syncService = {
             const itemIds = deletedBudgetItems.map((item) => item.id);
             const result = await executeDelete('budget_items', itemIds);
             if (result.success) {
-              budgetItemsDeleted = result.count;
-              // Remove from store after successful deletion
               deletedBudgetItems.forEach((item) =>
                 useBudgetStore.getState().removeDeletedBudgetItem(item.budgetId, item.id),
               );
-              console.log(`[Sync] Deleted ${budgetItemsDeleted} budget items: success`);
             } else {
               console.error(`[Sync] Failed to delete budget items:`, result.error);
               // Keep in store for retry
@@ -251,12 +205,9 @@ export const syncService = {
             const transactionIds = deletedTransactions.map((t) => t.id);
             const result = await executeDelete('transactions', transactionIds);
             if (result.success) {
-              transactionsDeleted = result.count;
-              // Remove from store after successful deletion
               deletedTransactions.forEach((t) =>
                 useTransactionsStore.getState().removeDeletedTransaction(t.id),
               );
-              console.log(`[Sync] Deleted ${transactionsDeleted} transactions: success`);
             } else {
               console.error(`[Sync] Failed to delete transactions:`, result.error);
               // Keep in store for retry
@@ -268,10 +219,7 @@ export const syncService = {
             const budgetIds = deletedBudgets.map((b) => b.id);
             const result = await executeDelete('budgets', budgetIds);
             if (result.success) {
-              budgetsDeleted = result.count;
-              // Remove from store after successful deletion
               deletedBudgets.forEach((b) => useBudgetStore.getState().removeDeletedBudget(b.id));
-              console.log(`[Sync] Deleted ${budgetsDeleted} budgets: success`);
             } else {
               console.error(`[Sync] Failed to delete budgets:`, result.error);
               // Keep in store for retry
@@ -283,10 +231,7 @@ export const syncService = {
             const friendIds = deletedFriends.map((f) => f.id);
             const result = await executeDelete('friends', friendIds);
             if (result.success) {
-              friendsDeleted = result.count;
-              // Remove from store after successful deletion
               deletedFriends.forEach((f) => useFriendsStore.getState().removeDeletedFriend(f.id));
-              console.log(`[Sync] Deleted ${friendsDeleted} friends: success`);
             } else {
               console.error(`[Sync] Failed to delete friends:`, result.error);
               // Keep in store for retry
@@ -297,14 +242,8 @@ export const syncService = {
           if (isJwtExpiredError(e)) {
             useSyncStore.getState().setSyncStatus('needs_login');
           }
-          // Don't throw - allow upserts to complete even if deletions fail
-          // Deletions will retry on next sync
         }
       }
-
-      console.log(
-        `[Sync] Push complete: ${friendsSynced}/${dirtyFriends.length} friends, ${transactionsSynced}/${dirtyTransactions.length} transactions, ${budgetsSynced}/${dirtyBudgets.length} budgets, ${itemsSynced}/${dirtyBudgetItems.length} items synced. Deletions: ${budgetItemsDeleted} items, ${transactionsDeleted} transactions, ${budgetsDeleted} budgets, ${friendsDeleted} friends`,
-      );
     } catch (e: any) {
       console.error('[Sync] Push failed:', e);
       if (isJwtExpiredError(e)) {
@@ -318,22 +257,13 @@ export const syncService = {
     const { syncEnabled } = useSyncStore.getState();
 
     // Sync gating: if sync is disabled, don't read from Supabase
-    if (!syncEnabled) {
-      console.log('[Sync] pullChanges skipped: sync disabled');
-      return;
-    }
+    if (!syncEnabled || process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) return;
 
     // Token validation: if sync is enabled, token is required
     if (!hasSupabaseToken()) {
-      console.log('[Sync] pullChanges skipped: no token');
       throw new Error(
         'Sync is enabled but no authentication token available. Cannot sync without authentication.',
       );
-    }
-
-    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
-      console.log('[Sync] Sync skipped: Placeholder configuration');
-      return;
     }
 
     // Helper to execute a pull request with retry logic
@@ -455,16 +385,7 @@ export const syncService = {
     const { syncEnabled } = useSyncStore.getState();
 
     // Sync gating: if sync is disabled, don't sync
-    if (!syncEnabled) {
-      console.log('[Sync] syncAll skipped: sync disabled');
-      return;
-    }
-
-    // Token validation: if sync is enabled, token is required
-    if (!hasSupabaseToken()) {
-      console.log('[Sync] syncAll skipped: no token');
-      return; // Return silently
-    }
+    if (!syncEnabled || !hasSupabaseToken()) return;
 
     try {
       // Pull first, then push (as per requirements)
@@ -564,8 +485,11 @@ export const syncService = {
     const { syncEnabled } = useSyncStore.getState();
 
     // Gate: if sync disabled -> return silently
-    if (!syncEnabled) {
-      console.log('[Sync] pullAllDataForUser skipped: sync disabled');
+    if (
+      !syncEnabled ||
+      !hasSupabaseToken() ||
+      process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')
+    )
       return {
         friends: [],
         transactions: [],
@@ -573,36 +497,11 @@ export const syncService = {
         budgetItems: [],
         counts: { friends: 0, transactions: 0, budgets: 0, budgetItems: 0 },
       };
-    }
-
-    // Gate: if no token -> return silently
-    if (!hasSupabaseToken()) {
-      console.log('[Sync] pullAllDataForUser skipped: no token');
-      return {
-        friends: [],
-        transactions: [],
-        budgets: [],
-        budgetItems: [],
-        counts: { friends: 0, transactions: 0, budgets: 0, budgetItems: 0 },
-      };
-    }
-
-    if (process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) {
-      console.log('[Sync] pullAllDataForUser skipped: Placeholder configuration');
-      return {
-        friends: [],
-        transactions: [],
-        budgets: [],
-        budgetItems: [],
-        counts: { friends: 0, transactions: 0, budgets: 0, budgetItems: 0 },
-      };
-    }
 
     // Ensure token is fresh (refresh if needed)
     try {
       const tokenResult = await getFreshSupabaseJwt(getToken);
       if (!tokenResult.token && tokenResult.error !== 'template_missing') {
-        console.log('[Sync] pullAllDataForUser skipped: failed to get token');
         return {
           friends: [],
           transactions: [],
@@ -778,28 +677,23 @@ export const syncService = {
 // Helper to safely convert timestamp to ISO string
 // Returns current date ISO string if timestamp is invalid
 const safeTimestampToISO = (timestamp: number | undefined | null): string => {
-  if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) {
-    return new Date().toISOString();
-  }
+  if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) return new Date().toISOString();
+
   const date = new Date(timestamp);
   // Check if date is valid
-  if (isNaN(date.getTime())) {
-    return new Date().toISOString();
-  }
+  if (isNaN(date.getTime())) return new Date().toISOString();
+
   return date.toISOString();
 };
 
 // Helper to safely convert ISO string or timestamp to number (milliseconds)
 // Returns current timestamp if date is invalid
 const safeDateToTimestamp = (dateValue: string | null | undefined): number => {
-  if (!dateValue) {
-    return Date.now();
-  }
+  if (!dateValue) return Date.now();
+
   const date = new Date(dateValue);
   // Check if date is valid
-  if (isNaN(date.getTime())) {
-    return Date.now();
-  }
+  if (isNaN(date.getTime())) return Date.now();
   return date.getTime();
 };
 

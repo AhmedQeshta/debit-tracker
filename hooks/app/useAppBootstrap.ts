@@ -20,7 +20,6 @@ export const useAppBootstrap = () => {
         hasHiddenSplashRef.current = true;
         try {
           await SplashScreen.hideAsync();
-          console.log('[Startup] Splash hidden');
         } catch (e) {
           console.warn('[Startup] Failed to hide splash:', e);
         }

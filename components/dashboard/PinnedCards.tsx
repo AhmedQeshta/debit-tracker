@@ -1,12 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { IPinnedCardsProps } from '@/types/common';
+import { useRouter, type Href } from 'expo-router';
 import { Pin, PinOff } from 'lucide-react-native';
 import React from 'react';
-import { useRouter } from 'expo-router';
-import { IPinnedCardsProps } from '@/types/common';
-
-
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const PinnedCards = ({
   title,
@@ -18,13 +16,10 @@ export const PinnedCards = ({
   formatAmount,
   getNavigationPath,
   onUnpin,
-
-}: IPinnedCardsProps) =>
-{
+}: IPinnedCardsProps) => {
   const router = useRouter();
 
-  if (count === 0)
-  {
+  if (count === 0) {
     return null;
   }
 
@@ -32,30 +27,27 @@ export const PinnedCards = ({
     <View style={styles.pinnedSection}>
       <View style={styles.sectionHeader}>
         <Pin size={18} color={Colors.primary} fill={Colors.primary} />
-        <Text style={styles.sectionTitle}>{title} ({count})</Text>
+        <Text style={styles.sectionTitle}>
+          {title} ({count})
+        </Text>
       </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.pinnedList}>
-        {items.map((item) =>
-        {
+        {items.map((item) => {
           const amount = getAmount(item);
           return (
             <View key={item.id} style={styles.cardWrapper}>
               <TouchableOpacity
                 style={styles.card}
-                onPress={() => router.push(getNavigationPath(item))}
+                onPress={() => router.push(getNavigationPath(item) as unknown as Href)}
                 activeOpacity={0.7}>
                 <View style={styles.avatar}>{renderAvatar(item)}</View>
                 <Text style={styles.itemTitle} numberOfLines={1}>
                   {getTitle(item)}
                 </Text>
-                <Text
-                  style={[
-                    styles.amount,
-                    amount < 0 ? styles.negative : styles.positive,
-                  ]}>
+                <Text style={[styles.amount, amount < 0 ? styles.negative : styles.positive]}>
                   {formatAmount(Math.abs(amount), item)}
                 </Text>
               </TouchableOpacity>
