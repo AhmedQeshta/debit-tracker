@@ -1,13 +1,13 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { X } from 'lucide-react-native';
-import { Controller } from 'react-hook-form';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { OAuthButtons } from '@/components/auth/OAuthButtons';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useSignInScreen } from '@/hooks/auth/useSignInScreen';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { OAuthButtons } from '@/components/auth/OAuthButtons';
-import { useSignInScreen } from '@/hooks/auth/useSignInScreen';
+import { X } from 'lucide-react-native';
+import { Controller } from 'react-hook-form';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SignInScreen() {
   const {
@@ -22,6 +22,8 @@ export default function SignInScreen() {
     needsFirstFactor,
     needsSecondFactor,
     resetVerification,
+    onResendSecondFactorCode,
+    canResendSecondFactor,
     router,
   } = useSignInScreen();
 
@@ -82,15 +84,28 @@ export default function SignInScreen() {
               <Button
                 title={loading ? 'Verifying...' : 'Verify Code'}
                 onPress={handleSubmit(
-                  needsFirstFactor ? onVerifyFirstFactor : onVerifySecondFactor
+                  needsFirstFactor ? onVerifyFirstFactor : onVerifySecondFactor,
                 )}
                 disabled={loading}
               />
             </View>
 
-            <TouchableOpacity
-              onPress={resetVerification}
-              style={styles.linkContainer}>
+            {needsSecondFactor && (
+              <TouchableOpacity
+                onPress={onResendSecondFactorCode}
+                disabled={loading || !canResendSecondFactor}
+                style={styles.linkContainer}>
+                <Text
+                  style={[
+                    styles.linkText,
+                    (loading || !canResendSecondFactor) && styles.linkTextDisabled,
+                  ]}>
+                  {loading ? 'Sending...' : 'Resend code'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity onPress={resetVerification} style={styles.linkContainer}>
               <Text style={styles.linkText}>Back to sign in</Text>
             </TouchableOpacity>
           </>
@@ -219,4 +234,3 @@ const styles = StyleSheet.create({
     height: 32,
   },
 });
-

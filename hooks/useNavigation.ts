@@ -13,7 +13,7 @@ export const useNavigation = () => {
   };
 
   const navigateToBudgetList = (): void => {
-    router.replace('/(drawer)/budget');
+    router.replace('/(drawer)/(tabs)/budget');
   };
 
   // Friend navigation methods
