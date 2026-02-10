@@ -1,6 +1,15 @@
-import { SyncQueueItem, Transaction, Friend, Budget } from '@/types/models';
+import { Budget, BudgetItem, Friend, SyncQueueItem, Transaction } from '@/types/models';
 
-export type SyncStatus = 'idle' | 'checking' | 'pulling' | 'pushing' | 'success' | 'needs_config' | 'needs_login' | 'error' | null;
+export type SyncStatus =
+  | 'idle'
+  | 'checking'
+  | 'pulling'
+  | 'pushing'
+  | 'success'
+  | 'needs_config'
+  | 'needs_login'
+  | 'error'
+  | null;
 
 export interface DeviceSyncState {
   hasHydratedFromCloud: boolean;
@@ -77,8 +86,6 @@ export interface IFriendsState {
   getDeletedFriends: () => Friend[];
   removeDeletedFriend: (id: string) => void;
 }
-
-import { BudgetItem } from '@/types/models';
 
 export interface IBudgetState {
   budgets: Budget[];

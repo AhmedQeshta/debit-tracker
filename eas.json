@@ -16,11 +16,7 @@
       }
     },
     "production": {
-      "autoIncrement": true,
-      "android": {
-        "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
-      }
+      "autoIncrement": true
     }
   },
   "submit": {
