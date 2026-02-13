@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export const useCloudSync = () => {
   const { syncEnabled, setSyncEnabled, isSyncing, setSyncing, lastSync } = useSyncStore();
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
   const retryAttemptsRef = useRef(0);
 
   // Monitor network status (passive listener - ok to keep here for state update)
@@ -40,8 +40,9 @@ export const useCloudSync = () => {
 
   // Pull all data
   const pullAllDataForNewDevice = useCallback(
-    async (isRetry: boolean = false) => {
+    async (isRetry: boolean = false, options?: { blocking?: boolean }) => {
       const { isSyncRunning, cloudUserId } = useSyncStore.getState();
+      const isBlocking = options?.blocking ?? true;
 
       if (isSyncRunning || !cloudUserId) return;
 
@@ -50,7 +51,9 @@ export const useCloudSync = () => {
       }
 
       useSyncStore.getState().setIsSyncRunning(true);
-      useSyncStore.getState().setSyncStatus('pulling');
+      if (isBlocking) {
+        useSyncStore.getState().setSyncStatus('pulling');
+      }
 
       try {
         const result = await syncService.pullAllDataForUser(cloudUserId, getToken);
@@ -68,7 +71,14 @@ export const useCloudSync = () => {
         }
       } catch (error: any) {
         console.error('[Sync] Pull failed:', error);
-        useSyncStore.getState().setSyncStatus('error');
+        useSyncStore.getState().setLastError({
+          message: error?.message || 'Pull failed',
+          at: Date.now(),
+        });
+
+        if (isBlocking) {
+          useSyncStore.getState().setSyncStatus('error');
+        }
       } finally {
         useSyncStore.getState().setIsSyncRunning(false);
         useSyncStore.getState().setPullProgress(undefined);

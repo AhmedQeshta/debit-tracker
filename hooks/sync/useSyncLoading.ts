@@ -1,31 +1,21 @@
-import { useSyncStore } from '@/store/syncStore';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
-import { useState } from 'react';
+import { useSyncStore } from '@/store/syncStore';
 
-export const useSyncLoading = () =>
-{
+export const useSyncLoading = () => {
   const { syncStatus, pullProgress, lastError } = useSyncStore();
   const { pullAllDataForNewDevice, isOnline } = useCloudSync();
-  const [showContinueOffline, setShowContinueOffline] = useState(false);
 
   // Show overlay when pulling data for new device
   const isPulling = syncStatus === 'pulling';
   const hasError = syncStatus === 'error' && lastError;
 
-
-
-
-  const handleRetry = () =>
-  {
-    setShowContinueOffline(false);
+  const handleRetry = () => {
     useSyncStore.getState().setLastError(null);
     useSyncStore.getState().setSyncStatus('pulling');
-    pullAllDataForNewDevice(true); // Pass true to indicate manual retry
+    pullAllDataForNewDevice(true, { blocking: true }); // Pass true to indicate manual retry
   };
 
-  const handleContinueOffline = () =>
-  {
-    setShowContinueOffline(false);
+  const handleContinueOffline = () => {
     useSyncStore.getState().setHasHydratedFromCloud(true); // Mark as hydrated to prevent retry loop
     useSyncStore.getState().setSyncStatus(null);
     useSyncStore.getState().setLastError(null);
@@ -38,6 +28,6 @@ export const useSyncLoading = () =>
     handleRetry,
     handleContinueOffline,
     isPulling,
-    pullProgress
-  }
-}
+    pullProgress,
+  };
+};
