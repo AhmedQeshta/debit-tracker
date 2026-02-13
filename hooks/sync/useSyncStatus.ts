@@ -1,32 +1,33 @@
-import { useSyncStore } from '@/store/syncStore';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncStore } from '@/store/syncStore';
 
-export const useSyncStatus = () =>
-{
-
-  const { lastSync, isSyncing, syncEnabled, setSyncEnabled, syncStatus, lastError, network, pullProgress } = useSyncStore();
+export const useSyncStatus = () => {
+  const {
+    lastSync,
+    isSyncing,
+    syncEnabled,
+    setSyncEnabled,
+    syncStatus,
+    lastError,
+    network,
+    pullProgress,
+  } = useSyncStore();
   const { isOnline, isLoggedIn, syncNow, pullAllDataForNewDevice, isNewDevice } = useCloudSync();
 
-  const handleSync = () =>
-  {
-    if (isNewDevice)
-    {
-      pullAllDataForNewDevice();
-    } else
-    {
+  const handleSync = () => {
+    if (isNewDevice) {
+      pullAllDataForNewDevice(false, { blocking: true });
+    } else {
       syncNow();
     }
   };
 
-  const handleRetry = () =>
-  {
+  const handleRetry = () => {
     useSyncStore.getState().setLastError(null);
     useSyncStore.getState().setSyncStatus(null);
-    if (isNewDevice)
-    {
-      pullAllDataForNewDevice(true); // Pass true to indicate manual retry
-    } else
-    {
+    if (isNewDevice) {
+      pullAllDataForNewDevice(true, { blocking: true }); // Pass true to indicate manual retry
+    } else {
       syncNow();
     }
   };
@@ -47,6 +48,6 @@ export const useSyncStatus = () =>
     lastError,
     isTimeoutError,
     lastSync,
-    isLoggedIn
-  }
-}
+    isLoggedIn,
+  };
+};

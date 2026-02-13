@@ -21,6 +21,7 @@ export const SyncInitializer = () => {
     useCloudSync();
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
+  const cloudUserId = useSyncStore((state) => state.cloudUserId);
 
   const tokenBoundRef = useRef(false);
   const initInProgressRef = useRef(false);
@@ -30,6 +31,8 @@ export const SyncInitializer = () => {
   });
   const previousUserIdRef = useRef<string | null>(null);
   const syncAutoEnabledRef = useRef(false);
+  const wasOnlineRef = useRef(false);
+  const deferredPullPendingRef = useRef(false);
 
   // Helper to clear all local data
   const clearAllLocalData = useCallback(() => {
@@ -56,6 +59,7 @@ export const SyncInitializer = () => {
       clearAllLocalData();
       lastAutoSyncRef.current = { userId: null, syncEnabled: false };
       syncAutoEnabledRef.current = false;
+      deferredPullPendingRef.current = false;
     }
 
     // User logged out
@@ -67,6 +71,7 @@ export const SyncInitializer = () => {
       clearAllLocalData();
       lastAutoSyncRef.current = { userId: null, syncEnabled: false };
       syncAutoEnabledRef.current = false;
+      deferredPullPendingRef.current = false;
     }
 
     previousUserIdRef.current = currentUserId;
@@ -98,6 +103,7 @@ export const SyncInitializer = () => {
       useSyncStore.getState().setCloudUserId(null);
       useSyncStore.getState().setSyncStatus(null);
       lastAutoSyncRef.current = { userId: null, syncEnabled: false };
+      deferredPullPendingRef.current = false;
     }
   }, [isLoaded, isSignedIn, syncEnabled]);
 
@@ -136,6 +142,7 @@ export const SyncInitializer = () => {
       }
 
       if (!isOnline) {
+        deferredPullPendingRef.current = true;
         initInProgressRef.current = false;
         return;
       }
@@ -159,6 +166,7 @@ export const SyncInitializer = () => {
           // Now ensure user
           try {
             await ensureAppUser(user, getToken);
+            deferredPullPendingRef.current = true;
           } catch (e) {
             console.error('[Sync] Failed to ensure app user:', e);
           }
@@ -174,25 +182,56 @@ export const SyncInitializer = () => {
     initUser();
   }, [isLoaded, isSignedIn, userId, syncEnabled, user, getToken, isOnline]);
 
+  // Track reconnect transitions and defer fetch until online + ready
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const hasSession = isSignedIn && !!userId && syncEnabled;
+    const cameOnline = !wasOnlineRef.current && isOnline;
+    wasOnlineRef.current = isOnline;
+
+    if (!hasSession) {
+      deferredPullPendingRef.current = false;
+      return;
+    }
+
+    if (!isOnline) {
+      deferredPullPendingRef.current = true;
+      return;
+    }
+
+    if (cameOnline) {
+      deferredPullPendingRef.current = true;
+    }
+  }, [isLoaded, isSignedIn, userId, syncEnabled, isOnline]);
+
   // Auto-sync logic
   useEffect(() => {
+    const canSync = syncEnabled && isSignedIn && !!userId && isOnline && isLoaded && !!cloudUserId;
+
+    if (!canSync) return;
+
+    if (deferredPullPendingRef.current) {
+      deferredPullPendingRef.current = false;
+      if (isNewDevice) {
+        pullAllDataForNewDevice(false, { blocking: false });
+      } else {
+        syncNow();
+      }
+      return;
+    }
+
     // Only sync if conditions are met AND something actually changed
     const shouldSync =
-      syncEnabled &&
-      isSignedIn &&
-      userId &&
-      isOnline &&
-      isLoaded &&
-      (lastAutoSyncRef.current.userId !== userId ||
-        lastAutoSyncRef.current.syncEnabled !== syncEnabled);
+      lastAutoSyncRef.current.userId !== userId ||
+      lastAutoSyncRef.current.syncEnabled !== syncEnabled;
 
     if (shouldSync) {
       lastAutoSyncRef.current = { userId, syncEnabled };
 
       // Check if this is a new device
       if (isNewDevice) {
-        // isNewDevice is updated from hook
-        pullAllDataForNewDevice();
+        pullAllDataForNewDevice(false, { blocking: false });
       } else {
         syncNow();
       }
@@ -203,6 +242,7 @@ export const SyncInitializer = () => {
     userId,
     isLoaded,
     isOnline,
+    cloudUserId,
     isNewDevice,
     pullAllDataForNewDevice,
     syncNow,

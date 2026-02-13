@@ -1,22 +1,21 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { BudgetCard } from '@/components/budget/BudgetCard';
 import { FriendCard } from '@/components/friend/FriendCard';
 import { TransactionItem } from '@/components/transaction/TransactionItem';
-import { BudgetCard } from '@/components/budget/BudgetCard';
-import { useRouter } from 'expo-router';
+import { ActionCard } from '@/components/ui/ActionCard';
+import { EmptySection } from '@/components/ui/EmptySection';
+import Header from '@/components/ui/Header';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useHome } from '@/hooks/useHome';
+import { useFriendsStore } from '@/store/friendsStore';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { UserPlus, PlusCircle, Users } from 'lucide-react-native';
-import { useHome } from '@/hooks/useHome';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { EmptySection } from '@/components/ui/EmptySection';
-import { useFriendsStore } from '@/store/friendsStore';
+import { useRouter } from 'expo-router';
+import { PlusCircle, UserPlus, Users } from 'lucide-react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
-import { ActionCard } from '@/components/ui/ActionCard';
-import Header from '@/components/ui/Header';
 
-export default function Home()
-{
+export default function Home() {
   const router = useRouter();
   const { openDrawer } = useDrawerContext();
   // Get latest transactions sorted by date (most recent first), limit to 5
@@ -69,8 +68,7 @@ export default function Home()
               icon={'users'}
             />
           ) : (
-            latestFriends.map((friend) =>
-            {
+            latestFriends.map((friend) => {
               return (
                 <FriendCard
                   key={friend.id}
@@ -116,8 +114,7 @@ export default function Home()
               icon={'transactions'}
             />
           ) : (
-            latestTransactions.map((transaction) =>
-            {
+            latestTransactions.map((transaction) => {
               const friend = friends.find((f) => f.id === transaction.friendId);
               return (
                 <TransactionItem

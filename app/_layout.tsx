@@ -7,7 +7,7 @@ import { MenuModalProvider } from '@/contexts/MenuModalContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { AppBootstrap } from '@/lib/syncAuth';
 import { publishableKey, tokenCache } from '@/lib/token';
-import { ClerkLoaded, ClerkProvider } from '@clerk/clerk-expo';
+import { ClerkProvider } from '@clerk/clerk-expo';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -44,25 +44,23 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <ClerkLoaded>
-        <ToastProvider>
-          <ConfirmDialogProvider>
-            <MenuModalProvider>
-              <AppBootstrap />
-              <SyncLoadingOverlay />
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <SafeAreaProvider>
-                  <Stack screenOptions={STACK_OPTIONS}>
-                    <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-                  </Stack>
-                </SafeAreaProvider>
-              </GestureHandlerRootView>
-              <GlobalMenuModal />
-              <Toast />
-            </MenuModalProvider>
-          </ConfirmDialogProvider>
-        </ToastProvider>
-      </ClerkLoaded>
+      <ToastProvider>
+        <ConfirmDialogProvider>
+          <MenuModalProvider>
+            <AppBootstrap />
+            <SyncLoadingOverlay />
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <SafeAreaProvider>
+                <Stack screenOptions={STACK_OPTIONS}>
+                  <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+                </Stack>
+              </SafeAreaProvider>
+            </GestureHandlerRootView>
+            <GlobalMenuModal />
+            <Toast />
+          </MenuModalProvider>
+        </ConfirmDialogProvider>
+      </ToastProvider>
     </ClerkProvider>
   );
 }

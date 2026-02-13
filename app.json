@@ -29,15 +29,21 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
       "eas": {
-        "projectId": "a93f1a1c-ec4a-46a2-bcee-fd00b05f1c38"
-      }
-    }
+        "projectId": "6362e19c-3fa4-4d07-bf30-3f65708feea9"
+      },
+      "router": {}
+    },
+    "owner": "ahmedqeshta2"
   }
 }
