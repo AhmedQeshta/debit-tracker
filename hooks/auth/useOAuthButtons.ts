@@ -1,10 +1,14 @@
 import { useSSO } from '@clerk/clerk-expo';
 import * as AuthSession from 'expo-auth-session';
-import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+
+const NATIVE_OAUTH_REDIRECT_URL = AuthSession.makeRedirectUri({
+  scheme: 'debit-tracker',
+  path: 'sso-callback',
+});
 
 export const useOAuthButtons = () => {
   const router = useRouter();
@@ -22,22 +26,11 @@ export const useOAuthButtons = () => {
   const onGoogleSignInPress = useCallback(async () => {
     try {
       setLoading(true);
-
-      // Generate redirect URI using the app's custom scheme
-      // For production builds, use the custom scheme: debit-tracker://
-      // For development (Expo Go), AuthSession.makeRedirectUri() will use exp://
-      const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'debit-tracker',
-        path: '',
-      });
-
-      // Fallback: if makeRedirectUri doesn't work as expected, use Linking
-      const fallbackRedirectUri = Linking.createURL('', {});
-      const finalRedirectUri = redirectUri || fallbackRedirectUri || 'debit-tracker://';
+      const redirectUrl = NATIVE_OAUTH_REDIRECT_URL;
 
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_google',
-        redirectUrl: finalRedirectUri,
+        redirectUrl,
       });
 
       if (createdSessionId) {
@@ -55,10 +48,7 @@ export const useOAuthButtons = () => {
         console.error(
           '[OAuth] Redirect URI error detected. Make sure the redirect URI is configured in Clerk Dashboard.',
         );
-        console.error(
-          '[OAuth] Expected redirect URI format: debit-tracker:// (for production builds)',
-        );
-        // In development with Expo Go, it will be something like exp://
+        console.error(`[OAuth] Expected redirect URI: ${NATIVE_OAUTH_REDIRECT_URL}`);
       }
 
       // Re-throw to allow UI to handle the error if needed
