@@ -22,6 +22,7 @@ export const SyncInitializer = () => {
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
   const cloudUserId = useSyncStore((state) => state.cloudUserId);
+  const isSigningOut = useSyncStore((state) => state.isSigningOut);
 
   const tokenBoundRef = useRef(false);
   const initInProgressRef = useRef(false);
@@ -82,7 +83,7 @@ export const SyncInitializer = () => {
     if (!isLoaded) return;
 
     // Auto-enable sync when conditions are met (only once per session)
-    if (isSignedIn && isOnline && !syncAutoEnabledRef.current && !syncEnabled) {
+    if (isSignedIn && isOnline && !isSigningOut && !syncAutoEnabledRef.current && !syncEnabled) {
       setSyncEnabled(true);
       syncAutoEnabledRef.current = true;
     }
@@ -91,13 +92,13 @@ export const SyncInitializer = () => {
     if (!isSignedIn || !isOnline) {
       syncAutoEnabledRef.current = false;
     }
-  }, [isLoaded, isSignedIn, syncEnabled, setSyncEnabled, isOnline]);
+  }, [isLoaded, isSignedIn, syncEnabled, setSyncEnabled, isOnline, isSigningOut]);
 
   // Clear token and cloudUserId when logged out or sync disabled
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (!isSignedIn || !syncEnabled) {
+    if (!isSignedIn || !syncEnabled || isSigningOut) {
       clearSupabaseToken();
       tokenBoundRef.current = false;
       useSyncStore.getState().setCloudUserId(null);
@@ -105,7 +106,7 @@ export const SyncInitializer = () => {
       lastAutoSyncRef.current = { userId: null, syncEnabled: false };
       deferredPullPendingRef.current = false;
     }
-  }, [isLoaded, isSignedIn, syncEnabled]);
+  }, [isLoaded, isSignedIn, syncEnabled, isSigningOut]);
 
   // Bind token and ensure user record
   useEffect(() => {
@@ -113,14 +114,14 @@ export const SyncInitializer = () => {
 
     const initUser = async () => {
       // Step 1: STRICT CHECK - If sync disabled -> return
-      if (!syncEnabled) {
+      if (!syncEnabled || isSigningOut) {
         setSupabaseToken(null);
         tokenBoundRef.current = false;
         initInProgressRef.current = false;
         return;
       }
 
-      if (!isSignedIn || !isLoaded || !user || !userId) {
+      if (!isSignedIn || !isLoaded || !user || !userId || isSigningOut) {
         initInProgressRef.current = false;
         return;
       }
@@ -135,7 +136,9 @@ export const SyncInitializer = () => {
           try {
             await ensureAppUser(user, getToken);
           } catch (e) {
-            console.error('[Sync] Failed to ensure app user:', e);
+            if (useSyncStore.getState().syncEnabled) {
+              console.error('[Sync] Failed to ensure app user:', e);
+            }
           }
         }
         return;
@@ -168,7 +171,9 @@ export const SyncInitializer = () => {
             await ensureAppUser(user, getToken);
             deferredPullPendingRef.current = true;
           } catch (e) {
-            console.error('[Sync] Failed to ensure app user:', e);
+            if (useSyncStore.getState().syncEnabled) {
+              console.error('[Sync] Failed to ensure app user:', e);
+            }
           }
         }
       } catch (e) {
@@ -180,13 +185,13 @@ export const SyncInitializer = () => {
 
     initInProgressRef.current = true;
     initUser();
-  }, [isLoaded, isSignedIn, userId, syncEnabled, user, getToken, isOnline]);
+  }, [isLoaded, isSignedIn, userId, syncEnabled, user, getToken, isOnline, isSigningOut]);
 
   // Track reconnect transitions and defer fetch until online + ready
   useEffect(() => {
     if (!isLoaded) return;
 
-    const hasSession = isSignedIn && !!userId && syncEnabled;
+    const hasSession = isSignedIn && !!userId && syncEnabled && !isSigningOut;
     const cameOnline = !wasOnlineRef.current && isOnline;
     wasOnlineRef.current = isOnline;
 
@@ -203,11 +208,18 @@ export const SyncInitializer = () => {
     if (cameOnline) {
       deferredPullPendingRef.current = true;
     }
-  }, [isLoaded, isSignedIn, userId, syncEnabled, isOnline]);
+  }, [isLoaded, isSignedIn, userId, syncEnabled, isOnline, isSigningOut]);
 
   // Auto-sync logic
   useEffect(() => {
-    const canSync = syncEnabled && isSignedIn && !!userId && isOnline && isLoaded && !!cloudUserId;
+    const canSync =
+      syncEnabled &&
+      isSignedIn &&
+      !!userId &&
+      isOnline &&
+      isLoaded &&
+      !!cloudUserId &&
+      !isSigningOut;
 
     if (!canSync) return;
 
@@ -243,6 +255,7 @@ export const SyncInitializer = () => {
     isLoaded,
     isOnline,
     cloudUserId,
+    isSigningOut,
     isNewDevice,
     pullAllDataForNewDevice,
     syncNow,

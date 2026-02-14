@@ -33,6 +33,7 @@ export interface ISyncState {
   queue: SyncQueueItem[];
   isSyncing: boolean;
   syncEnabled: boolean;
+  isSigningOut: boolean;
   lastSync: number | null;
   cloudUserId: string | null;
   syncStatus: SyncStatus;
@@ -45,6 +46,7 @@ export interface ISyncState {
   addToQueue: (item: SyncQueueItem) => void;
   removeFromQueue: (id: string) => void;
   setSyncing: (status: boolean) => void;
+  setIsSigningOut: (status: boolean) => void;
   clearQueue: () => void;
   setSyncEnabled: (enabled: boolean) => void;
   setLastSync: (timestamp: number) => void;
