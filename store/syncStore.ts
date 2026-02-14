@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SyncQueueItem } from '@/types/models';
 import { ISyncState, NetworkState, SyncError } from '@/types/store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export const useSyncStore = create<ISyncState>()(
   persist(
@@ -10,6 +10,7 @@ export const useSyncStore = create<ISyncState>()(
       queue: [],
       isSyncing: false,
       syncEnabled: false, // Default to false
+      isSigningOut: false,
       lastSync: null,
       cloudUserId: null,
       syncStatus: null,
@@ -38,6 +39,8 @@ export const useSyncStore = create<ISyncState>()(
         })),
 
       setSyncing: (status: boolean) => set({ isSyncing: status }),
+
+      setIsSigningOut: (status: boolean) => set({ isSigningOut: status }),
 
       clearQueue: () => set({ queue: [] }),
 
@@ -78,6 +81,10 @@ export const useSyncStore = create<ISyncState>()(
     {
       name: 'sync-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => {
+        const { isSigningOut, ...persistedState } = state;
+        return persistedState;
+      },
     },
   ),
 );
