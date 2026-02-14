@@ -11,18 +11,14 @@ export default function SsoCallbackScreen() {
   const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
-    if (!isLoaded) return;
-
     if (isSignedIn) {
       router.replace('/');
       return;
     }
-
-    router.replace('/(auth)/sign-in');
   }, [isLoaded, isSignedIn, router]);
 
   return (
-    <ScreenContainer>
+    <ScreenContainer scrollable={false}>
       <View style={styles.container}>
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={styles.text}>Completing sign-in...</Text>
@@ -36,10 +32,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
   },
   text: {
     color: Colors.textSecondary,
     fontSize: 16,
+    textAlign: 'center',
   },
 });
