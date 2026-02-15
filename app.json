@@ -44,6 +44,12 @@
       },
       "router": {}
     },
-    "owner": "ahmedqeshta2"
+    "owner": "ahmedqeshta2",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6362e19c-3fa4-4d07-bf30-3f65708feea9"
+    }
   }
 }
