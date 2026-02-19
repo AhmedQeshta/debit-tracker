@@ -1,4 +1,4 @@
-import { hasSupabaseToken, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import {
   GetTokenFunction,
   getFreshSupabaseJwt,
@@ -32,7 +32,6 @@ export const syncService = {
     // Sync gating: if sync is disabled, don't write to Supabase
     if (
       !useSyncStore.getState().syncEnabled ||
-      !hasSupabaseToken() ||
       process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')
     )
       return;
@@ -259,13 +258,6 @@ export const syncService = {
     // Sync gating: if sync is disabled, don't read from Supabase
     if (!syncEnabled || process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')) return;
 
-    // Token validation: if sync is enabled, token is required
-    if (!hasSupabaseToken()) {
-      throw new Error(
-        'Sync is enabled but no authentication token available. Cannot sync without authentication.',
-      );
-    }
-
     // Helper to execute a pull request with retry logic
     const executePull = async <T>(queryFn: () => Promise<{ data: T | null; error: any }>) => {
       return retryOnceOnJwtExpired(queryFn, getToken);
@@ -385,7 +377,7 @@ export const syncService = {
     const { syncEnabled } = useSyncStore.getState();
 
     // Sync gating: if sync is disabled, don't sync
-    if (!syncEnabled || !hasSupabaseToken()) return;
+    if (!syncEnabled) return;
 
     try {
       // Pull first, then push (as per requirements)
@@ -423,9 +415,6 @@ export const syncService = {
     if (!syncEnabled) {
       throw new Error('Sync must be enabled');
     }
-    if (!hasSupabaseToken()) {
-      throw new Error('No authentication token available');
-    }
 
     return retryOnceOnJwtExpired(async () => await supabase.from(table).upsert(data), getToken);
   },
@@ -434,9 +423,6 @@ export const syncService = {
     const { syncEnabled } = useSyncStore.getState();
     if (!syncEnabled) {
       throw new Error('Sync must be enabled');
-    }
-    if (!hasSupabaseToken()) {
-      throw new Error('No authentication token available');
     }
 
     return retryOnceOnJwtExpired(
@@ -485,11 +471,7 @@ export const syncService = {
     const { syncEnabled } = useSyncStore.getState();
 
     // Gate: if sync disabled -> return silently
-    if (
-      !syncEnabled ||
-      !hasSupabaseToken() ||
-      process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder')
-    )
+    if (!syncEnabled || process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder'))
       return {
         friends: [],
         transactions: [],

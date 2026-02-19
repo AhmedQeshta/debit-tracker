@@ -8,12 +8,8 @@ export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
 export const getBalance = (friendId: string, allTransactions: Transaction[]) => {
   return allTransactions
     .filter((t) => t.friendId === friendId)
-    .reduce((sum, t) => sum + getBalanceWithSign(t.amount,t.sign), 0);
+    .reduce((sum, t) => sum + t.amount, 0);
 };
-
-export const getBalanceWithSign = (amount:number,sign:number) =>{
-  return amount * sign;
-}
 
 export const filterFriends = (friends: Friend[], search: string) => {
   return friends.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()));
@@ -27,9 +23,9 @@ export const getTotalPaidBack = (transactions: Transaction[]) => {
   return transactions.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
 };
 
-export const getFinalAmount = (amount: string) => {
+export const getFinalAmount = (amount: string, isNegative: boolean) => {
   if (!amount || isNaN(Number(amount))) return 0;
-  return Number(amount);
+  return Number(amount) * (isNegative ? -1 : 1);
 };
 
 export const getUserBalance = (transactions: Transaction[]) => {

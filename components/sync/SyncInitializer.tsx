@@ -1,5 +1,5 @@
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
-import { clearSupabaseToken, hasSupabaseToken, setSupabaseToken } from '@/lib/supabase';
+import { setSupabaseAccessTokenGetter } from '@/lib/supabase';
 import { getFreshSupabaseJwt } from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
 import { useBudgetStore } from '@/store/budgetStore';
@@ -24,7 +24,6 @@ export const SyncInitializer = () => {
   const cloudUserId = useSyncStore((state) => state.cloudUserId);
   const isSigningOut = useSyncStore((state) => state.isSigningOut);
 
-  const tokenBoundRef = useRef(false);
   const initInProgressRef = useRef(false);
   const lastAutoSyncRef = useRef<{ userId: string | null; syncEnabled: boolean }>({
     userId: null,
@@ -53,8 +52,6 @@ export const SyncInitializer = () => {
 
     // User switched (different user logged in)
     if (previousUserId !== null && currentUserId !== null && previousUserId !== currentUserId) {
-      clearSupabaseToken();
-      tokenBoundRef.current = false;
       useSyncStore.getState().setCloudUserId(null);
       useSyncStore.getState().setSyncStatus(null);
       clearAllLocalData();
@@ -65,8 +62,6 @@ export const SyncInitializer = () => {
 
     // User logged out
     if (previousUserId !== null && currentUserId === null) {
-      clearSupabaseToken();
-      tokenBoundRef.current = false;
       useSyncStore.getState().setCloudUserId(null);
       useSyncStore.getState().setSyncStatus(null);
       clearAllLocalData();
@@ -99,14 +94,27 @@ export const SyncInitializer = () => {
     if (!isLoaded) return;
 
     if (!isSignedIn || !syncEnabled || isSigningOut) {
-      clearSupabaseToken();
-      tokenBoundRef.current = false;
       useSyncStore.getState().setCloudUserId(null);
       useSyncStore.getState().setSyncStatus(null);
       lastAutoSyncRef.current = { userId: null, syncEnabled: false };
       deferredPullPendingRef.current = false;
     }
   }, [isLoaded, isSignedIn, syncEnabled, isSigningOut]);
+
+  // Register Supabase token getter (fresh Clerk token per request)
+  useEffect(() => {
+    setSupabaseAccessTokenGetter(async () => {
+      const latestState = useSyncStore.getState();
+      if (!latestState.syncEnabled || latestState.isSigningOut) return null;
+      if (!isLoaded || !isSignedIn) return null;
+
+      return (await getToken({ template: 'supabase', skipCache: true })) ?? null;
+    });
+
+    return () => {
+      setSupabaseAccessTokenGetter(null);
+    };
+  }, [getToken, isLoaded, isSignedIn]);
 
   // Bind token and ensure user record
   useEffect(() => {
@@ -115,32 +123,12 @@ export const SyncInitializer = () => {
     const initUser = async () => {
       // Step 1: STRICT CHECK - If sync disabled -> return
       if (!syncEnabled || isSigningOut) {
-        setSupabaseToken(null);
-        tokenBoundRef.current = false;
         initInProgressRef.current = false;
         return;
       }
 
       if (!isSignedIn || !isLoaded || !user || !userId || isSigningOut) {
         initInProgressRef.current = false;
-        return;
-      }
-
-      // If token already bound in global Supabase client, skip fetching
-      if (hasSupabaseToken()) {
-        tokenBoundRef.current = true;
-        initInProgressRef.current = false;
-
-        // Ensure user record if online
-        if (isOnline) {
-          try {
-            await ensureAppUser(user, getToken);
-          } catch (e) {
-            if (useSyncStore.getState().syncEnabled) {
-              console.error('[Sync] Failed to ensure app user:', e);
-            }
-          }
-        }
         return;
       }
 
@@ -162,8 +150,6 @@ export const SyncInitializer = () => {
 
         if (result.token) {
           if (!syncEnabled) return; // Check again
-          setSupabaseToken(result.token);
-          tokenBoundRef.current = true;
           useSyncStore.getState().setSyncStatus(null);
 
           // Now ensure user

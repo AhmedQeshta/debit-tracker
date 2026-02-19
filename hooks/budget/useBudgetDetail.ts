@@ -1,25 +1,24 @@
-import { createMenuItems } from "@/components/budget/createMenuItems";
-import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
-import { useToast } from "@/contexts/ToastContext";
-import { useCloudSync } from "@/hooks/sync/useCloudSync";
-import { useNavigation } from "@/hooks/useNavigation";
-import { useOperations } from "@/hooks/useOperations";
-import { safeId, validateAmount, validateTitle } from "@/lib/utils";
-import { useBudgetStore } from "@/store/budgetStore";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { createMenuItems } from '@/components/ui/CreateMenuItems';
+import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
+import { useToast } from '@/contexts/ToastContext';
+import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useNavigation } from '@/hooks/useNavigation';
+import { useOperations } from '@/hooks/useOperations';
+import { safeId, validateAmount, validateTitle } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 
-
-export const useBudgetDetail = () =>
-{
+export const useBudgetDetail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
   // Select budget directly from store to avoid infinite loop (getBudget returns new object each time)
-  const rawBudget = useBudgetStore((state) => state.budgets.find((b) => b.id === budgetId && !b.deletedAt));
+  const rawBudget = useBudgetStore((state) =>
+    state.budgets.find((b) => b.id === budgetId && !b.deletedAt),
+  );
   // Memoize filtered budget to create stable reference
-  const budget = useMemo(() =>
-  {
+  const budget = useMemo(() => {
     if (!rawBudget) return undefined;
     // Filter out deleted items
     return {
@@ -27,13 +26,7 @@ export const useBudgetDetail = () =>
       items: rawBudget.items.filter((item) => !item.deletedAt),
     };
   }, [rawBudget]);
-  const {
-    addItem,
-    removeItem,
-    getTotalSpent,
-    getRemainingBudget,
-    deleteBudget,
-  } = useBudgetStore();
+  const { addItem, removeItem, getTotalSpent, getRemainingBudget, deleteBudget } = useBudgetStore();
 
   const { navigateToBudgetEdit, navigateToBudgetList } = useNavigation();
   const { handleBudgetPinToggle: togglePin } = useOperations();
@@ -41,114 +34,102 @@ export const useBudgetDetail = () =>
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
 
-  const [itemTitle, setItemTitle] = useState("");
-  const [itemAmount, setItemAmount] = useState("");
-  const [itemTitleError, setItemTitleError] = useState("");
-  const [itemAmountError, setItemAmountError] = useState("");
+  const [itemTitle, setItemTitle] = useState('');
+  const [itemAmount, setItemAmount] = useState('');
+  const [itemTitleError, setItemTitleError] = useState('');
+  const [itemAmountError, setItemAmountError] = useState('');
 
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
-  const totalSpent = budget ? budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0) : 0;
+  const totalSpent = budget
+    ? budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0)
+    : 0;
   const remaining = budget ? budget.totalBudget - totalSpent : 0;
 
-  const handleAddItem = async (): Promise<void> =>
-  {
+  const handleAddItem = async (): Promise<void> => {
     const titleError = validateTitle(itemTitle);
-    if (titleError)
-    {
+    if (titleError) {
       setItemTitleError(titleError);
       return;
     }
-    setItemTitleError("");
+    setItemTitleError('');
 
     const amountError = validateAmount(itemAmount, 1);
-    if (amountError)
-    {
+    if (amountError) {
       setItemAmountError(amountError);
       return;
     }
-    setItemAmountError("");
+    setItemAmountError('');
 
     const amount = parseFloat(itemAmount);
     addItem(budgetId, itemTitle.trim(), amount);
-    setItemTitle("");
-    setItemAmount("");
+    setItemTitle('');
+    setItemAmount('');
     toastSuccess('Budget item added successfully');
 
     // Trigger sync to push addition to Supabase
-    try
-    {
+    try {
       await syncNow();
-    } catch (error)
-    {
+    } catch (error) {
       console.error('[Sync] Failed to sync after add item:', error);
     }
   };
 
-  const handleDeleteItem = (itemId: string, title: string): void =>
-  {
+  const handleDeleteItem = (itemId: string, title: string): void => {
     showConfirm(
-      "Delete Item",
+      'Delete Item',
       `Are you sure you want to delete "${title}"?`,
-      async () =>
-      {
+      async () => {
         removeItem(budgetId, itemId);
         toastSuccess('Budget item deleted successfully');
 
         // Trigger sync to push deletion to Supabase
-        try
-        {
+        try {
           await syncNow();
-        } catch (error)
-        {
+        } catch (error) {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
-  const handlePinToggle = (): void =>
-  {
+  const handlePinToggle = (): void => {
     if (!budget) return;
     togglePin(budget);
   };
 
-  const handleDeleteBudget = (): void =>
-  {
+  const handleDeleteBudget = (): void => {
     if (!budget) return;
     showConfirm(
-      "Delete Budget",
+      'Delete Budget',
       `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
-      async () =>
-      {
+      async () => {
         deleteBudget(budget.id);
         toastSuccess('Budget deleted successfully');
 
         // Trigger sync to push deletion to Supabase
-        try
-        {
+        try {
           await syncNow();
-        } catch (error)
-        {
+        } catch (error) {
           console.error('[Sync] Failed to sync after delete:', error);
         }
 
         navigateToBudgetList();
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
-  const handleEdit = (): void =>
-  {
+  const handleEdit = (): void => {
     navigateToBudgetEdit(budgetId);
   };
 
   const menuItems = createMenuItems(
+    'Budget',
+    handleEdit,
+    handleDeleteBudget,
     budget,
     handlePinToggle,
-    handleEdit,
-    handleDeleteBudget
   );
 
   return {
@@ -169,5 +150,7 @@ export const useBudgetDetail = () =>
     handlePinToggle,
     handleDeleteBudget,
     menuItems,
+    getTotalSpent,
+    getRemainingBudget,
   };
 };

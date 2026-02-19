@@ -1,9 +1,9 @@
+import { createMenuItems } from '@/components/ui/CreateMenuItems';
+import { useNavigation } from '@/hooks/useNavigation';
+import { Friend } from '@/types/models';
 import { useRef, useState } from 'react';
 import { Animated } from 'react-native';
 import { State } from 'react-native-gesture-handler';
-import { Friend } from '@/types/models';
-import { useNavigation } from '@/hooks/useNavigation';
-import { createMenuItems } from '@/components/friend/createMenuItems';
 
 export const useFriendCard = (
   friend: Friend,
@@ -91,7 +91,7 @@ export const useFriendCard = (
     handleFriendDelete(friend.id, friend.name);
   };
 
-  const menuItems = createMenuItems(friend, handlePinToggle, handleEdit, handleDelete);
+  const menuItems = createMenuItems('Friends', handleEdit, handleDelete, friend, handlePinToggle);
 
   return {
     animatedStyle,

@@ -50,7 +50,7 @@ export const useTransactionForm = () => {
 
     setLoading(true);
     try {
-      const finalAmount = getFinalAmount(data.amount);
+      const finalAmount = getFinalAmount(data.amount, data.isNegative);
       const newTransaction: Transaction = {
         id: generateId(),
         friendId: data.friendId,
