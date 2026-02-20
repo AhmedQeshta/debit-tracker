@@ -1,6 +1,5 @@
-import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
-import { useToast } from '@/contexts/ToastContext';
-import { clearSupabaseToken } from '@/lib/supabase';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 import { useSyncStore } from '@/store/syncStore';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -30,7 +29,6 @@ export const useSignOut = (closeDrawer?: () => void) => {
           syncState.setIsSyncRunning(false);
           syncState.setCloudUserId(null);
           syncState.setSyncStatus(null);
-          clearSupabaseToken();
 
           // Sign out from Clerk
           await signOut();

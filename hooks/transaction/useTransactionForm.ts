@@ -1,5 +1,5 @@
-import { useToast } from '@/contexts/ToastContext';
 import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
+import { useToast } from '@/hooks/useToast';
 import { generateId, getFinalAmount } from '@/lib/utils';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
@@ -30,7 +30,6 @@ export const useTransactionForm = () => {
       friendId: initialFriendId || '',
       amount: '',
       title: '',
-      category: 'General',
       date: Date.now(),
       note: '',
       isNegative: true,
@@ -50,14 +49,13 @@ export const useTransactionForm = () => {
 
     setLoading(true);
     try {
-      const finalAmount = getFinalAmount(data.amount);
+      const finalAmount = getFinalAmount(data.amount, data.isNegative);
       const newTransaction: Transaction = {
         id: generateId(),
         friendId: data.friendId,
         title: data.title,
         amount: finalAmount,
         sign: data.isNegative ? -1 : 1, // 1 = add debt (negative amount), -1 = reduce debt (positive amount)
-        category: data.category,
         date: data.date,
         note: data.note,
         createdAt: Date.now(),

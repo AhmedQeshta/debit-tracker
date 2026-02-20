@@ -1,7 +1,7 @@
+import { getGlobalDebit, getTotalPaidBack } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
-import { useBudgetStore } from '@/store/budgetStore';
-import { getGlobalDebit, getTotalPaidBack } from '@/lib/utils';
 
 /**
  * Single source of truth for pending sync count
@@ -52,4 +52,3 @@ export const selectDashboardStats = () => {
     budgets,
   };
 };
-

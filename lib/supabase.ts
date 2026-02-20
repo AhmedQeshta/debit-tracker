@@ -3,64 +3,39 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 
-// In-memory token storage
-let currentToken: string | null = null;
+export type SupabaseAccessTokenGetter = () => Promise<string | null | undefined>;
+
+let accessTokenGetter: SupabaseAccessTokenGetter | null = null;
 
 /**
- * Sets the Clerk token for Supabase requests (stored in-memory)
- * @param token - The Clerk JWT token, or null to clear
+ * Registers the Clerk token getter for Supabase requests.
+ * Supabase will call this getter on each request to obtain a fresh token.
  */
-export const setSupabaseToken = (token: string | null): void => {
-  currentToken = token;
-  if (token) {
-    console.warn(`[Supabase] Token bound (len: ${token.length}, last4: ${token.slice(-4)})`);
-  } else {
-    console.warn('[Supabase] Token cleared');
-  }
+export const setSupabaseAccessTokenGetter = (getter: SupabaseAccessTokenGetter | null): void => {
+  accessTokenGetter = getter;
 };
 
 /**
- * Checks if a token is currently set
- * @returns true if token exists, false otherwise
+ * Returns a fresh Clerk JWT token for Supabase requests.
  */
-export const hasSupabaseToken = (): boolean => {
-  return currentToken !== null;
-};
-
-/**
- * Clears the Supabase token
- */
-export const clearSupabaseToken = (): void => {
-  currentToken = null;
-};
-
-/**
- * Custom fetch wrapper that adds Authorization header when token exists
- */
-const customFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
-  const headers = new Headers(options?.headers);
-
-  // Add Authorization header if token exists
-  if (currentToken) {
-    headers.set('Authorization', `Bearer ${currentToken}`);
+const getSupabaseAccessToken = async (): Promise<string | null> => {
+  if (!accessTokenGetter) {
+    return null;
   }
 
-  // Merge with existing headers
-  const fetchOptions: RequestInit = {
-    ...options,
-    headers,
-  };
-
-  return fetch(url, fetchOptions);
+  try {
+    return (await accessTokenGetter()) ?? null;
+  } catch (error) {
+    console.error('[Supabase] Failed to get access token:', error);
+    return null;
+  }
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  accessToken: async () => (await getSupabaseAccessToken()) ?? null,
   auth: {
     persistSession: false,
     autoRefreshToken: false,
     detectSessionInUrl: false,
-  },
-  global: {
-    fetch: customFetch,
   },
 });

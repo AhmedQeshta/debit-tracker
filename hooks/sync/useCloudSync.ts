@@ -1,5 +1,4 @@
-import { hasSupabaseToken, setSupabaseToken } from '@/lib/supabase';
-import { selectPendingCount } from '@/selectors/dashboardSelectors';
+import { selectPendingCount } from '@/lib/dashboardSelectors';
 import { getFreshSupabaseJwt } from '@/services/authSync';
 import { syncService } from '@/services/syncService';
 import { useBudgetStore } from '@/store/budgetStore';
@@ -98,23 +97,19 @@ export const useCloudSync = () => {
       return;
     }
 
-    // Ensure token is bound (check global state)
-    if (!hasSupabaseToken()) {
-      if (!isOnline) return;
-      try {
-        const result = await getFreshSupabaseJwt(getToken);
-        if (result.token) {
-          // Double check after await
-          if (!useSyncStore.getState().syncEnabled) return;
-          setSupabaseToken(result.token);
-          useSyncStore.getState().setSyncStatus(null);
-        } else {
-          return;
+    // Preflight auth check (fresh Clerk token)
+    if (!isOnline) return;
+    try {
+      const result = await getFreshSupabaseJwt(getToken);
+      if (!result.token) {
+        if (result.error === 'template_missing') {
+          useSyncStore.getState().setSyncStatus('needs_config');
         }
-      } catch (e) {
-        console.error('[Sync] Failed to get token for sync:', e);
         return;
       }
+    } catch (e) {
+      console.error('[Sync] Failed to get token for sync:', e);
+      return;
     }
 
     // Final check

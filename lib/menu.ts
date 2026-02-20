@@ -1,12 +1,11 @@
 import { IMenuItemDrawer } from '@/types/common';
-import
-{
-  Home,
-  Users,
-  LayoutDashboard,
-  Calculator,
+import {
   ArrowRightLeft,
+  Calculator,
+  Home,
+  LayoutDashboard,
   Settings,
+  Users,
 } from 'lucide-react-native';
 
 export const MAIN_MENU_ITEMS: IMenuItemDrawer[] = [

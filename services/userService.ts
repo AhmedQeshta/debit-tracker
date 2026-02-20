@@ -1,4 +1,4 @@
-import { hasSupabaseToken, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { GetTokenFunction, isJwtExpiredError, retryOnceOnJwtExpired } from '@/services/authSync';
 import { useSyncStore } from '@/store/syncStore';
 
@@ -30,18 +30,12 @@ export const ensureAppUser = async (
 ): Promise<{ ok: boolean; skipped?: boolean; reason?: string; appUser?: { id: string } }> => {
   const { syncEnabled, isSigningOut } = useSyncStore.getState();
 
-  // STRICT GATING: if sync is disabled, or no token, or no user -> skip
-  if (!syncEnabled || isSigningOut || !hasSupabaseToken() || !clerkUser) {
+  // STRICT GATING: if sync is disabled, signing out, or no user -> skip
+  if (!syncEnabled || isSigningOut || !clerkUser) {
     return {
       ok: false,
       skipped: true,
-      reason: !syncEnabled
-        ? 'sync_disabled'
-        : isSigningOut
-          ? 'signing_out'
-          : !hasSupabaseToken()
-            ? 'no_token'
-            : 'no_user',
+      reason: !syncEnabled ? 'sync_disabled' : isSigningOut ? 'signing_out' : 'no_user',
     };
   }
 
@@ -69,7 +63,7 @@ export const ensureAppUser = async (
     }
 
     const latestState = useSyncStore.getState();
-    if (!latestState.syncEnabled || latestState.isSigningOut || !hasSupabaseToken()) {
+    if (!latestState.syncEnabled || latestState.isSigningOut) {
       return { ok: false, skipped: true, reason: 'signing_out' };
     }
 

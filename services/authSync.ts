@@ -1,9 +1,10 @@
-import { clearSupabaseToken, setSupabaseToken } from '@/lib/supabase';
-
 /**
  * Type for Clerk's getToken function
  */
-export type GetTokenFunction = (options?: { template?: string }) => Promise<string | null>;
+export type GetTokenFunction = (options?: {
+  template?: string;
+  skipCache?: boolean;
+}) => Promise<string | null>;
 
 /**
  * Result type for getFreshSupabaseJwt
@@ -54,14 +55,16 @@ const isTemplateMissingError = (error: any): boolean => {
 export const getFreshSupabaseJwt = async (getToken: GetTokenFunction): Promise<JwtFetchResult> => {
   try {
     // Wrap token fetch with 5s timeout
-    const token = await withTimeout(getToken({ template: 'supabase' }), TOKEN_FETCH_TIMEOUT_MS);
+    const token = await withTimeout(
+      getToken({ template: 'supabase', skipCache: true }),
+      TOKEN_FETCH_TIMEOUT_MS,
+    );
 
     if (!token) {
       console.warn('[AuthSync] Failed to get token: no token returned');
       return { token: null, error: 'other' };
     }
 
-    setSupabaseToken(token);
     return { token };
   } catch (error: any) {
     // Check for timeout error
@@ -143,11 +146,10 @@ export const retryOnceOnJwtExpired = async <T>(
   try {
     return await fn();
   } catch (error: any) {
-    if (isJwtExpiredError(error)) {
-      console.warn('[AuthSync] JWT expired, clearing token and refreshing...');
+    await logJwtExpiryDebugOnFailure(getToken, error);
 
-      // Clear the expired token before refreshing
-      clearSupabaseToken();
+    if (isJwtExpiredError(error)) {
+      console.warn('[AuthSync] JWT expired, refreshing token and retrying...');
 
       const result = await getFreshSupabaseJwt(getToken);
 
@@ -165,5 +167,49 @@ export const retryOnceOnJwtExpired = async <T>(
       }
     }
     throw error;
+  }
+};
+
+type JwtPayload = {
+  exp?: number;
+};
+
+const decodeJwtPayload = (token: string): JwtPayload | null => {
+  try {
+    const payloadPart = token.split('.')[1];
+    if (!payloadPart) return null;
+
+    const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+
+    const atobFn = globalThis.atob;
+    const decoded = atobFn ? atobFn(padded) : Buffer.from(padded, 'base64').toString('utf-8');
+
+    return JSON.parse(decoded) as JwtPayload;
+  } catch {
+    return null;
+  }
+};
+
+const logJwtExpiryDebugOnFailure = async (
+  getToken: GetTokenFunction,
+  error: unknown,
+): Promise<void> => {
+  if (!__DEV__) return;
+  if (!isJwtExpiredError(error)) return;
+
+  try {
+    const token = await getToken({ template: 'supabase', skipCache: true });
+    const payload = token ? decodeJwtPayload(token) : null;
+    const expSeconds = payload?.exp ?? null;
+    const nowSeconds = Math.floor(Date.now() / 1000);
+
+    console.warn('[AuthSync][JWT Debug] request failed with auth error', {
+      exp: expSeconds,
+      now: nowSeconds,
+      expiresInSeconds: expSeconds ? expSeconds - nowSeconds : null,
+    });
+  } catch (debugError) {
+    console.warn('[AuthSync][JWT Debug] failed to inspect JWT:', debugError);
   }
 };

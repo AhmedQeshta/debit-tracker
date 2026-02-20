@@ -1,33 +1,28 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, Linking } from 'react-native';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useToast } from '@/hooks/useToast';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
-import { Menu, Mail, Phone, MapPin, Linkedin, Github, Globe } from 'lucide-react-native';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { useToast } from '@/contexts/ToastContext';
+import { Github, Globe, Linkedin, Mail, MapPin, Menu, Phone } from 'lucide-react-native';
+import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function About()
-{
+export default function About() {
   const { openDrawer } = useDrawerContext();
   const { toastError } = useToast();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 
-  const handleEmailPress = () =>
-  {
+  const handleEmailPress = () => {
     Linking.openURL('mailto:ahmed.qeshta.dev@gmail.com');
   };
 
-  const handlePhonePress = () =>
-  {
+  const handlePhonePress = () => {
     Linking.openURL('tel:+970592157001');
   };
 
-  const handleLinkPress = (url: string) =>
-  {
-    Linking.openURL(url).catch(() =>
-    {
+  const handleLinkPress = (url: string) => {
+    Linking.openURL(url).catch(() => {
       toastError('Could not open the link');
     });
   };

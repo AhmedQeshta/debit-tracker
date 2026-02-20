@@ -1,9 +1,9 @@
 import { Actions } from '@/components/ui/Actions';
-import { getBalanceText, getBalanceWithSign } from '@/lib/utils';
+import { createMenuItems } from '@/components/ui/CreateMenuItems';
+import { getBalanceText } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ITransactionItemProps } from '@/types/transaction';
-import { Pencil, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -15,24 +15,11 @@ export const TransactionItem = ({
 }: ITransactionItemProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const menuItems = [];
-  if (onEdit) {
-    menuItems.push({
-      icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit Transaction',
-      onPress: () => onEdit(transaction.id),
-    });
-  }
-  if (onDelete) {
-    menuItems.push({
-      icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete Transaction',
-      onPress: () => onDelete(transaction.id),
-      danger: true,
-    });
-  }
-
-  const balance = getBalanceWithSign(transaction.amount, transaction.sign);
+  const menuItems = createMenuItems(
+    'Transaction',
+    () => onEdit(transaction.id),
+    () => onDelete(transaction.id),
+  );
 
   return (
     <View style={styles.container}>
@@ -41,8 +28,8 @@ export const TransactionItem = ({
         <Text style={styles.date}>{new Date(transaction.createdAt).toLocaleDateString()}</Text>
       </View>
       <View style={styles.rightSide}>
-        <Text style={[styles.amount, balance < 0 ? styles.negative : styles.positive]}>
-          {getBalanceText(balance, currency)}
+        <Text style={[styles.amount, transaction.amount < 0 ? styles.negative : styles.positive]}>
+          {getBalanceText(transaction.amount, currency)}
         </Text>
         {!transaction.synced && <Text style={styles.syncStatus}>Pending Sync</Text>}
       </View>

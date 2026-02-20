@@ -1,11 +1,11 @@
-import { TouchableOpacity, View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native';
+import { Actions } from '@/components/ui/Actions';
+import { useFriendCard } from '@/hooks/friend/useFriendCard';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import { Pencil, Pin, Trash2, PinOff } from 'lucide-react-native';
-import { useFriendCard } from '@/hooks/friend/useFriendCard';
 import { IFriendCardProps } from '@/types/friend';
-import { Actions } from '@/components/ui/Actions';
+import { Pin, PinOff } from 'lucide-react-native';
+import { Animated, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PanGestureHandler } from 'react-native-gesture-handler';
 
 export const FriendCard = ({
   friend,

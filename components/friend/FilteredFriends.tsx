@@ -1,26 +1,31 @@
+import { createMenuItems } from '@/components/ui/CreateMenuItems';
 import { getBalance } from '@/lib/utils';
-import { GridFriendCard } from './GridFriendCard';
-import { FriendCard } from './FriendCard';
-import { StyleSheet, View } from 'react-native';
+import { useTransactionsStore } from '@/store/transactionsStore';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { IFilteredFriendsProps } from '@/types/friend';
-import { useTransactionsStore } from '@/store/transactionsStore';
+import { StyleSheet, View } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
-import { createMenuItems } from '@/components/friend/createMenuItems';
+import { FriendCard } from './FriendCard';
+import { GridFriendCard } from './GridFriendCard';
 
 export const FilteredFriends = ({
   item,
   isGrid,
   handleFriendEdit,
   handleFriendDelete,
-  handlePinToggle = () => { },
-}: IFilteredFriendsProps) =>
-{
+  handlePinToggle = () => {},
+}: IFilteredFriendsProps) => {
   const transactions = useTransactionsStore(useShallow((state) => state.transactions));
   const balance = getBalance(item.id, transactions);
 
-  const menuItems = createMenuItems(item, () => handlePinToggle(item.id), () => handleFriendEdit(item.id), () => handleFriendDelete(item.id, item.name));
+  const menuItems = createMenuItems(
+    'Friends',
+    () => handleFriendEdit(item.id),
+    () => handleFriendDelete(item.id, item.name),
+    item,
+    () => handlePinToggle(item.id),
+  );
 
   return isGrid ? (
     <GridFriendCard friend={item} balance={balance} menuItems={menuItems} />

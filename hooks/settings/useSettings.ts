@@ -1,7 +1,7 @@
-import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
-import { useToast } from '@/contexts/ToastContext';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
@@ -10,35 +10,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 
-export const useSettings = () =>
-{
-
+export const useSettings = () => {
   const { openDrawer } = useDrawerContext();
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const router = useRouter();
-  const {
-    syncEnabled,
-    setSyncEnabled,
-    syncStatus,
-    lastSync,
-    isLoggedIn,
-  } = useSyncStatus();
+  const { syncEnabled, setSyncEnabled, syncStatus, lastSync, isLoggedIn } = useSyncStatus();
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess, toastError } = useToast();
 
-
-  const handleClearLocalData = () =>
-  {
+  const handleClearLocalData = () => {
     showConfirm(
       'Clear Local Data',
       'This will delete all your local data including friends, transactions, and budgets. This action cannot be undone. Are you sure?',
-      async () =>
-      {
-        try
-        {
+      async () => {
+        try {
           // Clear all stores using their set methods
           useFriendsStore.getState().setFriends([]);
           useTransactionsStore.getState().setTransactions([]);
@@ -48,23 +36,20 @@ export const useSettings = () =>
           await AsyncStorage.clear();
 
           toastSuccess('All local data has been cleared.');
-        } catch (error)
-        {
+        } catch (error) {
           console.error('Clear data error:', error);
           toastError('Failed to clear local data. Please try again.');
         }
       },
-      { confirmText: 'Clear' }
+      { confirmText: 'Clear' },
     );
   };
 
-  const handleSignIn = () =>
-  {
+  const handleSignIn = () => {
     router.push('/(auth)/sign-in');
   };
 
-  const formatLastSync = (timestamp: number | null) =>
-  {
+  const formatLastSync = (timestamp: number | null) => {
     if (!timestamp) return 'Never';
     const date = new Date(timestamp);
     const now = new Date();
@@ -80,8 +65,7 @@ export const useSettings = () =>
     return date.toLocaleDateString();
   };
 
-  const getSyncStatusText = () =>
-  {
+  const getSyncStatusText = () => {
     if (!syncEnabled) return 'Disabled';
     if (!isLoggedIn) return 'Not signed in';
     if (syncStatus === 'pulling') return 'Pulling...';
@@ -90,7 +74,6 @@ export const useSettings = () =>
     if (syncStatus === 'success') return 'Synced';
     return 'Idle';
   };
-
 
   return {
     handleClearLocalData,
@@ -107,6 +90,6 @@ export const useSettings = () =>
     syncStatus,
     lastSync,
     isLoggedIn,
-    openDrawer
+    openDrawer,
   };
 };

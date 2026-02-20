@@ -1,17 +1,16 @@
-import { calculateLatestTransactions, getBalance } from '@/lib/utils';
-import { useMemo } from 'react';
-import { useRouter } from 'expo-router';
-import { useTransactionsStore } from '@/store/transactionsStore';
-import { useFriendsStore } from '@/store/friendsStore';
-import { useBudgetStore } from '@/store/budgetStore';
-import { useShallow } from 'zustand/react/shallow';
-import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
-import { useToast } from '@/contexts/ToastContext';
-import { useNavigation } from './useNavigation';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useToast } from '@/hooks/useToast';
+import { calculateLatestTransactions, getBalance } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
+import { useFriendsStore } from '@/store/friendsStore';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { useNavigation } from './useNavigation';
 
-export const useHome = () =>
-{
+export const useHome = () => {
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
@@ -20,7 +19,9 @@ export const useHome = () =>
   const { syncNow } = useCloudSync();
   const router = useRouter();
 
-  const allFriends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
+  const allFriends = useFriendsStore(
+    useShallow((state) => state.friends.filter((f) => !f.deletedAt)),
+  );
 
   const latestFriends = useMemo(
     () =>
@@ -32,7 +33,9 @@ export const useHome = () =>
     [allFriends],
   );
 
-  const allTransactions = useTransactionsStore(useShallow((state) => state.transactions.filter((t) => !t.deletedAt)));
+  const allTransactions = useTransactionsStore(
+    useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
+  );
 
   const latestTransactions = useMemo(
     () => calculateLatestTransactions(allTransactions),
@@ -44,17 +47,17 @@ export const useHome = () =>
     [allTransactions],
   );
 
-  const handlePinToggle = (friendId: string) =>
-  {
+  const handlePinToggle = (friendId: string) => {
     const friend = latestFriends.find((f) => f.id === friendId);
-    if (friend)
-    {
+    if (friend) {
       if (friend.pinned) unpinFriend(friendId);
       else pinFriend(friendId);
     }
   };
 
-  const allBudgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
+  const allBudgets = useBudgetStore(
+    useShallow((state) => state.budgets.filter((b) => !b.deletedAt)),
+  );
   const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
     useBudgetStore();
 
@@ -73,25 +76,22 @@ export const useHome = () =>
     [getRemainingBudget],
   );
 
-  const handleBudgetPinToggle = (budgetId: string) =>
-  {
+  const handleBudgetPinToggle = (budgetId: string) => {
     const budget = allBudgets.find((b) => b.id === budgetId);
-    if (budget)
-    {
+    if (budget) {
       if (budget.pinned) unpinBudget(budgetId);
       else pinBudget(budgetId);
     }
   };
 
-  const handleBudgetDelete = (budgetId: string, title: string) =>
-  {
+  const handleBudgetDelete = (budgetId: string, title: string) => {
     showConfirm(
       'Delete Budget',
       `Are you sure you want to delete "${title}"?`,
       async () => {
         deleteBudget(budgetId);
         toastSuccess('Budget deleted successfully');
-        
+
         // Trigger sync to push deletion to Supabase
         try {
           await syncNow();
@@ -99,17 +99,15 @@ export const useHome = () =>
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
-  const handleFriendEdit = (friendId: string) =>
-  {
+  const handleFriendEdit = (friendId: string) => {
     navigateToFriendEdit(friendId);
   };
 
-  const handleFriendDelete = (friendId: string, friendName: string) =>
-  {
+  const handleFriendDelete = (friendId: string, friendName: string) => {
     showConfirm(
       'Delete Friend',
       `Are you sure you want to delete "${friendName}"? This will also delete all associated transactions.`,
@@ -119,11 +117,9 @@ export const useHome = () =>
           .getState()
           .transactions.filter((t) => t.friendId === friendId);
 
-        allFriendTransactions.forEach((t) =>
-        {
+        allFriendTransactions.forEach((t) => {
           // Only delete if not already marked for deletion
-          if (!t.deletedAt)
-          {
+          if (!t.deletedAt) {
             deleteTransaction(t.id);
           }
         });
@@ -131,7 +127,7 @@ export const useHome = () =>
         // Delete the friend (stores handle sync tracking automatically)
         deleteFriend(friendId);
         toastSuccess('Friend deleted successfully');
-        
+
         // Trigger sync to push deletions to Supabase
         try {
           await syncNow();
@@ -139,17 +135,15 @@ export const useHome = () =>
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
-  const handleTransactionEdit = (id: string) =>
-  {
+  const handleTransactionEdit = (id: string) => {
     router.push(`/(drawer)/transaction/${id}/edit`);
   };
 
-  const handleTransactionDelete = (id: string) =>
-  {
+  const handleTransactionDelete = (id: string) => {
     const transaction = useTransactionsStore.getState().transactions.find((t) => t.id === id);
     if (!transaction) return;
 
@@ -160,7 +154,7 @@ export const useHome = () =>
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(id);
         toastSuccess('Transaction deleted successfully');
-        
+
         // Trigger sync to push deletion to Supabase
         try {
           await syncNow();
@@ -168,7 +162,7 @@ export const useHome = () =>
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 

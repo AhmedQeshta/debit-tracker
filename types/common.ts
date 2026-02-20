@@ -1,13 +1,13 @@
-export interface IActionCardProps
-{
+import { ReactNode } from 'react';
+
+export interface IActionCardProps {
   icon: React.ComponentType<{ size?: number; color?: string }>;
   title: string;
   onPress: () => void;
   disabled?: boolean;
 }
 
-export interface IButtonProps
-{
+export interface IButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'error' | 'outline';
@@ -15,8 +15,7 @@ export interface IButtonProps
   disabled?: boolean;
 }
 
-export interface IInputProps
-{
+export interface IInputProps {
   label?: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -29,43 +28,37 @@ export interface IInputProps
   onBlur?: () => void;
 }
 
-export interface IScreenContainerProps
-{
+export interface IScreenContainerProps {
   children: React.ReactNode;
   scrollable?: boolean;
 }
 
-export interface IDrawerContextType
-{
+export interface IDrawerContextType {
   openDrawer: () => void;
   closeDrawer: () => void;
   toggleDrawer: () => void;
 }
 
-export interface IEmptySectionProps
-{
+export interface IEmptySectionProps {
   title: string;
   description: string;
   icon?: 'transactions' | 'users' | 'budgets' | '';
 }
 
-export interface IMenuItem
-{
+export interface IMenuItem {
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
   danger?: boolean;
 }
 
-export interface IActionsProps
-{
+export interface IActionsProps {
   menuVisible: boolean;
   setMenuVisible: (visible: boolean) => void;
   menuItems: IMenuItem[];
 }
 
-export interface IPinnedCardsProps
-{
+export interface IPinnedCardsProps {
   title: string;
   count: number;
   items: any[];
@@ -77,31 +70,25 @@ export interface IPinnedCardsProps
   onUnpin: (id: string, e: any) => void;
 }
 
-
-export interface IMenuItemDrawer
-{
+export interface IMenuItemDrawer {
   label: string;
   path: string;
   icon: React.ElementType;
 }
 
-export interface IMenuItemDrawerProps
-{
+export interface IMenuItemDrawerProps {
   item: IMenuItemDrawer;
   isActive: (path: string) => boolean;
   navigateTo: (path: string) => void;
 }
 
-
-export interface AccountFormData
-{
+export interface AccountFormData {
   firstName: string;
   lastName: string;
   email: string;
 }
 
-export interface ChangePasswordFormData
-{
+export interface ChangePasswordFormData {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
@@ -110,12 +97,67 @@ export interface ChangePasswordFormData
 /**
  * Startup profiler timestamps
  */
-export interface StartupTimings
-{
+export interface StartupTimings {
   hydrateStart: number;
   hydrateEnd: number | null;
   splashHide: number | null;
   firstRender: number | null;
   syncStart: number | null;
   syncEnd: number | null;
+}
+
+export interface ConfirmDialogState {
+  visible: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: (() => void) | null;
+  onCancel: (() => void) | null;
+}
+
+export interface ConfirmDialogContextType {
+  showConfirm: (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    options?: { confirmText?: string; cancelText?: string },
+  ) => void;
+}
+
+export interface MenuModalState {
+  visible: boolean;
+  position: { top: number; right: number };
+  menuItems: {
+    icon: ReactNode;
+    label: string;
+    onPress: () => void;
+    danger?: boolean;
+  }[];
+}
+
+export interface MenuModalContextType {
+  openMenu: (
+    position: { top: number; right: number },
+    menuItems: MenuModalState['menuItems'],
+  ) => void;
+  closeMenu: () => void;
+  menuState: MenuModalState;
+}
+
+export type ToastType = 'success' | 'error' | 'info';
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+
+export interface ToastContextType {
+  toasts: ToastMessage[];
+  showToast: (message: string, type?: ToastType) => void;
+  toastSuccess: (message: string) => void;
+  toastError: (message: string) => void;
+  toastInfo: (message: string) => void;
+  removeToast: (id: string) => void;
 }

@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
-import { useToast } from '@/contexts/ToastContext';
+import { useToast } from '@/hooks/useToast';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react-native';
+import { AlertCircle, CheckCircle, Info, X } from 'lucide-react-native';
+import React from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const Toast: React.FC = () => {
   const { toasts, removeToast } = useToast();
@@ -19,10 +19,10 @@ export const Toast: React.FC = () => {
   );
 };
 
-const ToastItem: React.FC<{ toast: { id: string; message: string; type: 'success' | 'error' | 'info' }; onDismiss: () => void }> = ({
-  toast,
-  onDismiss,
-}) => {
+const ToastItem: React.FC<{
+  toast: { id: string; message: string; type: 'success' | 'error' | 'info' };
+  onDismiss: () => void;
+}> = ({ toast, onDismiss }) => {
   const slideAnim = React.useRef(new Animated.Value(-100)).current;
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -105,8 +105,7 @@ const ToastItem: React.FC<{ toast: { id: string; message: string; type: 'success
           transform: [{ translateY: slideAnim }],
           opacity: opacityAnim,
         },
-      ]}
-    >
+      ]}>
       <View style={styles.content}>
         {getIcon()}
         <Text style={styles.message}>{toast.message}</Text>
@@ -159,4 +158,3 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.sm,
   },
 });
-

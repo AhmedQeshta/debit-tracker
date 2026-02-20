@@ -6,8 +6,8 @@ import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { MenuModalProvider } from '@/contexts/MenuModalContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { AppBootstrap } from '@/lib/syncAuth';
-import { publishableKey, tokenCache } from '@/lib/token';
 import { ClerkProvider } from '@clerk/clerk-expo';
+import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -31,6 +31,8 @@ const STACK_OPTIONS = {
   },
   headerShown: false,
 };
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
   if (!publishableKey) {

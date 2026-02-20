@@ -1,13 +1,12 @@
+import { selectDashboardStats, selectPendingCount } from '@/lib/dashboardSelectors';
 import { getBalance } from '@/lib/utils';
-import { selectDashboardStats, selectPendingCount } from '@/selectors/dashboardSelectors';
 import { subscribeToNetwork } from '@/services/net';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
-export const useDashboard = () =>
-{
+export const useDashboard = () => {
   const [isOnline, setIsOnline] = useState(true);
   const router = useRouter();
 
@@ -18,10 +17,8 @@ export const useDashboard = () =>
   const { unpinFriend } = useFriendsStore();
   const { unpinBudget, getTotalSpent, getRemainingBudget } = useBudgetStore();
 
-  useEffect(() =>
-  {
-    const unsubscribe = subscribeToNetwork((connected) =>
-    {
+  useEffect(() => {
+    const unsubscribe = subscribeToNetwork((connected) => {
       setIsOnline(connected);
     });
     return () => unsubscribe();
@@ -42,14 +39,12 @@ export const useDashboard = () =>
     [getRemainingBudget],
   );
 
-  const handleUnpin = (friendId: string, e: any) =>
-  {
+  const handleUnpin = (friendId: string, e: any) => {
     e.stopPropagation();
     unpinFriend(friendId);
   };
 
-  const handleUnpinBudget = (budgetId: string, e: any) =>
-  {
+  const handleUnpinBudget = (budgetId: string, e: any) => {
     e.stopPropagation();
     unpinBudget(budgetId);
   };

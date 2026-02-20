@@ -1,18 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useMenuModal } from '@/contexts/MenuModalContext';
 import { PositionedMenu } from '@/components/ui/PositionedMenu';
+import { useMenuModal } from '@/hooks/useMenuModal';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export const GlobalMenuModal = () =>
-{
+export const GlobalMenuModal = () => {
   const { menuState, closeMenu } = useMenuModal();
 
   return (
-    <PositionedMenu
-      visible={menuState.visible}
-      onClose={closeMenu}
-      position={menuState.position}>
+    <PositionedMenu visible={menuState.visible} onClose={closeMenu} position={menuState.position}>
       <View style={styles.menuContainer}>
         {menuState.menuItems.map((item, index) => (
           <TouchableOpacity
@@ -22,25 +18,20 @@ export const GlobalMenuModal = () =>
               item.danger && styles.menuItemDanger,
               index === menuState.menuItems.length - 1 && styles.menuItemLast,
             ]}
-            onPress={() =>
-            {
+            onPress={() => {
               // Store the action function before closing
               const action = item.onPress;
               // Close menu first to ensure Alert appears on top
               closeMenu();
               // Execute action after a small delay to ensure menu is closed
               // This allows the Alert to appear on top of everything
-              setTimeout(() =>
-              {
+              setTimeout(() => {
                 action();
               }, 100);
             }}
             activeOpacity={0.7}>
             {item.icon}
-            <Text style={[
-              styles.menuItemText,
-              item.danger && styles.menuItemTextDanger,
-            ]}>
+            <Text style={[styles.menuItemText, item.danger && styles.menuItemTextDanger]}>
               {item.label}
             </Text>
           </TouchableOpacity>
@@ -90,4 +81,3 @@ const styles = StyleSheet.create({
     color: Colors.error,
   },
 });
-

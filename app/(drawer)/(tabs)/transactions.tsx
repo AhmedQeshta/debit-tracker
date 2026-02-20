@@ -1,37 +1,36 @@
-import { StyleSheet, FlatList } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { useTransactionsStore } from '@/store/transactionsStore';
-import { useShallow } from 'zustand/react/shallow';
+import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
 import { EmptySection } from '@/components/ui/EmptySection';
 import Header from '@/components/ui/Header';
 import NavigateTo from '@/components/ui/NavigateTo';
-import { sortedTransactions } from '@/lib/utils';
-import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
-import { useRouter } from 'expo-router';
-import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
-import { useToast } from '@/contexts/ToastContext';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useToast } from '@/hooks/useToast';
+import { sortedTransactions } from '@/lib/utils';
+import { useTransactionsStore } from '@/store/transactionsStore';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { useRouter } from 'expo-router';
+import { FlatList, StyleSheet } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 
-export default function TransactionsScreen()
-{
+export default function TransactionsScreen() {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const { deleteTransaction } = useTransactionsStore();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
-  const transactions = useTransactionsStore(useShallow((state) => state.transactions.filter((t) => !t.deletedAt)));
+  const transactions = useTransactionsStore(
+    useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
+  );
 
-  const handleEdit = (id: string) =>
-  {
+  const handleEdit = (id: string) => {
     router.push(`/(drawer)/transaction/${id}/edit`);
   };
 
-  const handleDelete = (id: string, title: string) =>
-  {
+  const handleDelete = (id: string, title: string) => {
     showConfirm(
       'Delete Transaction',
       `Are you sure you want to delete "${title}"?`,
@@ -39,7 +38,7 @@ export default function TransactionsScreen()
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(id);
         toastSuccess('Transaction deleted successfully');
-        
+
         // Trigger sync to push deletion to Supabase
         try {
           await syncNow();
@@ -47,7 +46,7 @@ export default function TransactionsScreen()
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 
