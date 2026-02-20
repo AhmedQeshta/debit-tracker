@@ -1,26 +1,37 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Input } from '@/components/ui/Input';
+import { Actions } from '@/components/ui/Actions';
 import { Button } from '@/components/ui/Button';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
-import { Trash2, Pin } from 'lucide-react-native';
+import Header from '@/components/ui/Header';
+import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
 import { formatCurrency } from '@/lib/utils';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { Pin, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { Actions } from '@/components/ui/Actions';
-import Header from '@/components/ui/Header';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
-export default function BudgetDetail()
-{
-  const { budget, router, itemTitle, setItemTitle, itemAmount, setItemAmount, itemTitleError, setItemTitleError, itemAmountError, setItemAmountError, handleAddItem, handleDeleteItem, totalSpent, remaining, handlePinToggle, handleDeleteBudget, menuItems } = useBudgetDetail();
+export default function BudgetDetail() {
+  const {
+    budget,
+    router,
+    itemTitle,
+    setItemTitle,
+    itemAmount,
+    setItemAmount,
+    itemTitleError,
+    setItemTitleError,
+    itemAmountError,
+    setItemAmountError,
+    handleAddItem,
+    handleDeleteItem,
+    totalSpent,
+    remaining,
+    menuItems,
+  } = useBudgetDetail();
   const [menuVisible, setMenuVisible] = useState(false);
 
-
-
-  if (!budget)
-  {
+  if (!budget) {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -31,20 +42,20 @@ export default function BudgetDetail()
     );
   }
 
-
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-        <Header openDrawer={() => router.push('/(drawer)/(tabs)/budget')} title={`${budget.title} Budget Details`} isGoBack={true} />
-
+        <Header
+          openDrawer={() => router.push('/(drawer)/(tabs)/budget')}
+          title={`${budget.title} Budget Details`}
+          isGoBack={true}
+        />
 
         {/* Budget Info Card */}
         <View style={styles.budgetInfoCard}>
           <View style={styles.budgetInfoHeader}>
             <View style={styles.budgetInfoTitleRow}>
-              {budget.pinned && (
-                <Pin size={18} color={Colors.primary} fill={Colors.primary} />
-              )}
+              {budget.pinned && <Pin size={18} color={Colors.primary} fill={Colors.primary} />}
               <Text style={styles.budgetInfoTitle}>{budget.title}</Text>
             </View>
             <Actions
@@ -85,8 +96,7 @@ export default function BudgetDetail()
           <Input
             label="Item Title"
             value={itemTitle}
-            onChangeText={(text) =>
-            {
+            onChangeText={(text) => {
               setItemTitle(text);
               setItemTitleError('');
             }}
@@ -96,8 +106,7 @@ export default function BudgetDetail()
           <Input
             label="Amount"
             value={itemAmount}
-            onChangeText={(text) =>
-            {
+            onChangeText={(text) => {
               setItemAmount(text);
               setItemAmountError('');
             }}
@@ -108,13 +117,14 @@ export default function BudgetDetail()
           <Button title="Add Item" onPress={handleAddItem} />
         </View>
 
-
         {/* Items List */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Items ({budget.items.length})</Text>
           {budget.items.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No items yet. Add your first spending item above.</Text>
+              <Text style={styles.emptyText}>
+                No items yet. Add your first spending item above.
+              </Text>
             </View>
           ) : (
             <View style={styles.itemsList}>
@@ -122,7 +132,9 @@ export default function BudgetDetail()
                 <View key={item.id} style={styles.itemCard}>
                   <View style={styles.itemContent}>
                     <Text style={styles.itemTitle}>{item.title}</Text>
-                    <Text style={styles.itemAmount}>{formatCurrency(item.amount, budget.currency)}</Text>
+                    <Text style={styles.itemAmount}>
+                      {formatCurrency(item.amount, budget.currency)}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     style={styles.deleteButton}
@@ -376,4 +388,3 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
 });
-

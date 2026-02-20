@@ -20,7 +20,6 @@ export interface Transaction {
   title: string;
   amount: number; // supports + or -
   sign: number; // 1 = add debt, -1 = reduce debt (optional for backward compatibility)
-  category: string;
   date: number;
   note?: string;
   createdAt: number;

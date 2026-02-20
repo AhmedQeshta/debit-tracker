@@ -7,8 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-export const useEditTransaction = () =>
-{
+export const useEditTransaction = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const transactionId = safeId(id);
   const router = useRouter();
@@ -28,34 +27,32 @@ export const useEditTransaction = () =>
     defaultValues: {
       amount: '',
       description: '',
+      isNegative: true,
     },
   });
 
-  useEffect(() =>
-  {
-    if (transaction)
-    {
+  useEffect(() => {
+    if (transaction) {
       reset({
         amount: Math.abs(transaction.amount).toString(),
         description: transaction.title,
+        isNegative: transaction.amount < 0,
       });
     }
   }, [transaction, reset]);
 
-  const onSubmit = async (data: IEditTransactionFormData) =>
-  {
+  const onSubmit = async (data: IEditTransactionFormData) => {
     if (!transaction) return;
 
     setLoading(true);
-    try
-    {
-      const isNegative = transaction.amount < 0;
+    try {
       const amountNum = parseFloat(data.amount);
-      const finalAmount = isNegative ? -Math.abs(amountNum) : Math.abs(amountNum);
+      const finalAmount = data.isNegative ? -Math.abs(amountNum) : Math.abs(amountNum);
 
       const updatedTransaction = {
         ...transaction,
         amount: finalAmount,
+        sign: data.isNegative ? 1 : -1,
         title: data.description,
         synced: false,
         updatedAt: Date.now(),
@@ -64,20 +61,16 @@ export const useEditTransaction = () =>
       updateTransaction(updatedTransaction);
 
       // Trigger sync to push edit to Supabase
-      try
-      {
+      try {
         await syncNow();
         toastSuccess('Transaction updated successfully');
-      }
-      catch (error)
-      {
+      } catch (error) {
         console.error('[Sync] Failed to sync after edit:', error);
         toastSuccess('Transaction updated locally');
       }
 
       router.push(`/(drawer)/friend/${transaction.friendId}`);
-    } finally
-    {
+    } finally {
       setLoading(false);
     }
   };

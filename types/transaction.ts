@@ -10,13 +10,13 @@ export interface ITransactionItemProps {
 export interface IEditTransactionFormData {
   amount: string;
   description: string;
+  isNegative: boolean;
 }
 
 export interface ITransactionFormData {
   friendId: string;
   amount: string;
   title: string;
-  category: string;
   date: number;
   note?: string;
   isNegative: boolean;

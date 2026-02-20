@@ -1,31 +1,27 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Actions } from '@/components/ui/Actions';
 import { getFriendName } from '@/lib/utils';
 import { useFriendsStore } from '@/store/friendsStore';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useShallow } from 'zustand/react/shallow';
-import { Trash2, Pencil } from 'lucide-react-native';
-import { Actions } from '@/components/ui/Actions';
 import { ITransactionScreenItemProps } from '@/types/transaction';
+import { Pencil, Trash2 } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 
-
-export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionScreenItemProps) =>
-{
+export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionScreenItemProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const friends = useFriendsStore(useShallow((state) => state.friends));
 
   const menuItems = [];
-  if (onEdit)
-  {
+  if (onEdit) {
     menuItems.push({
       icon: <Pencil size={18} color={Colors.text} />,
       label: 'Edit Transaction',
       onPress: () => onEdit(item.id),
     });
   }
-  if (onDelete)
-  {
+  if (onDelete) {
     menuItems.push({
       icon: <Trash2 size={18} color={Colors.error} />,
       label: 'Delete Transaction',
@@ -45,7 +41,6 @@ export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionSc
         <Text style={[styles.amountText, item.amount < 0 ? styles.negative : styles.positive]}>
           {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
         </Text>
-        <Text style={styles.categoryText}>{item.category}</Text>
       </View>
       {menuItems.length > 0 && (
         <View style={styles.actions}>
@@ -103,11 +98,6 @@ const styles = StyleSheet.create({
   },
   negative: {
     color: Colors.error,
-  },
-  categoryText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 4,
   },
   actions: {
     marginLeft: Spacing.xs,

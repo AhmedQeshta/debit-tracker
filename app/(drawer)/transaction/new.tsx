@@ -3,7 +3,6 @@ import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useTransactionForm } from '@/hooks/transaction/useTransactionForm';
-import { CATEGORIES } from '@/lib/data';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
@@ -99,27 +98,6 @@ export default function AddTransaction() {
             )}
             name="title"
           />
-
-          <Text style={styles.label}>Category</Text>
-          <View style={styles.userPicker}>
-            {CATEGORIES.map((cat) => (
-              <Controller
-                key={cat}
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <TouchableOpacity
-                    style={[styles.userChip, value === cat && styles.userChipSelected]}
-                    onPress={() => onChange(cat)}>
-                    <Text
-                      style={[styles.userChipText, value === cat && styles.userChipTextSelected]}>
-                      {cat}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                name="category"
-              />
-            ))}
-          </View>
 
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>

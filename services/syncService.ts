@@ -353,7 +353,6 @@ export const syncService = {
         title: t.description || '',
         amount: (t.sign || 1) * Math.abs(t.amount), // Apply sign to amount
         sign: t.sign || (t.amount < 0 ? 1 : -1),
-        category: 'General', // Not in new schema
         date: safeDateToTimestamp(t.created_at), // Use created_at as date
         note: '', // Not in new schema
         createdAt: safeDateToTimestamp(t.created_at),
@@ -578,7 +577,6 @@ export const syncService = {
           title: t.description || '',
           amount: (t.sign || 1) * Math.abs(t.amount),
           sign: t.sign || (t.amount < 0 ? 1 : -1),
-          category: 'General',
           date: safeDateToTimestamp(t.created_at),
           note: '',
           createdAt: safeDateToTimestamp(t.created_at),

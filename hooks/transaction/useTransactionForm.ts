@@ -30,7 +30,6 @@ export const useTransactionForm = () => {
       friendId: initialFriendId || '',
       amount: '',
       title: '',
-      category: 'General',
       date: Date.now(),
       note: '',
       isNegative: true,
@@ -57,7 +56,6 @@ export const useTransactionForm = () => {
         title: data.title,
         amount: finalAmount,
         sign: data.isNegative ? -1 : 1, // 1 = add debt (negative amount), -1 = reduce debt (positive amount)
-        category: data.category,
         date: data.date,
         note: data.note,
         createdAt: Date.now(),
