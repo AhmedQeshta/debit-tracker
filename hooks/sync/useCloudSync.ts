@@ -1,4 +1,4 @@
-import { selectPendingCount } from '@/selectors/dashboardSelectors';
+import { selectPendingCount } from '@/lib/dashboardSelectors';
 import { getFreshSupabaseJwt } from '@/services/authSync';
 import { syncService } from '@/services/syncService';
 import { useBudgetStore } from '@/store/budgetStore';

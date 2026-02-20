@@ -1,7 +1,7 @@
-import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
-import { useToast } from '@/contexts/ToastContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useToast } from '@/hooks/useToast';
 import { filterFriends, getBalance } from '@/lib/utils';
 import { syncService } from '@/services/syncService';
 import { useFriendsStore } from '@/store/friendsStore';

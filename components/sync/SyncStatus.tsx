@@ -1,6 +1,6 @@
 import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
+import { selectPendingCount } from '@/lib/dashboardSelectors';
 import { getProgressText } from '@/lib/utils';
-import { selectPendingCount } from '@/selectors/dashboardSelectors';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { AlertCircle, Cloud, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
@@ -8,9 +8,22 @@ import React from 'react';
 import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { OfflineBanner } from './OfflineBanner';
 
-export const SyncStatus = () =>
-{
-  const { isLoggedIn, syncEnabled, setSyncEnabled, isSyncing, syncStatus, handleSync, isOnline, isNetworkWeak, pullProgress, handleRetry, lastError, isTimeoutError, lastSync } = useSyncStatus();
+export const SyncStatus = () => {
+  const {
+    isLoggedIn,
+    syncEnabled,
+    setSyncEnabled,
+    isSyncing,
+    syncStatus,
+    handleSync,
+    isOnline,
+    isNetworkWeak,
+    pullProgress,
+    handleRetry,
+    lastError,
+    isTimeoutError,
+    lastSync,
+  } = useSyncStatus();
   const pendingCount = selectPendingCount();
   if (!isLoggedIn) return null;
 
@@ -36,15 +49,17 @@ export const SyncStatus = () =>
             />
           </View>
 
-          {syncEnabled && (
-            isSyncing || syncStatus === 'pulling' || syncStatus === 'pushing' ? (
+          {syncEnabled &&
+            (isSyncing || syncStatus === 'pulling' || syncStatus === 'pushing' ? (
               <ActivityIndicator size="small" color={Colors.primary} />
             ) : (
               <TouchableOpacity onPress={handleSync} disabled={!isOnline || isNetworkWeak}>
-                <RefreshCw size={16} color={isOnline && !isNetworkWeak ? Colors.primary : Colors.textSecondary} />
+                <RefreshCw
+                  size={16}
+                  color={isOnline && !isNetworkWeak ? Colors.primary : Colors.textSecondary}
+                />
               </TouchableOpacity>
-            )
-          )}
+            ))}
         </View>
 
         {syncEnabled && (
@@ -53,9 +68,7 @@ export const SyncStatus = () =>
             {isNetworkWeak && syncStatus !== 'error' && (
               <View style={styles.networkWarning}>
                 <WifiOff size={14} color={Colors.error} />
-                <Text style={styles.networkWarningText}>
-                  Internet is weak. Sync may fail.
-                </Text>
+                <Text style={styles.networkWarningText}>Internet is weak. Sync may fail.</Text>
               </View>
             )}
 
@@ -70,9 +83,7 @@ export const SyncStatus = () =>
             {syncStatus === 'needs_config' && (
               <View style={styles.statusMessage}>
                 <AlertCircle size={14} color={Colors.error} />
-                <Text style={styles.statusMessageText}>
-                  JWT template missing. Check setup.
-                </Text>
+                <Text style={styles.statusMessageText}>JWT template missing. Check setup.</Text>
               </View>
             )}
 
@@ -94,8 +105,15 @@ export const SyncStatus = () =>
                       ? 'Network timeout. Check your connection and retry.'
                       : lastError.message || 'Sync error occurred. Please try again.'}
                   </Text>
-                  <TouchableOpacity style={styles.retryButton} onPress={handleRetry} disabled={!isOnline || isNetworkWeak}>
-                    <Text style={[styles.retryButtonText, (!isOnline || isNetworkWeak) && styles.retryButtonTextDisabled]}>
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={handleRetry}
+                    disabled={!isOnline || isNetworkWeak}>
+                    <Text
+                      style={[
+                        styles.retryButtonText,
+                        (!isOnline || isNetworkWeak) && styles.retryButtonTextDisabled,
+                      ]}>
                       Retry
                     </Text>
                   </TouchableOpacity>
@@ -116,7 +134,11 @@ export const SyncStatus = () =>
               <>
                 <View style={styles.row}>
                   <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
-                    {isOnline ? <Wifi size={14} stroke="#000" /> : <WifiOff size={14} stroke="#fff" />}
+                    {isOnline ? (
+                      <Wifi size={14} stroke="#000" />
+                    ) : (
+                      <WifiOff size={14} stroke="#fff" />
+                    )}
                     <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
                       {isOnline ? 'Online' : 'Offline'}
                     </Text>
@@ -142,7 +164,6 @@ export const SyncStatus = () =>
         )}
       </View>
     </>
-
   );
 };
 

@@ -1,5 +1,5 @@
-import { useConfirmDialog } from '@/contexts/ConfirmDialogContext';
-import { useToast } from '@/contexts/ToastContext';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 import { useSyncStore } from '@/store/syncStore';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';

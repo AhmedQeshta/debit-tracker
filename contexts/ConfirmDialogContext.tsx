@@ -1,26 +1,8 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialogContextType, ConfirmDialogState } from '@/types/common';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
 
-interface ConfirmDialogState {
-  visible: boolean;
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  onConfirm: (() => void) | null;
-  onCancel: (() => void) | null;
-}
-
-interface ConfirmDialogContextType {
-  showConfirm: (
-    title: string,
-    message: string,
-    onConfirm: () => void,
-    options?: { confirmText?: string; cancelText?: string }
-  ) => void;
-}
-
-const ConfirmDialogContext = createContext<ConfirmDialogContextType | undefined>(undefined);
+export const ConfirmDialogContext = createContext<ConfirmDialogContextType | undefined>(undefined);
 
 export const ConfirmDialogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [dialogState, setDialogState] = useState<ConfirmDialogState>({
@@ -50,7 +32,7 @@ export const ConfirmDialogProvider: React.FC<{ children: React.ReactNode }> = ({
       title: string,
       message: string,
       onConfirm: () => void,
-      options?: { confirmText?: string; cancelText?: string }
+      options?: { confirmText?: string; cancelText?: string },
     ) => {
       setDialogState({
         visible: true,
@@ -64,7 +46,7 @@ export const ConfirmDialogProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
     },
-    []
+    [],
   );
 
   const handleConfirm = () => {
@@ -98,12 +80,3 @@ export const ConfirmDialogProvider: React.FC<{ children: React.ReactNode }> = ({
     </ConfirmDialogContext.Provider>
   );
 };
-
-export const useConfirmDialog = () => {
-  const context = useContext(ConfirmDialogContext);
-  if (!context) {
-    throw new Error('useConfirmDialog must be used within ConfirmDialogProvider');
-  }
-  return context;
-};
-

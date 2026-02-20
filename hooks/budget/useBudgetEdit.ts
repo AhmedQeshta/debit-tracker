@@ -1,5 +1,5 @@
-import { useToast } from '@/contexts/ToastContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useToast } from '@/hooks/useToast';
 import { safeId } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
 import { IBudgetFormData } from '@/types/budget';
@@ -7,8 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-export const useBudgetEdit = () =>
-{
+export const useBudgetEdit = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
   const router = useRouter();
@@ -34,10 +33,8 @@ export const useBudgetEdit = () =>
     },
   });
 
-  useEffect(() =>
-  {
-    if (budget)
-    {
+  useEffect(() => {
+    if (budget) {
       reset({
         title: budget.title,
         currency: budget.currency || '$',
@@ -50,13 +47,11 @@ export const useBudgetEdit = () =>
   const currency = watch('currency');
   const totalBudget = watch('totalBudget');
 
-  const onSubmit = async (data: IBudgetFormData) =>
-  {
+  const onSubmit = async (data: IBudgetFormData) => {
     if (!budget) return;
 
     setLoading(true);
-    try
-    {
+    try {
       const amount = parseFloat(data.totalBudget);
       updateBudget(budgetId, {
         title: data.title.trim(),
@@ -65,20 +60,16 @@ export const useBudgetEdit = () =>
       });
 
       // Trigger sync to push edit to Supabase
-      try
-      {
+      try {
         await syncNow();
         toastSuccess('Budget updated successfully');
-      }
-      catch (error)
-      {
+      } catch (error) {
         console.error('[Sync] Failed to sync after edit:', error);
         toastSuccess('Budget updated locally');
       }
 
       router.back();
-    } finally
-    {
+    } finally {
       setLoading(false);
     }
   };

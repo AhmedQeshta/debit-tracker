@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFriendsStore } from '@/store/friendsStore';
-import { safeId } from '@/lib/utils';
-import { useNavigation } from '@/hooks/useNavigation';
-import { useForm } from 'react-hook-form';
-import { IFriendFormData } from '@/types/friend';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
-import { useToast } from '@/contexts/ToastContext';
+import { useNavigation } from '@/hooks/useNavigation';
+import { useToast } from '@/hooks/useToast';
+import { safeId } from '@/lib/utils';
+import { useFriendsStore } from '@/store/friendsStore';
+import { IFriendFormData } from '@/types/friend';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export const useFriendEdit = () => {
   const router = useRouter();
@@ -63,15 +63,12 @@ export const useFriendEdit = () => {
       };
 
       updateFriend(updatedFriend);
-      
+
       // Trigger sync to push edit to Supabase
-      try
-      {
+      try {
         await syncNow();
         toastSuccess('Friend updated successfully');
-      }
-      catch (error)
-      {
+      } catch (error) {
         console.error('[Sync] Failed to sync after edit:', error);
         toastSuccess('Friend updated locally');
       }

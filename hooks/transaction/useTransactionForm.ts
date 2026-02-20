@@ -1,5 +1,5 @@
-import { useToast } from '@/contexts/ToastContext';
 import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
+import { useToast } from '@/hooks/useToast';
 import { generateId, getFinalAmount } from '@/lib/utils';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';

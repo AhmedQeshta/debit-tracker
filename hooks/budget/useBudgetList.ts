@@ -1,14 +1,13 @@
-import { useRouter } from "expo-router";
-import { useShallow } from "zustand/react/shallow";
-import { useBudgetStore } from "@/store/budgetStore";
-import { useDrawerContext } from "@/hooks/drawer/useDrawerContext";
-import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
-import { useToast } from "@/contexts/ToastContext";
-import { sortBudgets } from "@/lib/utils";
-import { useCloudSync } from "@/hooks/sync/useCloudSync";
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useToast } from '@/hooks/useToast';
+import { sortBudgets } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
+import { useRouter } from 'expo-router';
+import { useShallow } from 'zustand/react/shallow';
 
-export const useBudgetList = () =>
-{
+export const useBudgetList = () => {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const budgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
@@ -20,24 +19,25 @@ export const useBudgetList = () =>
 
   const sortedBudgets = sortBudgets(budgets);
 
-  const handlePinToggle = (budgetId: string): void =>
-  {
+  const handlePinToggle = (budgetId: string): void => {
     const budget = budgets.find((b) => b.id === budgetId);
-    if (budget)
-    {
-      budget.pinned ? unpinBudget(budgetId) : pinBudget(budgetId);
+    if (budget) {
+      if (budget.pinned) {
+        unpinBudget(budgetId);
+      } else {
+        pinBudget(budgetId);
+      }
     }
   };
 
-  const handleDelete = (budgetId: string, title: string): void =>
-  {
+  const handleDelete = (budgetId: string, title: string): void => {
     showConfirm(
-      "Delete Budget",
+      'Delete Budget',
       `Are you sure you want to delete "${title}"?`,
       async () => {
         deleteBudget(budgetId);
         toastSuccess('Budget deleted successfully');
-        
+
         // Trigger sync to push deletion to Supabase
         try {
           await syncNow();
@@ -45,7 +45,7 @@ export const useBudgetList = () =>
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' }
+      { confirmText: 'Delete' },
     );
   };
 

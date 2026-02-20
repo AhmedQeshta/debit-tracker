@@ -1,5 +1,5 @@
-import { useToast } from '@/contexts/ToastContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useToast } from '@/hooks/useToast';
 import { safeId } from '@/lib/utils';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { IEditTransactionFormData } from '@/types/transaction';
