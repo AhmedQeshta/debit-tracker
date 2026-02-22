@@ -35,7 +35,7 @@ export const createMenuItems = (
   if (onDelete) {
     menuItems.push({
       icon: <Trash2 size={18} color={Colors.error} />,
-      label: `Delete type`,
+      label: `Delete ${type}`,
       onPress: onDelete,
       danger: true,
     });
