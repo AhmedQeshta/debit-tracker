@@ -5,10 +5,31 @@ import { calculateLatestTransactions, getBalance } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
+import { Budget, Friend } from '@/types/models';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from './useNavigation';
+
+interface HomeSettlePerson {
+  friend: Friend;
+  balance: number;
+}
+
+interface HomeBudgetPreview {
+  budget: Budget;
+  spent: number;
+  progress: number;
+  warningLabel: string | null;
+}
+
+interface HomeSummaryMetrics {
+  netBalance: number;
+  youOwe: number;
+  owedToYou: number;
+  trend: 'up' | 'down' | 'flat';
+  trendText: string;
+}
 
 export const useHome = () => {
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
@@ -37,6 +58,11 @@ export const useHome = () => {
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
   );
 
+  const activeFriends = useMemo(
+    () => allFriends.filter((friend) => !friend.deletedAt),
+    [allFriends],
+  );
+
   const latestTransactions = useMemo(
     () => calculateLatestTransactions(allTransactions),
     [allTransactions],
@@ -60,6 +86,10 @@ export const useHome = () => {
   );
   const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
     useBudgetStore();
+  const activeBudgets = useMemo(
+    () => allBudgets.filter((budget) => !budget.deletedAt),
+    [allBudgets],
+  );
 
   const latestBudgets = useMemo(
     () => [...allBudgets].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5),
@@ -75,6 +105,77 @@ export const useHome = () => {
     () => (budgetId: string) => getRemainingBudget(budgetId),
     [getRemainingBudget],
   );
+
+  const summary = useMemo<HomeSummaryMetrics>(() => {
+    const youOwe = allTransactions
+      .filter((transaction) => transaction.amount > 0)
+      .reduce((total, transaction) => total + transaction.amount, 0);
+
+    const owedToYou = Math.abs(
+      allTransactions
+        .filter((transaction) => transaction.amount < 0)
+        .reduce((total, transaction) => total + transaction.amount, 0),
+    );
+
+    const netBalance = owedToYou - youOwe;
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const weekDelta = allTransactions
+      .filter((transaction) => transaction.date >= sevenDaysAgo)
+      .reduce((total, transaction) => total - transaction.amount, 0);
+
+    const trend = weekDelta > 0 ? 'up' : weekDelta < 0 ? 'down' : 'flat';
+    const trendText =
+      trend === 'up' ? 'Up this week' : trend === 'down' ? 'Down this week' : 'Stable';
+
+    return {
+      netBalance,
+      youOwe,
+      owedToYou,
+      trend,
+      trendText,
+    };
+  }, [allTransactions]);
+
+  const settleUpPeople = useMemo<HomeSettlePerson[]>(() => {
+    return activeFriends
+      .map((friend) => {
+        const balance = getBalance(friend.id, allTransactions);
+        return { friend, balance };
+      })
+      .filter((item) => item.balance !== 0)
+      .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+      .slice(0, 3);
+  }, [activeFriends, allTransactions]);
+
+  const recentTransactions = useMemo(() => {
+    const friendsById = new Map(activeFriends.map((friend) => [friend.id, friend]));
+    return latestTransactions.slice(0, 5).map((transaction) => ({
+      transaction,
+      friend: friendsById.get(transaction.friendId),
+    }));
+  }, [activeFriends, latestTransactions]);
+
+  const budgetsOverview = useMemo<HomeBudgetPreview[]>(() => {
+    return activeBudgets.slice(0, 5).map((budget) => {
+      const spent = getTotalSpent(budget.id);
+      const progressRatio = budget.totalBudget > 0 ? spent / budget.totalBudget : 0;
+      const progress = Math.max(0, Math.min(1, progressRatio));
+
+      let warningLabel: string | null = null;
+      if (progressRatio >= 1) warningLabel = 'Over limit';
+      else if (progressRatio >= 0.8) warningLabel = 'Near limit';
+
+      return {
+        budget,
+        spent,
+        progress,
+        warningLabel,
+      };
+    });
+  }, [activeBudgets, getTotalSpent]);
+
+  const isFreshState =
+    activeFriends.length === 0 && allTransactions.length === 0 && activeBudgets.length === 0;
 
   const handleBudgetPinToggle = (budgetId: string) => {
     const budget = allBudgets.find((b) => b.id === budgetId);
@@ -166,19 +267,51 @@ export const useHome = () => {
     );
   };
 
+  const handleAddFriend = () => {
+    router.push('/(drawer)/friend/new');
+  };
+
+  const handleCreateBudget = () => {
+    router.push('/(drawer)/budget/new');
+  };
+
+  const handleAddTransactionPress = () => {
+    if (allFriends.length > 0) {
+      router.push('/(drawer)/transaction/new');
+      return;
+    }
+
+    showConfirm(
+      'Add a friend first',
+      'You need at least one friend before adding a transaction.',
+      () => handleAddFriend(),
+      { confirmText: 'Add Friend', cancelText: 'Later' },
+    );
+  };
+
   return {
-    latestTransactions,
-    getFriendBalance,
-    latestFriends,
-    handlePinToggle,
-    latestBudgets,
-    getBudgetTotalSpent,
-    getBudgetRemaining,
-    handleBudgetPinToggle,
-    handleBudgetDelete,
+    allFriends: activeFriends,
+    allTransactions,
+    allBudgets: activeBudgets,
+    summary,
+    settleUpPeople,
+    recentTransactions,
+    budgetsOverview,
+    isFreshState,
     handleFriendEdit,
     handleFriendDelete,
     handleTransactionEdit,
     handleTransactionDelete,
+    handleBudgetDelete,
+    handleBudgetPinToggle,
+    handlePinToggle,
+    latestFriends,
+    getFriendBalance,
+    latestBudgets,
+    getBudgetTotalSpent,
+    getBudgetRemaining,
+    handleAddFriend,
+    handleCreateBudget,
+    handleAddTransactionPress,
   };
 };

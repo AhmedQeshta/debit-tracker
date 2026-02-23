@@ -161,3 +161,45 @@ export interface ToastContextType {
   toastInfo: (message: string) => void;
   removeToast: (id: string) => void;
 }
+
+export interface HomeQuickActionsProps {
+  onAddTransaction: () => void;
+  onAddFriend: () => void;
+  onCreateBudget: () => void;
+}
+
+export interface QuickActionItemProps {
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+}
+
+export interface HomeGetStartedCardProps {
+  onAddFriend: () => void;
+  onAddTransaction: () => void;
+  onCreateBudget: () => void;
+}
+
+export interface HomeSectionHeaderProps {
+  title: string;
+  seeAllLabel?: string;
+  onSeeAll?: () => void;
+}
+
+export interface HomeSummaryCardProps {
+  netBalanceText: string;
+  youOweText: string;
+  owedToYouText: string;
+  trend: 'up' | 'down' | 'flat';
+  trendText: string;
+  updatedText?: string;
+}
+
+export interface IStepItemProps {
+  step: string;
+  title: string;
+  actionLabel: string;
+  onPress: () => void;
+  variant?: 'primary' | 'outline';
+}

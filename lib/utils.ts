@@ -138,3 +138,8 @@ export const getProgressText = (pullProgress: string | any) => {
       return 'Downloading your data...';
   }
 };
+
+export const formatSignedCurrency = (amount: number) => {
+  const prefix = amount > 0 ? '+' : amount < 0 ? '-' : '';
+  return `${prefix}${formatCurrency(Math.abs(amount), '$')}`;
+};
