@@ -12,7 +12,7 @@ import { formatCurrency, formatSignedCurrency, getBalanceText } from '@/lib/util
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
-import { Search, Settings } from 'lucide-react-native';
+import { Menu, Settings } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Home() {
@@ -38,15 +38,15 @@ export default function Home() {
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
           <Pressable onPress={openDrawer} style={styles.iconButton} hitSlop={8}>
-            <Text style={styles.menuIcon}>☰</Text>
+            <Menu size={20} color={Colors.text} />
           </Pressable>
           <Text style={styles.headerTitle}>Home</Text>
         </View>
 
         <View style={styles.headerActions}>
-          <Pressable onPress={() => {}} style={styles.iconButton} hitSlop={8}>
+          {/* <Pressable onPress={() => {}} style={styles.iconButton} hitSlop={8}>
             <Search size={20} color={Colors.text} />
-          </Pressable>
+          </Pressable> */}
           <Pressable
             onPress={() => router.push('/(drawer)/settings')}
             style={styles.iconButton}
@@ -324,10 +324,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   badgeOwe: {
-    color: Colors.error,
+    color: Colors.success,
   },
   badgeOwed: {
-    color: Colors.success,
+    color: Colors.error,
   },
   settleRight: {
     alignItems: 'flex-end',
@@ -339,10 +339,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   amountOutgoing: {
-    color: Colors.error,
+    color: Colors.success,
   },
   amountIncoming: {
-    color: Colors.success,
+    color: Colors.error,
   },
   budgetCard: {
     backgroundColor: Colors.card,

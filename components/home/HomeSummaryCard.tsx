@@ -34,14 +34,14 @@ export const HomeSummaryCard = ({
       <View style={styles.bottomRow}>
         <View style={styles.metricCell}>
           <Text style={styles.metricLabel}>You Owe</Text>
-          <Text style={[styles.metricValue, { color: Colors.error }]}>{youOweText}</Text>
+          <Text style={[styles.metricValue, { color: Colors.success }]}>{youOweText}</Text>
         </View>
 
         <View style={styles.metricSeparator} />
 
         <View style={styles.metricCell}>
           <Text style={styles.metricLabel}>Owed To You</Text>
-          <Text style={[styles.metricValue, { color: Colors.success }]}>{owedToYouText}</Text>
+          <Text style={[styles.metricValue, { color: Colors.error }]}>{owedToYouText}</Text>
         </View>
       </View>
     </View>
