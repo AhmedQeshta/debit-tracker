@@ -64,7 +64,7 @@ export const getTextStyle = (
   variant: 'primary' | 'secondary' | 'error' | 'outline',
   styles: any,
 ) => {
-  if (variant === 'outline') return [styles.text, { color: Colors.primary }];
+  if (variant === 'outline') return [styles.text, { color: Colors.text }];
   return styles.text;
 };
 

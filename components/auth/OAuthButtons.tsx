@@ -1,27 +1,19 @@
-import
-{
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  View,
-  ActivityIndicator,
-} from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { useOAuthButtons } from '@/hooks/auth/useOAuthButtons';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useOAuthButtons } from '@/hooks/auth/useOAuthButtons';
+import * as WebBrowser from 'expo-web-browser';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Preload the browser for Android to improve performance
 WebBrowser.maybeCompleteAuthSession();
 
-export const OAuthButtons = () =>
-{
+export const OAuthButtons = () => {
   const { onGoogleSignInPress, loading } = useOAuthButtons();
   return (
     <View style={styles.container}>
       <View style={styles.dividerContainer}>
         <View style={styles.divider} />
-        <Text style={styles.dividerText}>or continue with</Text>
+        <Text style={styles.dividerText}>or</Text>
         <View style={styles.divider} />
       </View>
 
@@ -35,7 +27,7 @@ export const OAuthButtons = () =>
         ) : (
           <View style={styles.buttonContent}>
             <Text style={styles.googleIcon}>G</Text>
-            <Text style={styles.googleButtonText}>Login with Google</Text>
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -46,12 +38,12 @@ export const OAuthButtons = () =>
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginTop: Spacing.xl,
+    marginTop: Spacing.lg,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   divider: {
     flex: 1,
@@ -62,11 +54,12 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     paddingHorizontal: Spacing.md,
     fontSize: 14,
+    fontWeight: '500',
   },
   googleButton: {
     backgroundColor: Colors.surface,
-    paddingVertical: Spacing.md,
-    borderRadius: Spacing.borderRadius.md,
+    minHeight: 52,
+    borderRadius: Spacing.borderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
@@ -79,8 +72,14 @@ const styles = StyleSheet.create({
   },
   googleIcon: {
     color: Colors.text,
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
+    backgroundColor: Colors.background,
+    width: 24,
+    height: 24,
+    borderRadius: Spacing.borderRadius.round,
+    textAlign: 'center',
+    lineHeight: 24,
   },
   googleButtonText: {
     color: Colors.text,

@@ -1,19 +1,20 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { X } from 'lucide-react-native';
-import { Controller } from 'react-hook-form';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { OAuthButtons } from '@/components/auth/OAuthButtons';
+import { OtpInput } from '@/components/auth/OtpInput';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useSignUpScreen } from '@/hooks/auth/useSignUpScreen';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { OAuthButtons } from '@/components/auth/OAuthButtons';
-import { useSignUpScreen } from '@/hooks/auth/useSignUpScreen';
+import { X } from 'lucide-react-native';
+import { Controller } from 'react-hook-form';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function SignUpScreen()
-{
+export default function SignUpScreen() {
   const {
     control,
     handleSubmit,
+    getValues,
     errors,
     loading,
     authError,
@@ -27,110 +28,154 @@ export default function SignUpScreen()
     <ScreenContainer>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
+          <View style={styles.headerTextBlock}>
+            <Text style={styles.title}>
+              {pendingVerification ? 'Verify your email' : 'Create Account'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {pendingVerification
+                ? 'Enter the 6-digit code sent to your email'
+                : 'Create an account to save and sync your data'}
+            </Text>
+          </View>
           <TouchableOpacity onPress={() => router.replace('/')} style={styles.closeButton}>
-            <X size={24} color={Colors.text} />
+            <X size={18} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.subtitle}>
-          {pendingVerification ? 'Verify your email' : 'Start syncing your data'}
-        </Text>
 
-        {!pendingVerification ? (
-          <>
-            <Controller
-              control={control}
-              rules={{
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Email"
-                  placeholder="Enter your email"
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  error={errors.email?.message}
-                />
-              )}
-              name="email"
-            />
+        <View style={styles.card}>
+          {!pendingVerification ? (
+            <>
+              <Controller
+                control={control}
+                rules={{
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Enter a valid email address',
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label="Email"
+                    placeholder="you@example.com"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    error={errors.email?.message}
+                  />
+                )}
+                name="email"
+              />
 
-            <Controller
-              control={control}
-              rules={{
-                required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Password"
-                  placeholder="Create a password"
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  secureTextEntry
-                  error={errors.password?.message}
-                />
-              )}
-              name="password"
-            />
-            {authError && <Text style={styles.errorText}>{authError}</Text>}
-            <View style={styles.buttonContainer}>
+              <Controller
+                control={control}
+                rules={{
+                  required: 'Password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters',
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label="Password"
+                    placeholder="Create a password"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    secureTextEntry
+                    error={errors.password?.message}
+                    helperText="Use at least 8 characters"
+                  />
+                )}
+                name="password"
+              />
+
+              <Controller
+                control={control}
+                rules={{
+                  required: 'Please confirm your password',
+                  validate: (value) => value === getValues('password') || 'Passwords do not match',
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label="Confirm Password"
+                    placeholder="Re-enter your password"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    secureTextEntry
+                    error={errors.confirmPassword?.message}
+                  />
+                )}
+                name="confirmPassword"
+              />
+
+              {authError && <Text style={styles.errorText}>{authError}</Text>}
+
               <Button
-                title={loading ? 'Creating account...' : 'Sign Up'}
+                title="Create Account"
                 onPress={handleSubmit(onSignUpPress)}
+                loading={loading}
                 disabled={loading}
               />
-            </View>
-          </>
-        ) : (
-          <>
-            <Controller
-              control={control}
-              rules={{ required: 'Verification code is required' }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Verification Code"
-                  placeholder="Enter code"
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  keyboardType="numeric"
-                  error={errors.code?.message}
-                />
-              )}
-              name="code"
-            />
-            {authError && <Text style={styles.errorText}>{authError}</Text>}
-            <View style={styles.buttonContainer}>
+
+              <OAuthButtons />
+
+              <View style={styles.footerRow}>
+                <Text style={styles.footerText}>Already have an account?</Text>
+                <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
+                  <Text style={styles.footerLink}>Sign in</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              <Controller
+                control={control}
+                rules={{
+                  required: 'Code is required',
+                  minLength: {
+                    value: 6,
+                    message: 'Code must be 6 digits',
+                  },
+                  pattern: {
+                    value: /^\d{6}$/,
+                    message: 'Code must be 6 digits',
+                  },
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <OtpInput
+                    label="Verification Code"
+                    value={value}
+                    onChangeText={onChange}
+                    error={errors.code?.message}
+                    helperText="Enter the 6-digit code"
+                  />
+                )}
+                name="code"
+              />
+
+              {authError && <Text style={styles.errorText}>{authError}</Text>}
+
               <Button
-                title={loading ? 'Verifying...' : 'Verify Email'}
+                title="Verify"
                 onPress={handleSubmit(onPressVerify)}
+                loading={loading}
                 disabled={loading}
               />
-            </View>
-          </>
-        )}
 
-        {!pendingVerification && <OAuthButtons />}
-
-        {!pendingVerification && (
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/sign-in')}
-            style={styles.linkContainer}>
-            <Text style={styles.linkText}>Already have an account? Sign in</Text>
-          </TouchableOpacity>
-        )}
+              <TouchableOpacity
+                onPress={() => router.push('/(auth)/sign-in')}
+                style={styles.inlineLinkContainer}>
+                <Text style={styles.inlineLink}>Back to Sign in</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
     </ScreenContainer>
   );
@@ -138,51 +183,79 @@ export default function SignUpScreen()
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
+  },
+  headerTextBlock: {
+    flex: 1,
+    paddingRight: Spacing.md,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.xs,
+    letterSpacing: 0.2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.textSecondary,
-    marginBottom: Spacing.xl,
-  },
-  buttonContainer: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.sm,
+    lineHeight: 21,
   },
   errorText: {
     color: Colors.error,
-    marginTop: Spacing.sm,
-    fontSize: 14,
-  },
-  linkContainer: {
-    marginTop: Spacing.lg,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: Colors.primary,
-    fontSize: 16,
+    marginBottom: Spacing.md,
+    fontSize: 13,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginTop: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
   closeButton: {
-    padding: Spacing.xs,
+    marginTop: 2,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Spacing.borderRadius.round,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
+  },
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+  },
+  inlineLinkContainer: {
+    marginTop: Spacing.md,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  inlineLink: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  footerText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  footerLink: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
-

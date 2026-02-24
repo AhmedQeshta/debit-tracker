@@ -1,11 +1,18 @@
-import { ensureAppUser } from '@/services/userService';
+import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { getFreshSupabaseJwt } from '@/services/authSync';
+import { ensureAppUser } from '@/services/userService';
 import { useSyncStore } from '@/store/syncStore';
-import { useSignUp, useAuth } from '@clerk/clerk-expo';
+import { useAuth, useSignUp } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatClerkError, checkOfflineAndThrow } from '@/lib/clerkUtils';
+
+type SignUpFormData = {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  code: string;
+};
 
 export const useSignUpScreen = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -14,11 +21,13 @@ export const useSignUpScreen = () => {
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
-  } = useForm({
+  } = useForm<SignUpFormData>({
     defaultValues: {
       email: '',
       password: '',
+      confirmPassword: '',
       code: '',
     },
   });
@@ -27,8 +36,13 @@ export const useSignUpScreen = () => {
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const onSignUpPress = async (data: any) => {
+  const onSignUpPress = async (data: SignUpFormData) => {
     if (!isLoaded) return;
+
+    if (data.password !== data.confirmPassword) {
+      setAuthError('Passwords do not match');
+      return;
+    }
 
     try {
       await checkOfflineAndThrow();
@@ -56,7 +70,7 @@ export const useSignUpScreen = () => {
     }
   };
 
-  const onPressVerify = async (data: any) => {
+  const onPressVerify = async (data: SignUpFormData) => {
     if (!isLoaded) return;
 
     try {
@@ -109,6 +123,7 @@ export const useSignUpScreen = () => {
   return {
     control,
     handleSubmit,
+    getValues,
     errors,
     loading,
     authError,
@@ -118,4 +133,3 @@ export const useSignUpScreen = () => {
     router,
   };
 };
-

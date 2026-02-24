@@ -1,22 +1,27 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { getButtonStyle, getTextStyle } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { getButtonStyle, getTextStyle } from '@/lib/utils';
 import { IButtonProps } from '@/types/common';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-
-export const Button = ({ title, onPress, variant = 'primary', loading, disabled }: IButtonProps) => {
+export const Button = ({
+  title,
+  onPress,
+  variant = 'primary',
+  loading,
+  disabled,
+}: IButtonProps) => {
   return (
     <TouchableOpacity
-      style={[getButtonStyle(variant,styles), disabled || loading ? styles.disabled : {}]}
+      style={[getButtonStyle(variant, styles), disabled || loading ? styles.disabled : {}]}
       onPress={onPress}
       disabled={!!(disabled || loading)}
       activeOpacity={0.7}>
       {loading ? (
         <ActivityIndicator color={variant === 'outline' ? Colors.primary : Colors.text} />
       ) : (
-        <Text style={getTextStyle(variant,styles)}>{title}</Text>
+        <Text style={getTextStyle(variant, styles)}>{title}</Text>
       )}
     </TouchableOpacity>
   );
@@ -25,24 +30,25 @@ export const Button = ({ title, onPress, variant = 'primary', loading, disabled 
 const styles = StyleSheet.create({
   button: {
     backgroundColor: Colors.primary,
-    padding: Spacing.md,
-    borderRadius: Spacing.borderRadius.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Spacing.borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 52,
     marginVertical: Spacing.xs,
+    width: '100%',
   },
   outlineButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors.border,
   },
   text: {
-    color: '#000000', // Better contrast on primary/secondary usually, but primary is BB86FC (light purple)
+    color: Colors.background,
     fontSize: 16,
     fontWeight: '700',
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.55,
   },
 });

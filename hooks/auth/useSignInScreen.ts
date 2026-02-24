@@ -1,7 +1,7 @@
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { useSignIn } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export const useSignInScreen = () => {
@@ -25,6 +25,17 @@ export const useSignInScreen = () => {
   const [firstFactorStrategy, setFirstFactorStrategy] = useState<'email_code' | null>(null);
   const [secondFactorStrategy, setSecondFactorStrategy] = useState<'email_code' | null>(null);
   const [secondFactorEmailAddressId, setSecondFactorEmailAddressId] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setResendCooldown((previous) => (previous <= 1 ? 0 : previous - 1));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [resendCooldown]);
 
   const getEmailCodeFactor = (factors: any[]) =>
     factors.find((factor: any) => factor.strategy === 'email_code');
@@ -107,6 +118,7 @@ export const useSignInScreen = () => {
           setSecondFactorStrategy('email_code');
           setSecondFactorEmailAddressId(emailStrategy.emailAddressId);
           setNeedsSecondFactor(true);
+          setResendCooldown(30);
         } catch (err: any) {
           setAuthError(getAuthErrorMessage(err));
         }
@@ -161,6 +173,7 @@ export const useSignInScreen = () => {
           setSecondFactorStrategy('email_code');
           setSecondFactorEmailAddressId(emailStrategy.emailAddressId);
           setNeedsSecondFactor(true);
+          setResendCooldown(30);
         } catch (err: any) {
           setAuthError(getAuthErrorMessage(err));
         }
@@ -219,6 +232,7 @@ export const useSignInScreen = () => {
         strategy: 'email_code',
         emailAddressId: secondFactorEmailAddressId,
       });
+      setResendCooldown(30);
     } catch (err: any) {
       setAuthError(getAuthErrorMessage(err, 'Unable to resend code. Please try again.'));
     } finally {
@@ -233,6 +247,7 @@ export const useSignInScreen = () => {
     setSecondFactorStrategy(null);
     setSecondFactorEmailAddressId(null);
     setAuthError(null);
+    setResendCooldown(0);
   };
 
   return {
@@ -248,7 +263,8 @@ export const useSignInScreen = () => {
     needsSecondFactor,
     resetVerification,
     onResendSecondFactorCode,
-    canResendSecondFactor: Boolean(secondFactorEmailAddressId),
+    canResendSecondFactor: Boolean(secondFactorEmailAddressId) && resendCooldown === 0,
+    resendCooldown,
     router,
   };
 };

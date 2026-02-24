@@ -22,10 +22,12 @@ export interface IInputProps {
   placeholder?: string;
   keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
   error?: string;
+  helperText?: string;
   multiline?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   secureTextEntry?: boolean;
   onBlur?: () => void;
+  maxLength?: number;
 }
 
 export interface IScreenContainerProps {
@@ -202,4 +204,13 @@ export interface IStepItemProps {
   actionLabel: string;
   onPress: () => void;
   variant?: 'primary' | 'outline';
+}
+
+export interface OtpInputProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  error?: string;
+  helperText?: string;
+  length?: number;
 }
