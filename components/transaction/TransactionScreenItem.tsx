@@ -1,5 +1,5 @@
 import { Actions } from '@/components/ui/Actions';
-import { getFriendName } from '@/lib/utils';
+import { formatAbsoluteCurrency, getFriendName } from '@/lib/utils';
 import { useFriendsStore } from '@/store/friendsStore';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
@@ -38,9 +38,18 @@ export const TransactionScreenItem = ({ item, onEdit, onDelete }: ITransactionSc
         <Text style={styles.transactionDate}>{new Date(item.date).toLocaleDateString()}</Text>
       </View>
       <View style={styles.transactionAmount}>
-        <Text style={[styles.amountText, item.amount < 0 ? styles.negative : styles.positive]}>
-          {item.amount < 0 ? '-' : '+'}${Math.abs(item.amount).toFixed(2)}
+        <Text
+          style={[
+            styles.amountText,
+            item.amount > 0 ? styles.positive : item.amount < 0 ? styles.negative : styles.neutral,
+          ]}>
+          {formatAbsoluteCurrency(item.amount, '$')}
         </Text>
+        <View style={[styles.statusPill, item.synced ? styles.syncedPill : styles.pendingPill]}>
+          <Text style={[styles.statusText, item.synced ? styles.syncedText : styles.pendingText]}>
+            {item.synced ? 'Synced' : 'Pending sync'}
+          </Text>
+        </View>
       </View>
       {menuItems.length > 0 && (
         <View style={styles.actions}>
@@ -98,6 +107,34 @@ const styles = StyleSheet.create({
   },
   negative: {
     color: Colors.error,
+  },
+  neutral: {
+    color: Colors.text,
+  },
+  statusPill: {
+    marginTop: Spacing.xs,
+    borderWidth: 1,
+    borderRadius: Spacing.borderRadius.round,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  pendingPill: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+  },
+  syncedPill: {
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  pendingText: {
+    color: Colors.primary,
+  },
+  syncedText: {
+    color: Colors.textSecondary,
   },
   actions: {
     marginLeft: Spacing.xs,

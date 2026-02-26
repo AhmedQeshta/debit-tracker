@@ -6,6 +6,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export const HomeSummaryCard = ({
   netBalanceText,
+  netBalanceDirectionText,
+  netBalanceTone,
   youOweText,
   owedToYouText,
   trend,
@@ -15,6 +17,12 @@ export const HomeSummaryCard = ({
   const TrendIcon = trend === 'up' ? ArrowUpRight : trend === 'down' ? ArrowDownRight : Minus;
   const trendColor =
     trend === 'up' ? Colors.success : trend === 'down' ? Colors.error : Colors.textSecondary;
+  const netBalanceColor =
+    netBalanceTone === 'positive'
+      ? Colors.success
+      : netBalanceTone === 'negative'
+        ? Colors.error
+        : Colors.text;
 
   return (
     <View style={styles.card}>
@@ -26,22 +34,23 @@ export const HomeSummaryCard = ({
         </View>
       </View>
 
-      <Text style={styles.netBalanceValue}>{netBalanceText}</Text>
+      <Text style={[styles.netBalanceValue, { color: netBalanceColor }]}>{netBalanceText}</Text>
+      <Text style={styles.directionText}>{netBalanceDirectionText}</Text>
       <Text style={styles.updatedText}>{updatedText}</Text>
 
       <View style={styles.divider} />
 
       <View style={styles.bottomRow}>
         <View style={styles.metricCell}>
-          <Text style={styles.metricLabel}>You Owe</Text>
-          <Text style={[styles.metricValue, { color: Colors.success }]}>{youOweText}</Text>
+          <Text style={styles.metricLabel}>You owe</Text>
+          <Text style={[styles.metricValue, { color: Colors.error }]}>{youOweText}</Text>
         </View>
 
         <View style={styles.metricSeparator} />
 
         <View style={styles.metricCell}>
-          <Text style={styles.metricLabel}>Owed To You</Text>
-          <Text style={[styles.metricValue, { color: Colors.error }]}>{owedToYouText}</Text>
+          <Text style={styles.metricLabel}>Owed to you</Text>
+          <Text style={[styles.metricValue, { color: Colors.success }]}>{owedToYouText}</Text>
         </View>
       </View>
     </View>
@@ -84,10 +93,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   netBalanceValue: {
-    color: Colors.text,
     fontSize: 34,
     fontWeight: '800',
     letterSpacing: 0.2,
+  },
+  directionText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    marginTop: Spacing.xs,
   },
   updatedText: {
     color: Colors.textSecondary,

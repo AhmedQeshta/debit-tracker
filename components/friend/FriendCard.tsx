@@ -65,11 +65,17 @@ export const FriendCard = ({
                 </Text>
               </View>
               <View style={styles.balanceContainer}>
-                <Text style={[styles.balance, balance < 0 ? styles.negative : styles.positive]}>
+                <Text
+                  style={[
+                    styles.balance,
+                    balance > 0 ? styles.positive : balance < 0 ? styles.negative : styles.neutral,
+                  ]}>
                   {friend.currency || '$'}
                   {Math.abs(balance).toFixed(2)}
                 </Text>
-                <Text style={styles.balanceLabel}>{balance < 0 ? 'Owes You' : 'You Owe'}</Text>
+                <Text style={styles.balanceLabel}>
+                  {balance > 0 ? 'Owes you' : balance < 0 ? 'You owe' : 'All settled'}
+                </Text>
               </View>
               {showActions && menuItems ? (
                 <Actions
@@ -170,6 +176,9 @@ const styles = StyleSheet.create({
   },
   negative: {
     color: Colors.error,
+  },
+  neutral: {
+    color: Colors.text,
   },
   balanceLabel: {
     color: Colors.textSecondary,

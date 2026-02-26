@@ -3,7 +3,7 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useOperations } from '@/hooks/useOperations';
 import { useToast } from '@/hooks/useToast';
-import { getBalance, safeId } from '@/lib/utils';
+import { getBalance, getBalanceBreakdown, safeId } from '@/lib/utils';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -33,6 +33,15 @@ export const useFriendDetail = () => {
   const { syncNow } = useCloudSync();
 
   const balance = useMemo(() => getBalance(friendId, transactions), [friendId, transactions]);
+  const breakdown = useMemo(() => getBalanceBreakdown(transactions), [transactions]);
+  const pendingCount = useMemo(
+    () => transactions.filter((transaction) => !transaction.synced).length,
+    [transactions],
+  );
+  const lastActivity = useMemo(
+    () => transactions.reduce((latest, transaction) => Math.max(latest, transaction.date), 0),
+    [transactions],
+  );
 
   const handleEditFriend = (): void => {
     if (!friendId) return;
@@ -112,6 +121,9 @@ export const useFriendDetail = () => {
     friend,
     transactions,
     balance,
+    breakdown,
+    pendingCount,
+    lastActivity,
     handleEditFriend,
     handleDeleteFriend,
     handleEditTransaction,

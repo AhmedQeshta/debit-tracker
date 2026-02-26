@@ -8,7 +8,7 @@ import { EmptySection } from '@/components/ui/EmptySection';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useHome } from '@/hooks/useHome';
-import { formatCurrency, formatSignedCurrency, getBalanceText } from '@/lib/utils';
+import { formatAbsoluteCurrency, formatCurrency, getBalanceDirectionTone } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
@@ -57,7 +57,15 @@ export default function Home() {
       </View>
 
       <HomeSummaryCard
-        netBalanceText={formatSignedCurrency(summary.netBalance)}
+        netBalanceText={formatAbsoluteCurrency(summary.netBalance, '$')}
+        netBalanceDirectionText={
+          summary.netBalance > 0
+            ? 'They owe you'
+            : summary.netBalance < 0
+              ? 'You owe others'
+              : 'All settled'
+        }
+        netBalanceTone={getBalanceDirectionTone(summary.netBalance)}
         youOweText={formatCurrency(summary.youOwe, '$')}
         owedToYouText={formatCurrency(summary.owedToYou, '$')}
         trend={summary.trend}
@@ -93,7 +101,7 @@ export default function Home() {
           </View>
         ) : (
           settleUpPeople.map((item) => {
-            const isYouOwe = item.balance > 0;
+            const isYouOwe = item.balance < 0;
             const badgeText = isYouOwe ? 'You owe' : 'They owe you';
 
             return (
@@ -115,11 +123,8 @@ export default function Home() {
 
                 <View style={styles.settleRight}>
                   <Text
-                    style={[
-                      styles.settleAmount,
-                      isYouOwe ? styles.amountOutgoing : styles.amountIncoming,
-                    ]}>
-                    {getBalanceText(item.balance, item.friend.currency || '$')}
+                    style={[styles.settleAmount, isYouOwe ? styles.amountOwe : styles.amountOwed]}>
+                    {formatAbsoluteCurrency(item.balance, item.friend.currency || '$')}
                   </Text>
                   <Button
                     title="Settle"
@@ -324,10 +329,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   badgeOwe: {
-    color: Colors.success,
+    color: Colors.error,
   },
   badgeOwed: {
-    color: Colors.error,
+    color: Colors.success,
   },
   settleRight: {
     alignItems: 'flex-end',
@@ -338,11 +343,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  amountOutgoing: {
-    color: Colors.success,
-  },
-  amountIncoming: {
+  amountOwe: {
     color: Colors.error,
+  },
+  amountOwed: {
+    color: Colors.success,
   },
   budgetCard: {
     backgroundColor: Colors.card,

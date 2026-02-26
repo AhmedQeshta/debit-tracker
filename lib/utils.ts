@@ -1,4 +1,5 @@
 import { Colors } from '@/theme/colors';
+import { ToastMessage } from '@/types/common';
 import { Budget, Friend, Transaction } from '@/types/models';
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
@@ -42,6 +43,39 @@ export const getBalanceText = (balance: number, currency?: string) => {
 
 export const getBalanceStatus = (balance: number) => {
   return balance < 0 ? 'They owe you' : balance > 0 ? 'You owe them' : 'Settled';
+};
+
+export type BalanceDirectionTone = 'positive' | 'negative' | 'neutral';
+
+export const getBalanceDirectionTone = (netBalance: number): BalanceDirectionTone => {
+  if (netBalance > 0) return 'positive';
+  if (netBalance < 0) return 'negative';
+  return 'neutral';
+};
+
+export const getBalanceDirectionText = (netBalance: number, friendName: string) => {
+  if (netBalance > 0) return `${friendName} owes you`;
+  if (netBalance < 0) return `You owe ${friendName}`;
+  return 'All settled';
+};
+
+export const formatAbsoluteCurrency = (amount: number, currency: string = '$') => {
+  return formatCurrency(Math.abs(amount), currency);
+};
+
+export const getBalanceBreakdown = (transactions: Transaction[]) => {
+  const youOwe = transactions
+    .filter((transaction) => transaction.amount < 0)
+    .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
+
+  const owedToYou = transactions
+    .filter((transaction) => transaction.amount > 0)
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  return {
+    youOwe,
+    owedToYou,
+  };
 };
 
 export const getButtonStyle = (
@@ -142,4 +176,25 @@ export const getProgressText = (pullProgress: string | any) => {
 export const formatSignedCurrency = (amount: number) => {
   const prefix = amount > 0 ? '+' : amount < 0 ? '-' : '';
   return `${prefix}${formatCurrency(Math.abs(amount), '$')}`;
+};
+
+export const getBackgroundColor = (toast: ToastMessage) => {
+  switch (toast.type) {
+    case 'success':
+      return Colors.success + '20';
+    case 'error':
+      return Colors.error + '20';
+    case 'info':
+      return Colors.primary + '20';
+  }
+};
+export const getBorderColor = (toast: ToastMessage) => {
+  switch (toast.type) {
+    case 'success':
+      return Colors.success;
+    case 'error':
+      return Colors.error;
+    case 'info':
+      return Colors.primary;
+  }
 };

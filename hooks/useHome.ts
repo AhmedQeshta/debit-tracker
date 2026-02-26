@@ -108,20 +108,18 @@ export const useHome = () => {
 
   const summary = useMemo<HomeSummaryMetrics>(() => {
     const youOwe = allTransactions
+      .filter((transaction) => transaction.amount < 0)
+      .reduce((total, transaction) => total + Math.abs(transaction.amount), 0);
+
+    const owedToYou = allTransactions
       .filter((transaction) => transaction.amount > 0)
       .reduce((total, transaction) => total + transaction.amount, 0);
-
-    const owedToYou = Math.abs(
-      allTransactions
-        .filter((transaction) => transaction.amount < 0)
-        .reduce((total, transaction) => total + transaction.amount, 0),
-    );
 
     const netBalance = owedToYou - youOwe;
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const weekDelta = allTransactions
       .filter((transaction) => transaction.date >= sevenDaysAgo)
-      .reduce((total, transaction) => total - transaction.amount, 0);
+      .reduce((total, transaction) => total + transaction.amount, 0);
 
     const trend = weekDelta > 0 ? 'up' : weekDelta < 0 ? 'down' : 'flat';
     const trendText =

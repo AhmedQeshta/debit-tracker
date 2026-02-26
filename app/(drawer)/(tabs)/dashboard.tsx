@@ -1,16 +1,15 @@
-import { View, Text, StyleSheet, Text as RNText } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
-import { Wifi, WifiOff, Calculator } from 'lucide-react-native';
-import { useDashboard } from '@/hooks/useDashboard';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { formatCurrency } from '@/lib/utils';
 import { PinnedCards } from '@/components/dashboard/PinnedCards';
 import Header from '@/components/ui/Header';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useDashboard } from '@/hooks/useDashboard';
+import { formatCurrency } from '@/lib/utils';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { Calculator, Wifi, WifiOff } from 'lucide-react-native';
+import { Text as RNText, StyleSheet, Text, View } from 'react-native';
 
-export default function Dashboard()
-{
+export default function Dashboard() {
   const {
     friends,
     queueSize,
@@ -59,16 +58,16 @@ export default function Dashboard()
         </View>
 
         <View style={styles.mainStats}>
-          <View style={[styles.mainStatCard, { borderLeftColor: Colors.error }]}>
-            <Text style={styles.mainStatLabel}>Total They Owe You</Text>
-            <Text style={[styles.mainStatValue, { color: Colors.error }]}>
-              ${globalDebit.toFixed(2)}
-            </Text>
-          </View>
           <View style={[styles.mainStatCard, { borderLeftColor: Colors.success }]}>
-            <Text style={styles.mainStatLabel}>Total You Owe Them</Text>
+            <Text style={styles.mainStatLabel}>Total owed to you</Text>
             <Text style={[styles.mainStatValue, { color: Colors.success }]}>
               ${totalPaidBack.toFixed(2)}
+            </Text>
+          </View>
+          <View style={[styles.mainStatCard, { borderLeftColor: Colors.error }]}>
+            <Text style={styles.mainStatLabel}>Total you owe</Text>
+            <Text style={[styles.mainStatValue, { color: Colors.error }]}>
+              ${globalDebit.toFixed(2)}
             </Text>
           </View>
         </View>

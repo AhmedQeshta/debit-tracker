@@ -191,6 +191,8 @@ export interface HomeSectionHeaderProps {
 
 export interface HomeSummaryCardProps {
   netBalanceText: string;
+  netBalanceDirectionText: string;
+  netBalanceTone: 'positive' | 'negative' | 'neutral';
   youOweText: string;
   owedToYouText: string;
   trend: 'up' | 'down' | 'flat';
@@ -213,4 +215,13 @@ export interface OtpInputProps {
   error?: string;
   helperText?: string;
   length?: number;
+}
+
+export interface ToastItemProps {
+  toast: {
+    id: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  };
+  onDismiss: () => void;
 }
