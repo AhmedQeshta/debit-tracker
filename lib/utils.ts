@@ -198,3 +198,16 @@ export const getBorderColor = (toast: ToastMessage) => {
       return Colors.primary;
   }
 };
+
+export const SORT_OPTIONS = [
+  { key: 'recent', label: 'Recent' },
+  { key: 'name', label: 'Name' },
+  { key: 'balance', label: 'Balance' },
+] as const;
+
+export const FILTER_OPTIONS = [
+  { key: 'all', label: 'All' },
+  { key: 'you-owe', label: 'You owe' },
+  { key: 'owes-you', label: 'Owes you' },
+  { key: 'settled', label: 'Settled' },
+] as const;

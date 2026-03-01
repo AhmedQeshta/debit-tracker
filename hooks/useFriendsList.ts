@@ -7,20 +7,39 @@ import { syncService } from '@/services/syncService';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
+import { FriendBalanceStatus, IFriendListRow } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+
+type FriendsSortBy = 'recent' | 'name' | 'balance';
+type FriendsFilterBy = 'all' | 'you-owe' | 'owes-you' | 'settled';
+
+const formatDateLabel = (timestamp?: number): string => {
+  if (!timestamp) {
+    return 'No recent activity';
+  }
+
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+};
 
 export const useFriendsList = () => {
   const { pinFriend, unpinFriend, deleteFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
+  const router = useRouter();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow, isOnline } = useCloudSync();
   const { getToken } = useAuth();
   const [search, setSearch] = useState('');
   const [isGrid, setIsGrid] = useState(false);
+  const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
+  const [filterBy, setFilterBy] = useState<FriendsFilterBy>('all');
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
@@ -31,15 +50,77 @@ export const useFriendsList = () => {
     [transactions],
   );
 
-  const filteredFriends = useMemo(() => {
+  const friendRows = useMemo(() => {
     const filtered = filterFriends(friends, search);
-    return [...filtered].sort((a, b) =>
-      a.pinned && !b.pinned ? -1 : !a.pinned && b.pinned ? 1 : b.createdAt - a.createdAt,
-    );
-  }, [friends, search]);
+    const rows = filtered
+      .map<IFriendListRow>((friend) => {
+        const balance = getBalance(friend.id, transactions);
+        const status: FriendBalanceStatus =
+          balance > 0 ? 'owes-you' : balance < 0 ? 'you-owe' : 'settled';
+        const directionLabel: IFriendListRow['directionLabel'] =
+          balance > 0 ? 'Owes you' : balance < 0 ? 'You owe' : 'Settled';
+
+        return {
+          friend,
+          balance,
+          amountText: `${friend.currency || '$'}${Math.abs(balance).toFixed(2)}`,
+          directionLabel,
+          status,
+          subtitle:
+            friend.bio || `Last activity ${formatDateLabel(friend.updatedAt || friend.createdAt)}`,
+        };
+      })
+      .filter((row) => (filterBy === 'all' ? true : row.status === filterBy));
+
+    return rows.sort((a, b) => {
+      if (a.friend.pinned && !b.friend.pinned) return -1;
+      if (!a.friend.pinned && b.friend.pinned) return 1;
+
+      if (sortBy === 'name') {
+        return a.friend.name.localeCompare(b.friend.name);
+      }
+
+      if (sortBy === 'balance') {
+        return Math.abs(b.balance) - Math.abs(a.balance);
+      }
+
+      return b.friend.createdAt - a.friend.createdAt;
+    });
+  }, [friends, transactions, search, filterBy, sortBy]);
+
+  const summary = useMemo(() => {
+    const activeFriends = friends;
+    const balances = activeFriends.map((friend) => getBalance(friend.id, transactions));
+
+    const youOweTotal = balances
+      .filter((value) => value < 0)
+      .reduce((total, value) => total + Math.abs(value), 0);
+
+    const owedToYouTotal = balances
+      .filter((value) => value > 0)
+      .reduce((total, value) => total + value, 0);
+
+    const settledCount = balances.filter((value) => value === 0).length;
+    const netBalance = balances.reduce((total, value) => total + value, 0);
+
+    return {
+      totalFriends: activeFriends.length,
+      youOweTotal,
+      owedToYouTotal,
+      settledCount,
+      netBalance,
+    };
+  }, [friends, transactions]);
+
+  const openAddTransaction = (friendId: string, settle = false): void => {
+    router.push({
+      pathname: '/(drawer)/transaction/new',
+      params: settle ? { friendId, settle: '1' } : { friendId },
+    });
+  };
 
   const handlePinToggle = (friendId: string): void => {
-    const friend = filteredFriends.find((f) => f.id === friendId);
+    const friend = friendRows.find((f) => f.friend.id === friendId)?.friend;
     if (friend) {
       if (friend.pinned) unpinFriend(friendId);
       else pinFriend(friendId);
@@ -127,14 +208,21 @@ export const useFriendsList = () => {
 
   return {
     friends,
-    filteredFriends,
+    friendRows,
+    summary,
     search,
     setSearch,
     isGrid,
     setIsGrid,
+    sortBy,
+    setSortBy,
+    filterBy,
+    setFilterBy,
     handlePinToggle,
     handleFriendEdit,
     handleFriendDelete,
     getFriendBalance,
+    handleAddTransaction: (friendId: string) => openAddTransaction(friendId, false),
+    handleSettle: (friendId: string) => openAddTransaction(friendId, true),
   };
 };

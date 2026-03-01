@@ -1,27 +1,41 @@
-import { Friend } from '@/types/models';
 import { IMenuItem } from '@/types/common';
+import { Friend } from '@/types/models';
 
-export interface IFriendCardProps {
+export type FriendBalanceStatus = 'you-owe' | 'owes-you' | 'settled';
+
+export interface IFriendListRow {
   friend: Friend;
   balance: number;
+  amountText: string;
+  directionLabel: 'You owe' | 'Owes you' | 'Settled';
+  status: FriendBalanceStatus;
+  subtitle: string;
+}
+
+export interface IFriendCardProps {
+  row: IFriendListRow;
+  menuItems: IMenuItem[];
   showActions?: boolean;
   handleFriendDelete: (friendId: string, friendName: string) => void;
   handlePinToggle: (friendId: string) => void;
+  onAddTransaction: (friendId: string) => void;
+  onSettle: (friendId: string) => void;
   showPinToggle?: boolean;
 }
 
 export interface GridFriendCardProps {
-  friend: Friend;
-  balance: number;
+  row: IFriendListRow;
   menuItems: IMenuItem[];
 }
 
 export interface IFilteredFriendsProps {
-  item: Friend;
+  row: IFriendListRow;
   isGrid: boolean;
   handleFriendEdit: (friendId: string) => void;
   handleFriendDelete: (friendId: string, friendName: string) => void;
   handlePinToggle: (friendId: string) => void;
+  onAddTransaction: (friendId: string) => void;
+  onSettle: (friendId: string) => void;
 }
 
 /**
@@ -40,3 +54,8 @@ export interface IFriendFormErrors {
   currency?: string;
   email?: string;
 }
+
+export type FriendsSortBy = 'recent' | 'name' | 'balance';
+export type FriendsFilterBy = 'all' | 'you-owe' | 'owes-you' | 'settled';
+
+export type FriendsListItem = IFriendListRow | { type: 'skeleton'; id: string };
