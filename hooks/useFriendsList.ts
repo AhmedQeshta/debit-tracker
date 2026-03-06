@@ -1,33 +1,36 @@
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { useToast } from '@/hooks/useToast';
-import { filterFriends, getBalance } from '@/lib/utils';
+import { filterFriends, formatDateLabel, getBalance } from '@/lib/utils';
 import { syncService } from '@/services/syncService';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
-import { FriendBalanceStatus, IFriendListRow } from '@/types/friend';
+import {
+  FriendBalanceStatus,
+  FriendsFilterBy,
+  FriendsListItem,
+  FriendsSortBy,
+  IFriendListRow,
+} from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-type FriendsSortBy = 'recent' | 'name' | 'balance';
-type FriendsFilterBy = 'all' | 'you-owe' | 'owes-you' | 'settled';
-
-const formatDateLabel = (timestamp?: number): string => {
-  if (!timestamp) {
-    return 'No recent activity';
-  }
-
-  return new Date(timestamp).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
-};
-
 export const useFriendsList = () => {
+  const [search, setSearch] = useState('');
+  const [isGrid, setIsGrid] = useState(false);
+  const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
+  const [filterBy, setFilterBy] = useState<FriendsFilterBy>('all');
+  const [showControls, setShowControls] = useState(true);
+  const [isLoading] = useState(false);
+
+  const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
+    useSummaryCurrency();
+
   const { pinFriend, unpinFriend, deleteFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
@@ -36,10 +39,7 @@ export const useFriendsList = () => {
   const { toastSuccess } = useToast();
   const { syncNow, isOnline } = useCloudSync();
   const { getToken } = useAuth();
-  const [search, setSearch] = useState('');
-  const [isGrid, setIsGrid] = useState(false);
-  const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
-  const [filterBy, setFilterBy] = useState<FriendsFilterBy>('all');
+
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
@@ -89,7 +89,7 @@ export const useFriendsList = () => {
   }, [friends, transactions, search, filterBy, sortBy]);
 
   const summary = useMemo(() => {
-    const activeFriends = friends;
+    const activeFriends = friends.filter((friend) => (friend.currency || '$') === summaryCurrency);
     const balances = activeFriends.map((friend) => getBalance(friend.id, transactions));
 
     const youOweTotal = balances
@@ -110,7 +110,7 @@ export const useFriendsList = () => {
       settledCount,
       netBalance,
     };
-  }, [friends, transactions]);
+  }, [friends, transactions, summaryCurrency]);
 
   const openAddTransaction = (friendId: string, settle = false): void => {
     router.push({
@@ -206,6 +206,17 @@ export const useFriendsList = () => {
     );
   };
 
+  const listData = useMemo(() => {
+    if (isLoading) {
+      return Array.from({ length: isGrid ? 6 : 8 }, (_, index) => ({
+        type: 'skeleton' as const,
+        id: `skeleton-${index}`,
+      }));
+    }
+
+    return friendRows as FriendsListItem[];
+  }, [isLoading, isGrid, friendRows]);
+
   return {
     friends,
     friendRows,
@@ -224,5 +235,11 @@ export const useFriendsList = () => {
     getFriendBalance,
     handleAddTransaction: (friendId: string) => openAddTransaction(friendId, false),
     handleSettle: (friendId: string) => openAddTransaction(friendId, true),
+    summaryCurrencyLabel,
+    handleSummaryCurrencyToggle,
+    summaryCurrency,
+    showControls,
+    setShowControls,
+    listData,
   };
 };

@@ -7,7 +7,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Search, SlidersHorizontal } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -36,10 +36,14 @@ export default function TransactionsScreen() {
     handleRowPress,
     handleRefresh,
     handleNavigateToNewTransaction,
+    showControls,
+    setShowControls,
+    summaryCurrency,
+    summaryCurrencyLabel,
+    handleSummaryCurrencyToggle,
   } = useTransaction();
   const router = useRouter();
   const searchInputRef = useRef<TextInput>(null);
-  const [showControls, setShowControls] = useState(true);
 
   const hasData = groupedSections.length > 0;
 
@@ -93,21 +97,36 @@ export default function TransactionsScreen() {
       ) : null}
 
       <View style={styles.summaryStrip}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Total this month</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(summary.totalThisMonth)}</Text>
+        <View style={styles.summaryHeader}>
+          <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+          <Pressable
+            style={styles.currencyButton}
+            onPress={handleSummaryCurrencyToggle}
+            accessibilityRole="button"
+            accessibilityLabel="Change summary currency"
+            accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+            <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
+          </Pressable>
         </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>You paid</Text>
-          <Text style={[styles.summaryValue, styles.negative]}>
-            {formatCurrency(summary.youPaid)}
-          </Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>You received</Text>
-          <Text style={[styles.summaryValue, styles.positive]}>
-            {formatCurrency(summary.youReceived)}
-          </Text>
+        <View style={styles.summaryStatsWrap}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Total this month</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(summary.totalThisMonth, summaryCurrency)}
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>You paid</Text>
+            <Text style={[styles.summaryValue, styles.negative]}>
+              {formatCurrency(summary.youPaid, summaryCurrency)}
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>You received</Text>
+            <Text style={[styles.summaryValue, styles.positive]}>
+              {formatCurrency(summary.youReceived, summaryCurrency)}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -288,9 +307,38 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryHeaderText: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  currencyButton: {
+    minHeight: 32,
+    minWidth: 44,
+    borderRadius: Spacing.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+  },
+  currencyButtonText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  summaryStatsWrap: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
   },
   statusLegend: {
     color: Colors.textSecondary,

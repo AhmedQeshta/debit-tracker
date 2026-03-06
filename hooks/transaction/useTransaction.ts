@@ -1,6 +1,7 @@
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { useToast } from '@/hooks/useToast';
 import {
   formatAbsoluteCurrency,
@@ -18,7 +19,13 @@ import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useTransaction = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+
   const router = useRouter();
+  const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
+    useSummaryCurrency();
   const { openDrawer } = useDrawerContext();
   const { deleteTransaction } = useTransactionsStore();
   const { showConfirm } = useConfirmDialog();
@@ -29,8 +36,6 @@ export const useTransaction = () => {
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
   );
-  const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
 
   const monthLabel = useMemo(() => getMonthLabel(Date.now()), []);
 
@@ -109,14 +114,21 @@ export const useTransaction = () => {
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     });
 
-    const totalThisMonth = monthTransactions.reduce(
+    const currencyFilteredTransactions = monthTransactions.filter((row) => {
+      const friendCurrency = friends.find(
+        (friend) => friend.id === row.transaction.friendId,
+      )?.currency;
+      return (friendCurrency || '$') === summaryCurrency;
+    });
+
+    const totalThisMonth = currencyFilteredTransactions.reduce(
       (sum, row) => sum + Math.abs(row.transaction.amount),
       0,
     );
-    const youPaid = monthTransactions
+    const youPaid = currencyFilteredTransactions
       .filter((row) => row.transaction.amount < 0)
       .reduce((sum, row) => sum + Math.abs(row.transaction.amount), 0);
-    const youReceived = monthTransactions
+    const youReceived = currencyFilteredTransactions
       .filter((row) => row.transaction.amount > 0)
       .reduce((sum, row) => sum + row.transaction.amount, 0);
 
@@ -125,7 +137,7 @@ export const useTransaction = () => {
       youPaid,
       youReceived,
     };
-  }, [rows]);
+  }, [rows, friends, summaryCurrency]);
 
   const isLoading = isSyncing && transactions.length === 0;
 
@@ -211,5 +223,10 @@ export const useTransaction = () => {
     handleRowPress,
     handleRefresh,
     handleNavigateToNewTransaction,
+    showControls,
+    setShowControls,
+    summaryCurrency,
+    summaryCurrencyLabel,
+    handleSummaryCurrencyToggle,
   };
 };

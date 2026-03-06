@@ -9,7 +9,7 @@ import { Spacing } from '@/theme/spacing';
 import { FriendsFilterBy, FriendsListItem, FriendsSortBy } from '@/types/friend';
 import { useRouter } from 'expo-router';
 import { LayoutGrid, List, Menu, Search, SlidersHorizontal, Users } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   FlatList,
   Pressable,
@@ -37,28 +37,21 @@ export default function FriendsList() {
     handlePinToggle,
     handleAddTransaction,
     handleSettle,
+    summaryCurrencyLabel,
+    handleSummaryCurrencyToggle,
+    summaryCurrency,
+    showControls,
+    setShowControls,
+    listData,
   } = useFriendsList();
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
-  const [isLoading] = useState(false);
-  const [showControls, setShowControls] = useState(true);
 
   const netTone = useMemo(() => {
     if (summary.netBalance > 0) return styles.positive;
     if (summary.netBalance < 0) return styles.negative;
     return styles.neutral;
   }, [summary.netBalance]);
-
-  const listData = useMemo(() => {
-    if (isLoading) {
-      return Array.from({ length: isGrid ? 6 : 8 }, (_, index) => ({
-        type: 'skeleton' as const,
-        id: `skeleton-${index}`,
-      }));
-    }
-
-    return friendRows as FriendsListItem[];
-  }, [isLoading, isGrid, friendRows]);
 
   return (
     <View style={styles.wrapper}>
@@ -159,29 +152,44 @@ export default function FriendsList() {
         )}
 
         <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Friends</Text>
-            <Text style={styles.summaryValue}>{summary.totalFriends}</Text>
+          <View style={styles.summaryHeader}>
+            <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+            <Pressable
+              style={styles.currencyButton}
+              onPress={handleSummaryCurrencyToggle}
+              accessibilityRole="button"
+              accessibilityLabel="Change summary currency"
+              accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+              <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
+            </Pressable>
           </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>You owe</Text>
-            <Text style={[styles.summaryValue, styles.negative]}>
-              {formatCurrency(summary.youOweTotal)}
-            </Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Owed to you</Text>
-            <Text style={[styles.summaryValue, styles.positive]}>
-              {formatCurrency(summary.owedToYouTotal)}
-            </Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Settled</Text>
-            <Text style={styles.summaryValue}>{summary.settledCount}</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Net</Text>
-            <Text style={[styles.summaryValue, netTone]}>{formatCurrency(summary.netBalance)}</Text>
+          <View style={styles.summaryStatsWrap}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Friends</Text>
+              <Text style={styles.summaryValue}>{summary.totalFriends}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>You owe</Text>
+              <Text style={[styles.summaryValue, styles.negative]}>
+                {formatCurrency(summary.youOweTotal, summaryCurrency)}
+              </Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Owed to you</Text>
+              <Text style={[styles.summaryValue, styles.positive]}>
+                {formatCurrency(summary.owedToYouTotal, summaryCurrency)}
+              </Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Settled</Text>
+              <Text style={styles.summaryValue}>{summary.settledCount}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Net</Text>
+              <Text style={[styles.summaryValue, netTone]}>
+                {formatCurrency(summary.netBalance, summaryCurrency)}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -369,6 +377,35 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryHeaderText: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  currencyButton: {
+    minHeight: 32,
+    minWidth: 44,
+    borderRadius: Spacing.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+  },
+  currencyButtonText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  summaryStatsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',

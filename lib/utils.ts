@@ -242,3 +242,14 @@ export const getStatus = (synced: boolean, hasSyncError: boolean) => {
   if (hasSyncError) return 'failed' as const;
   return 'pending' as const;
 };
+
+export const formatDateLabel = (timestamp?: number): string => {
+  if (!timestamp) {
+    return 'No recent activity';
+  }
+
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+};
