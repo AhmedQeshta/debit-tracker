@@ -1,4 +1,5 @@
 import { Colors } from '@/theme/colors';
+import { BudgetSortKey } from '@/types/budget';
 import { ToastMessage } from '@/types/common';
 import { Budget, Friend, Transaction } from '@/types/models';
 
@@ -252,4 +253,18 @@ export const formatDateLabel = (timestamp?: number): string => {
     month: 'short',
     day: 'numeric',
   });
+};
+
+export const WARNING_COLOR = '#E0AE49';
+
+export const SORT_LABELS: Record<BudgetSortKey, string> = {
+  recent: 'Recent',
+  name: 'Name',
+  usage: 'Usage',
+};
+
+export const getNextSortKey = (current: BudgetSortKey): BudgetSortKey => {
+  if (current === 'recent') return 'name';
+  if (current === 'name') return 'usage';
+  return 'recent';
 };

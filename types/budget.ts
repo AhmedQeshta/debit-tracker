@@ -1,4 +1,4 @@
-import { Budget } from "@/types/models";
+import { Budget } from '@/types/models';
 
 /**
  * Type definitions for form data and errors
@@ -20,17 +20,16 @@ export interface FormErrors {
   budget?: string;
 }
 
-
 export interface ICurrencyPickerProps {
   currency: string;
   setCurrency: (currency: string) => void;
 }
 
-
 export interface IBudgetCardProps {
   item: Budget;
   handlePinToggle: (id: string) => void;
   handleDelete: (id: string, title: string) => void;
+  handleResetPeriod: (id: string, title: string) => void;
   getTotalSpent: (id: string) => number;
   getRemainingBudget: (id: string) => number;
 }
@@ -40,3 +39,5 @@ export interface IBudgetFormData {
   currency: string;
   totalBudget: string;
 }
+
+export type BudgetSortKey = 'recent' | 'name' | 'usage';

@@ -73,7 +73,7 @@ export default function BudgetDetail() {
             </View>
             <View style={styles.budgetInfoStat}>
               <Text style={styles.budgetInfoStatLabel}>Total Spent</Text>
-              <Text style={[styles.budgetInfoStatValue, { color: Colors.error }]}>
+              <Text style={styles.budgetInfoStatValue}>
                 {formatCurrency(totalSpent, budget.currency)}
               </Text>
             </View>
@@ -90,11 +90,11 @@ export default function BudgetDetail() {
           </View>
         </View>
 
-        {/* Add Item Section */}
+        {/* Add Transaction Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Add Spending Item</Text>
+          <Text style={styles.sectionTitle}>Add Transaction</Text>
           <Input
-            label="Item Title"
+            label="Transaction title"
             value={itemTitle}
             onChangeText={(text) => {
               setItemTitle(text);
@@ -114,17 +114,15 @@ export default function BudgetDetail() {
             keyboardType="numeric"
             error={itemAmountError}
           />
-          <Button title="Add Item" onPress={handleAddItem} />
+          <Button title="Add Transaction" onPress={handleAddItem} />
         </View>
 
-        {/* Items List */}
+        {/* Transactions List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Items ({budget.items.length})</Text>
+          <Text style={styles.sectionTitle}>Transactions ({budget.items.length})</Text>
           {budget.items.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>
-                No items yet. Add your first spending item above.
-              </Text>
+              <Text style={styles.emptyText}>No transactions yet. Add your first one above.</Text>
             </View>
           ) : (
             <View style={styles.itemsList}>
