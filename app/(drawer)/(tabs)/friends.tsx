@@ -3,20 +3,12 @@ import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useFriendsList } from '@/hooks/useFriendsList';
-import { FILTER_OPTIONS, SORT_OPTIONS } from '@/lib/utils';
+import { FILTER_OPTIONS, formatCurrency, SORT_OPTIONS } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { FriendsFilterBy, FriendsListItem, FriendsSortBy } from '@/types/friend';
 import { useRouter } from 'expo-router';
-import {
-  ArrowDownUp,
-  LayoutGrid,
-  List,
-  Menu,
-  Search,
-  SlidersHorizontal,
-  Users,
-} from 'lucide-react-native';
+import { LayoutGrid, List, Menu, Search, SlidersHorizontal, Users } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   FlatList,
@@ -49,6 +41,7 @@ export default function FriendsList() {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const [isLoading] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   const netTone = useMemo(() => {
     if (summary.netBalance > 0) return styles.positive;
@@ -80,95 +73,90 @@ export default function FriendsList() {
           </TouchableOpacity>
           <Text style={styles.title}>Friends</Text>
           <View style={styles.topActions}>
-            <TouchableOpacity
-              style={styles.topBarButton}
-              accessibilityRole="button"
-              accessibilityLabel="Search friends">
-              <Search color={Colors.textSecondary} size={18} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.topBarButton}
-              accessibilityRole="button"
-              accessibilityLabel="Sort friends">
-              <ArrowDownUp color={Colors.textSecondary} size={18} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.topBarButton}
-              accessibilityRole="button"
-              accessibilityLabel="Filter friends">
-              <SlidersHorizontal color={Colors.textSecondary} size={18} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.controlsSection}>
-          <View style={styles.searchContainer}>
-            <Search size={16} color={Colors.textSecondary} />
-            <TextInput
-              style={styles.searchInput}
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search by friend name"
-              placeholderTextColor={Colors.textSecondary}
-              accessibilityLabel="Search friends"
-            />
-          </View>
-
-          <View style={styles.controlRow}>
-            <View style={styles.segmentedToggle}>
+            <View style={styles.topSegmentedToggle}>
               <Pressable
-                style={[styles.toggleItem, !isGrid && styles.toggleItemActive]}
+                style={[styles.topToggleItem, !isGrid && styles.topToggleItemActive]}
                 onPress={() => setIsGrid(false)}
                 accessibilityRole="button"
                 accessibilityLabel="List view"
                 accessibilityState={{ selected: !isGrid }}>
-                <List color={!isGrid ? Colors.background : Colors.textSecondary} size={16} />
-                <Text style={[styles.toggleText, !isGrid && styles.toggleTextActive]}>List</Text>
+                <List color={!isGrid ? Colors.background : Colors.textSecondary} size={14} />
+                <Text style={[styles.topToggleText, !isGrid && styles.topToggleTextActive]}>
+                  List
+                </Text>
               </Pressable>
               <Pressable
-                style={[styles.toggleItem, isGrid && styles.toggleItemActive]}
+                style={[styles.topToggleItem, isGrid && styles.topToggleItemActive]}
                 onPress={() => setIsGrid(true)}
                 accessibilityRole="button"
                 accessibilityLabel="Grid view"
                 accessibilityState={{ selected: isGrid }}>
-                <LayoutGrid color={isGrid ? Colors.background : Colors.textSecondary} size={16} />
-                <Text style={[styles.toggleText, isGrid && styles.toggleTextActive]}>Grid</Text>
+                <LayoutGrid color={isGrid ? Colors.background : Colors.textSecondary} size={14} />
+                <Text style={[styles.topToggleText, isGrid && styles.topToggleTextActive]}>
+                  Grid
+                </Text>
               </Pressable>
             </View>
-
-            <View style={styles.chipsWrap}>
-              {SORT_OPTIONS.map((option) => (
-                <Pressable
-                  key={option.key}
-                  style={[styles.chip, sortBy === option.key && styles.chipActive]}
-                  onPress={() => setSortBy(option.key as FriendsSortBy)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Sort by ${option.label}`}
-                  accessibilityState={{ selected: sortBy === option.key }}>
-                  <Text style={[styles.chipText, sortBy === option.key && styles.chipTextActive]}>
-                    {option.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <View style={styles.chipsWrap}>
-              {FILTER_OPTIONS.map((option) => (
-                <Pressable
-                  key={option.key}
-                  style={[styles.chip, filterBy === option.key && styles.chipActive]}
-                  onPress={() => setFilterBy(option.key as FriendsFilterBy)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Filter ${option.label}`}
-                  accessibilityState={{ selected: filterBy === option.key }}>
-                  <Text style={[styles.chipText, filterBy === option.key && styles.chipTextActive]}>
-                    {option.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            <TouchableOpacity
+              style={[styles.topBarButton, showControls && styles.topBarButtonActive]}
+              onPress={() => setShowControls((prev) => !prev)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: showControls }}
+              accessibilityLabel="Show or hide filters">
+              <SlidersHorizontal color={Colors.textSecondary} size={18} />
+            </TouchableOpacity>
           </View>
         </View>
+        {showControls && (
+          <View style={styles.controlsSection}>
+            <View style={styles.searchContainer}>
+              <Search size={16} color={Colors.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Search by friend name"
+                placeholderTextColor={Colors.textSecondary}
+                accessibilityLabel="Search friends"
+              />
+            </View>
+
+            <View style={styles.controlRow}>
+              <View style={styles.chipsWrap}>
+                {SORT_OPTIONS.map((option) => (
+                  <Pressable
+                    key={option.key}
+                    style={[styles.chip, sortBy === option.key && styles.chipActive]}
+                    onPress={() => setSortBy(option.key as FriendsSortBy)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Sort by ${option.label}`}
+                    accessibilityState={{ selected: sortBy === option.key }}>
+                    <Text style={[styles.chipText, sortBy === option.key && styles.chipTextActive]}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.chipsWrap}>
+                {FILTER_OPTIONS.map((option) => (
+                  <Pressable
+                    key={option.key}
+                    style={[styles.chip, filterBy === option.key && styles.chipActive]}
+                    onPress={() => setFilterBy(option.key as FriendsFilterBy)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Filter ${option.label}`}
+                    accessibilityState={{ selected: filterBy === option.key }}>
+                    <Text
+                      style={[styles.chipText, filterBy === option.key && styles.chipTextActive]}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
@@ -178,13 +166,13 @@ export default function FriendsList() {
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>You owe</Text>
             <Text style={[styles.summaryValue, styles.negative]}>
-              {summary.youOweTotal.toFixed(2)}
+              {formatCurrency(summary.youOweTotal)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Owed to you</Text>
             <Text style={[styles.summaryValue, styles.positive]}>
-              {summary.owedToYouTotal.toFixed(2)}
+              {formatCurrency(summary.owedToYouTotal)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
@@ -193,11 +181,11 @@ export default function FriendsList() {
           </View>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Net</Text>
-            <Text style={[styles.summaryValue, netTone]}>{summary.netBalance.toFixed(2)}</Text>
+            <Text style={[styles.summaryValue, netTone]}>{formatCurrency(summary.netBalance)}</Text>
           </View>
         </View>
 
-        <FlatList
+        <FlatList<FriendsListItem>
           data={listData}
           keyExtractor={(item) => ('type' in item ? item.id : item.friend.id)}
           numColumns={isGrid ? 2 : 1}
@@ -281,6 +269,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
   },
+  topSegmentedToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 2,
+    marginRight: Spacing.xs,
+  },
+  topToggleItem: {
+    minHeight: 36,
+    minWidth: 52,
+    borderRadius: Spacing.borderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+  },
+  topToggleItemActive: {
+    backgroundColor: Colors.primary,
+  },
+  topToggleText: {
+    color: Colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  topToggleTextActive: {
+    color: Colors.background,
+  },
   topBarButton: {
     width: 44,
     height: 44,
@@ -314,34 +333,6 @@ const styles = StyleSheet.create({
   },
   controlRow: {
     gap: Spacing.sm,
-  },
-  segmentedToggle: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 2,
-  },
-  toggleItem: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: Spacing.borderRadius.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-  },
-  toggleItemActive: {
-    backgroundColor: Colors.primary,
-  },
-  toggleText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  toggleTextActive: {
-    color: Colors.background,
   },
   chipsWrap: {
     flexDirection: 'row',
@@ -489,5 +480,8 @@ const styles = StyleSheet.create({
   },
   neutral: {
     color: Colors.text,
+  },
+  topBarButtonActive: {
+    borderColor: Colors.primary,
   },
 });

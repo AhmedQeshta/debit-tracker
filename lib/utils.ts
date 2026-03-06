@@ -59,8 +59,8 @@ export const getBalanceDirectionText = (netBalance: number, friendName: string) 
   return 'All settled';
 };
 
-export const formatAbsoluteCurrency = (amount: number, currency: string = '$') => {
-  return formatCurrency(Math.abs(amount), currency);
+export const formatAbsoluteCurrency = (amount: number, currency?: string) => {
+  return currency ? formatCurrency(Math.abs(amount), currency) : Math.abs(amount).toFixed(2);
 };
 
 export const getBalanceBreakdown = (transactions: Transaction[]) => {
@@ -108,8 +108,8 @@ export const CURRENCIES = [
   { symbol: '€', label: 'EUR' },
 ];
 
-export const formatCurrency = (amount: number, currency: string) => {
-  return `${currency || '$'} ${amount.toFixed(2)}`;
+export const formatCurrency = (amount: number, currency?: string) => {
+  return currency ? `${currency} ${amount.toFixed(2)}` : amount.toFixed(2);
 };
 
 export const safeId = (id: string | string[] | undefined): string => {
@@ -211,3 +211,34 @@ export const FILTER_OPTIONS = [
   { key: 'owes-you', label: 'Owes you' },
   { key: 'settled', label: 'Settled' },
 ] as const;
+
+export const getMonthLabel = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+export const getDayLabel = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const dayValue = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const diff = Math.floor((today - dayValue) / (1000 * 60 * 60 * 24));
+
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+export const getStatus = (synced: boolean, hasSyncError: boolean) => {
+  if (synced) return 'synced' as const;
+  if (hasSyncError) return 'failed' as const;
+  return 'pending' as const;
+};

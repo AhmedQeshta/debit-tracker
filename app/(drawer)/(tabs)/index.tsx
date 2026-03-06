@@ -44,9 +44,6 @@ export default function Home() {
         </View>
 
         <View style={styles.headerActions}>
-          {/* <Pressable onPress={() => {}} style={styles.iconButton} hitSlop={8}>
-            <Search size={20} color={Colors.text} />
-          </Pressable> */}
           <Pressable
             onPress={() => router.push('/(drawer)/settings')}
             style={styles.iconButton}
@@ -57,7 +54,7 @@ export default function Home() {
       </View>
 
       <HomeSummaryCard
-        netBalanceText={formatAbsoluteCurrency(summary.netBalance, '$')}
+        netBalanceText={formatAbsoluteCurrency(summary.netBalance)}
         netBalanceDirectionText={
           summary.netBalance > 0
             ? 'They owe you'
@@ -66,8 +63,8 @@ export default function Home() {
               : 'All settled'
         }
         netBalanceTone={getBalanceDirectionTone(summary.netBalance)}
-        youOweText={formatCurrency(summary.youOwe, '$')}
-        owedToYouText={formatCurrency(summary.owedToYou, '$')}
+        youOweText={formatCurrency(summary.youOwe)}
+        owedToYouText={formatCurrency(summary.owedToYou)}
         trend={summary.trend}
         trendText={summary.trendText}
       />
