@@ -3,7 +3,7 @@ import { useNavigation } from '@/hooks/useNavigation';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { IFriendCardProps } from '@/types/friend';
-import { CircleDollarSign, Pencil, Pin, PinOff, PlusCircle, Trash2 } from 'lucide-react-native';
+import { CircleDollarSign, Copy, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -14,7 +14,7 @@ export const FriendCard = ({
   showActions,
   handleFriendDelete,
   handlePinToggle,
-  onAddTransaction,
+  onCopyAmount,
   onSettle,
 }: IFriendCardProps) => {
   const { navigateToFriend, navigateToFriendEdit } = useNavigation();
@@ -43,11 +43,11 @@ export const FriendCard = ({
     <View style={styles.swipeActions}>
       <TouchableOpacity
         style={styles.swipeActionButton}
-        onPress={() => closeSwipeAndRun(() => onAddTransaction(row.friend.id))}
+        onPress={() => closeSwipeAndRun(() => onCopyAmount(row.friend.id))}
         accessibilityRole="button"
-        accessibilityLabel={`Add transaction with ${row.friend.name}`}>
-        <PlusCircle size={16} color={Colors.text} />
-        <Text style={styles.swipeActionText}>Add</Text>
+        accessibilityLabel={`copy transaction amount ${row.friend.name}`}>
+        <Copy size={16} color={Colors.text} />
+        <Text style={styles.swipeActionText}>Copy</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.swipeActionButton}

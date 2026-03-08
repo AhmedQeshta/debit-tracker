@@ -1,7 +1,7 @@
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { IFilteredFriendsProps } from '@/types/friend';
-import { CircleDollarSign, Pencil, Pin, PinOff, PlusCircle, Trash2 } from 'lucide-react-native';
+import { CircleDollarSign, Copy, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { FriendCard } from './FriendCard';
 import { GridFriendCard } from './GridFriendCard';
@@ -12,14 +12,14 @@ export const FilteredFriends = ({
   handleFriendEdit,
   handleFriendDelete,
   handlePinToggle = () => {},
-  onAddTransaction,
+  onCopyAmount,
   onSettle,
 }: IFilteredFriendsProps) => {
   const menuItems = [
     {
-      icon: <PlusCircle size={18} color={Colors.text} />,
-      label: 'Add transaction',
-      onPress: () => onAddTransaction(row.friend.id),
+      icon: <Copy size={18} color={Colors.text} />,
+      label: 'Copy Transaction Amount',
+      onPress: () => onCopyAmount(row.friend.id),
     },
     {
       icon: <CircleDollarSign size={18} color={Colors.text} />,
@@ -58,7 +58,7 @@ export const FilteredFriends = ({
         showActions={true}
         handlePinToggle={handlePinToggle}
         handleFriendDelete={handleFriendDelete}
-        onAddTransaction={onAddTransaction}
+        onCopyAmount={onCopyAmount}
         onSettle={onSettle}
       />
     </View>

@@ -18,7 +18,7 @@ export interface IFriendCardProps {
   showActions?: boolean;
   handleFriendDelete: (friendId: string, friendName: string) => void;
   handlePinToggle: (friendId: string) => void;
-  onAddTransaction: (friendId: string) => void;
+  onCopyAmount: (amount: string) => void;
   onSettle: (friendId: string) => void;
   showPinToggle?: boolean;
 }
@@ -34,7 +34,7 @@ export interface IFilteredFriendsProps {
   handleFriendEdit: (friendId: string) => void;
   handleFriendDelete: (friendId: string, friendName: string) => void;
   handlePinToggle: (friendId: string) => void;
-  onAddTransaction: (friendId: string) => void;
+  onCopyAmount: (friendId: string) => void;
   onSettle: (friendId: string) => void;
 }
 

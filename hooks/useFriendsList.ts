@@ -16,6 +16,7 @@ import {
   IFriendListRow,
 } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
+import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -36,7 +37,7 @@ export const useFriendsList = () => {
   const { navigateToFriendEdit } = useNavigation();
   const router = useRouter();
   const { showConfirm } = useConfirmDialog();
-  const { toastSuccess } = useToast();
+  const { toastSuccess, toastError } = useToast();
   const { syncNow, isOnline } = useCloudSync();
   const { getToken } = useAuth();
 
@@ -217,6 +218,21 @@ export const useFriendsList = () => {
     return friendRows as FriendsListItem[];
   }, [isLoading, isGrid, friendRows]);
 
+  const handleCopyAmount = async (friendId: string) => {
+    const friend = friendRows.find((row) => row.friend.id === friendId);
+    if (!friend) return;
+
+    const amount = friend.amountText;
+
+    try {
+      await Clipboard.setStringAsync(amount);
+      toastSuccess(`Copied ${amount} to clipboard`);
+    } catch (error) {
+      console.error('Failed to copy amount: ', error);
+      toastError('Failed to copy amount');
+    }
+  };
+
   return {
     friends,
     friendRows,
@@ -233,7 +249,7 @@ export const useFriendsList = () => {
     handleFriendEdit,
     handleFriendDelete,
     getFriendBalance,
-    handleAddTransaction: (friendId: string) => openAddTransaction(friendId, false),
+    handleCopyAmount,
     handleSettle: (friendId: string) => openAddTransaction(friendId, true),
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,

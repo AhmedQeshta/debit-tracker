@@ -27,6 +27,7 @@ export interface ITransactionItemProps {
   currency?: string;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  onCopyAmount: () => void;
 }
 
 export interface IEditTransactionFormData {

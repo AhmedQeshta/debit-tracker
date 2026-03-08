@@ -35,7 +35,7 @@ export default function FriendsList() {
     handleFriendEdit,
     handleFriendDelete,
     handlePinToggle,
-    handleAddTransaction,
+    handleCopyAmount,
     handleSettle,
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,
@@ -209,7 +209,7 @@ export default function FriendsList() {
                 handleFriendEdit={handleFriendEdit}
                 handleFriendDelete={handleFriendDelete}
                 handlePinToggle={handlePinToggle}
-                onAddTransaction={handleAddTransaction}
+                onCopyAmount={handleCopyAmount}
                 onSettle={handleSettle}
               />
             )

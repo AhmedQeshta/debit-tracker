@@ -13,6 +13,7 @@ export const TransactionItem = ({
   currency,
   onDelete,
   onEdit,
+  onCopyAmount,
 }: ITransactionItemProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -20,6 +21,9 @@ export const TransactionItem = ({
     'Transaction',
     () => onEdit(transaction.id),
     () => onDelete(transaction.id),
+    undefined,
+    undefined,
+    onCopyAmount,
   );
 
   const isPositive = transaction.amount > 0;

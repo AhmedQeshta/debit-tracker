@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Filter, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Copy, Filter, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +21,12 @@ import {
 } from '@/lib/utils';
 
 type TransactionsFilter = 'all' | 'you-paid' | 'they-paid' | 'pending';
-
+const TransactionsTaps = [
+  { key: 'all', label: 'All' },
+  { key: 'you-paid', label: 'You paid' },
+  { key: 'they-paid', label: 'They paid' },
+  { key: 'pending', label: 'Pending' },
+];
 export default function FriendDetails() {
   const {
     friend,
@@ -42,8 +48,19 @@ export default function FriendDetails() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<TransactionsFilter>('all');
   const [searchVisible, setSearchVisible] = useState(false);
-  const { toastInfo } = useToast();
+  const { toastInfo, toastSuccess, toastError } = useToast();
 
+  const handleCopyBalance = async () => {
+    if (!friend) return;
+    const formattedBalance = formatAbsoluteCurrency(balance, friend.currency || '$');
+    try {
+      await Clipboard.setStringAsync(formattedBalance);
+      toastSuccess('Balance copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy balance: ', error);
+      toastError('Failed to copy balance');
+    }
+  };
   const isLoading = !!id && !friend;
 
   const tone = getBalanceDirectionTone(balance);
@@ -119,6 +136,11 @@ export default function FriendDetails() {
                 onPress: handlePinToggle,
               },
               {
+                icon: <Copy size={18} color={Colors.text} />,
+                label: 'Copy Balance',
+                onPress: handleCopyBalance,
+              },
+              {
                 icon: <Pencil size={18} color={Colors.text} />,
                 label: 'Edit Friend',
                 onPress: handleEditFriend,
@@ -172,19 +194,26 @@ export default function FriendDetails() {
           ) : null}
         </View>
 
-        <Text
-          style={[
-            styles.balance,
-            tone === 'positive'
-              ? styles.positive
-              : tone === 'negative'
-                ? styles.negative
-                : styles.neutral,
-          ]}>
-          {formatAbsoluteCurrency(balance, friend.currency || '$')}
-        </Text>
+        <View style={styles.balanceMainRow}>
+          <View>
+            <Text
+              style={[
+                styles.balance,
+                tone === 'positive'
+                  ? styles.positive
+                  : tone === 'negative'
+                    ? styles.negative
+                    : styles.neutral,
+              ]}>
+              {formatAbsoluteCurrency(balance, friend.currency || '$')}
+            </Text>
+          </View>
+          <Pressable style={styles.copyBalanceButton} onPress={handleCopyBalance}>
+            <Copy size={16} color={Colors.text} />
+            <Text style={styles.copyBalanceButtonText}>Copy</Text>
+          </Pressable>
+        </View>
         <Text style={styles.balanceStatus}>{getBalanceDirectionText(balance, friend.name)}</Text>
-
         <View style={styles.breakdownRow}>
           <Text style={styles.breakdownLabel}>You owe:</Text>
           <Text style={styles.breakdownValue}>
@@ -206,16 +235,6 @@ export default function FriendDetails() {
       <View style={styles.primaryActionsRow}>
         <Pressable style={styles.primaryAction} onPress={handleNewTransaction}>
           <Text style={styles.primaryActionText}>Add transaction</Text>
-        </Pressable>
-        <Pressable
-          style={styles.secondaryAction}
-          onPress={() =>
-            router.push({
-              pathname: '/(drawer)/transaction/new',
-              params: { friendId: id, settle: '1' },
-            })
-          }>
-          <Text style={styles.secondaryActionText}>Settle up</Text>
         </Pressable>
       </View>
 
@@ -246,12 +265,7 @@ export default function FriendDetails() {
       ) : null}
 
       <View style={styles.tabsRow}>
-        {[
-          { key: 'all', label: 'All' },
-          { key: 'you-paid', label: 'You paid' },
-          { key: 'they-paid', label: 'They paid' },
-          { key: 'pending', label: 'Pending' },
-        ].map((tab) => {
+        {TransactionsTaps.map((tab) => {
           const selected = activeFilter === tab.key;
           return (
             <Pressable
@@ -281,6 +295,11 @@ export default function FriendDetails() {
               currency={friend.currency || '$'}
               onEdit={handleEditTransaction}
               onDelete={handleDeleteTransaction}
+              onCopyAmount={() => {
+                const amountText = formatAbsoluteCurrency(item.amount, friend.currency || '$');
+                Clipboard.setStringAsync(amountText);
+                toastSuccess('Transaction amount copied to clipboard');
+              }}
             />
           ))
         )}
@@ -418,6 +437,29 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: '800',
     marginBottom: Spacing.xs,
+  },
+  balanceMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  copyBalanceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  copyBalanceButtonText: {
+    color: Colors.text,
+    fontSize: 12,
+    fontWeight: '600',
   },
   balanceStatus: {
     color: Colors.textSecondary,
