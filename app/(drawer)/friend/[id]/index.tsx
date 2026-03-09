@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/Button';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import * as Clipboard from 'expo-clipboard';
 import { Copy, Filter, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -13,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptySection } from '@/components/ui/EmptySection';
 import Header from '@/components/ui/Header';
 import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
+import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useToast } from '@/hooks/useToast';
 import {
   formatAbsoluteCurrency,
@@ -48,18 +48,16 @@ export default function FriendDetails() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<TransactionsFilter>('all');
   const [searchVisible, setSearchVisible] = useState(false);
-  const { toastInfo, toastSuccess, toastError } = useToast();
+  const { toastInfo } = useToast();
+  const { handleCopyAmount } = useCopyAmount();
 
   const handleCopyBalance = async () => {
     if (!friend) return;
-    const formattedBalance = formatAbsoluteCurrency(balance, friend.currency || '$');
-    try {
-      await Clipboard.setStringAsync(formattedBalance);
-      toastSuccess('Balance copied to clipboard');
-    } catch (error) {
-      console.error('Failed to copy balance: ', error);
-      toastError('Failed to copy balance');
-    }
+
+    await handleCopyAmount(balance, friend.currency || '$', {
+      successMessage: 'Balance copied to clipboard',
+      errorMessage: 'Failed to copy balance',
+    });
   };
   const isLoading = !!id && !friend;
 
@@ -295,11 +293,12 @@ export default function FriendDetails() {
               currency={friend.currency || '$'}
               onEdit={handleEditTransaction}
               onDelete={handleDeleteTransaction}
-              onCopyAmount={() => {
-                const amountText = formatAbsoluteCurrency(item.amount, friend.currency || '$');
-                Clipboard.setStringAsync(amountText);
-                toastSuccess('Transaction amount copied to clipboard');
-              }}
+              onCopyAmount={() =>
+                void handleCopyAmount(item.amount, friend.currency || '$', {
+                  successMessage: 'Transaction amount copied to clipboard',
+                  errorMessage: 'Failed to copy amount',
+                })
+              }
             />
           ))
         )}

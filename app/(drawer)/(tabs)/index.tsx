@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptySection } from '@/components/ui/EmptySection';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useHome } from '@/hooks/useHome';
 import { formatAbsoluteCurrency, formatCurrency, getBalanceDirectionTone } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
@@ -32,6 +33,7 @@ export default function Home() {
     handleAddTransactionPress,
   } = useHome();
   const { openDrawer } = useDrawerContext();
+  const { handleCopyAmount } = useCopyAmount();
 
   return (
     <ScreenContainer>
@@ -160,6 +162,7 @@ export default function Home() {
               currency={friend?.currency || '$'}
               onEdit={handleTransactionEdit}
               onDelete={handleTransactionDelete}
+              onCopyAmount={() => handleCopyAmount(transaction.amount, friend?.currency || '$')}
             />
           ))
         )}
