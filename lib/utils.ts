@@ -268,3 +268,9 @@ export const getNextSortKey = (current: BudgetSortKey): BudgetSortKey => {
   if (current === 'name') return 'usage';
   return 'recent';
 };
+
+export const RANGE_OPTIONS = [
+  { key: 'week', label: 'This week' },
+  { key: 'month', label: 'This month' },
+  { key: 'all', label: 'All time' },
+] as const;

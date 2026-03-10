@@ -3,11 +3,27 @@ import { getBalance } from '@/lib/utils';
 import { subscribeToNetwork } from '@/services/net';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
+import { Budget, Friend } from '@/types/models';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-export const useDashboard = () => {
+type DashboardRange = 'week' | 'month' | 'all';
+
+type DebtItem = {
+  friend: Friend;
+  balance: number;
+};
+
+type BudgetSnapshot = {
+  budget: Budget;
+  spent: number;
+  remaining: number;
+  percentUsed: number;
+};
+
+export const useDashboard = (summaryCurrency: string) => {
   const [isOnline, setIsOnline] = useState(true);
+  const [selectedRange, setSelectedRange] = useState<DashboardRange>('month');
   const router = useRouter();
 
   // Use selectors for all stats - single source of truth
@@ -16,6 +32,113 @@ export const useDashboard = () => {
 
   const { unpinFriend } = useFriendsStore();
   const { unpinBudget, getTotalSpent, getRemainingBudget } = useBudgetStore();
+
+  const rangeStart = useMemo(() => {
+    const now = Date.now();
+    if (selectedRange === 'week') return now - 7 * 24 * 60 * 60 * 1000;
+    if (selectedRange === 'month') return now - 30 * 24 * 60 * 60 * 1000;
+    return 0;
+  }, [selectedRange]);
+
+  const transactionsInRange = useMemo(() => {
+    if (selectedRange === 'all') return stats.transactions;
+    return stats.transactions.filter((transaction) => transaction.date >= rangeStart);
+  }, [rangeStart, selectedRange, stats.transactions]);
+
+  const transactionsInSummaryCurrency = useMemo(
+    () =>
+      transactionsInRange.filter((transaction) => {
+        const friend = stats.friends.find((item) => item.id === transaction.friendId);
+        return (friend?.currency || '$') === summaryCurrency;
+      }),
+    [stats.friends, summaryCurrency, transactionsInRange],
+  );
+
+  const youOwe = useMemo(
+    () =>
+      transactionsInSummaryCurrency
+        .filter((transaction) => transaction.amount < 0)
+        .reduce((total, transaction) => total + Math.abs(transaction.amount), 0),
+    [transactionsInSummaryCurrency],
+  );
+
+  const owedToYou = useMemo(
+    () =>
+      transactionsInSummaryCurrency
+        .filter((transaction) => transaction.amount > 0)
+        .reduce((total, transaction) => total + transaction.amount, 0),
+    [transactionsInSummaryCurrency],
+  );
+
+  const netBalance = useMemo(() => owedToYou - youOwe, [owedToYou, youOwe]);
+
+  const weekDelta = useMemo(() => {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return transactionsInSummaryCurrency
+      .filter((transaction) => transaction.date >= sevenDaysAgo)
+      .reduce((total, transaction) => total + transaction.amount, 0);
+  }, [transactionsInSummaryCurrency]);
+
+  const trendText = weekDelta > 0 ? 'Up this week' : weekDelta < 0 ? 'Down this week' : 'Stable';
+
+  const debtItems = useMemo<DebtItem[]>(
+    () =>
+      stats.friends
+        .map((friend) => ({
+          friend,
+          balance: getBalance(friend.id, transactionsInRange),
+        }))
+        .filter((item) => item.balance !== 0)
+        .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance)),
+    [stats.friends, transactionsInRange],
+  );
+
+  const peopleYouOwe = useMemo(
+    () => debtItems.filter((item) => item.balance < 0).slice(0, 3),
+    [debtItems],
+  );
+  const peopleWhoOweYou = useMemo(
+    () => debtItems.filter((item) => item.balance > 0).slice(0, 3),
+    [debtItems],
+  );
+
+  const activeBudgets = useMemo(
+    () => stats.budgets.filter((budget) => !budget.archivedAt),
+    [stats.budgets],
+  );
+
+  const budgetSnapshots = useMemo<BudgetSnapshot[]>(() => {
+    return activeBudgets
+      .map((budget) => {
+        const spent = getTotalSpent(budget.id);
+        const remaining = getRemainingBudget(budget.id);
+        const percentUsed = budget.totalBudget > 0 ? (spent / budget.totalBudget) * 100 : 0;
+
+        return {
+          budget,
+          spent,
+          remaining,
+          percentUsed,
+        };
+      })
+      .sort((a, b) => b.percentUsed - a.percentUsed);
+  }, [activeBudgets, getRemainingBudget, getTotalSpent]);
+
+  const budgetsNearLimit = useMemo(
+    () => budgetSnapshots.filter((item) => item.percentUsed >= 90).length,
+    [budgetSnapshots],
+  );
+
+  const budgetSnapshot = useMemo(() => budgetSnapshots.slice(0, 3), [budgetSnapshots]);
+
+  const rangeLabel = useMemo(() => {
+    if (selectedRange === 'week') return 'This week';
+    if (selectedRange === 'month') return 'This month';
+    return 'All time';
+  }, [selectedRange]);
+
+  const isFreshState =
+    stats.friends.length === 0 && stats.transactions.length === 0 && activeBudgets.length === 0;
 
   useEffect(() => {
     const unsubscribe = subscribeToNetwork((connected) => {
@@ -55,6 +178,19 @@ export const useDashboard = () => {
     isOnline,
     globalDebit: stats.totalDebit,
     totalPaidBack: stats.totalPaidBack,
+    youOwe,
+    owedToYou,
+    netBalance,
+    trendText,
+    selectedRange,
+    setSelectedRange,
+    rangeLabel,
+    peopleYouOwe,
+    peopleWhoOweYou,
+    budgetsNearLimit,
+    budgetSnapshot,
+    activeBudgetCount: activeBudgets.length,
+    isFreshState,
     pinnedFriends: stats.pinnedFriends,
     pinnedCount: stats.pinnedFriends.length,
     pinnedBudgets: stats.pinnedBudgets,
