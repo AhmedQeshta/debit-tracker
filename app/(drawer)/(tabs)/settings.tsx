@@ -8,14 +8,26 @@ import { Spacing } from '@/theme/spacing';
 import { Settings as SettingsIcon, User } from 'lucide-react-native';
 import { ActivityIndicator, Image, StyleSheet, Switch, Text, View } from 'react-native';
 
-export default function Settings()
-{
-  const { isLoaded, isSignedIn, user, openDrawer, handleClearLocalData, handleSignIn, formatLastSync, getSyncStatusText, appVersion, syncEnabled, setSyncEnabled, lastSync, router } = useSettings();
+export default function Settings() {
+  const {
+    isLoaded,
+    isSignedIn,
+    user,
+    openDrawer,
+    handleClearLocalData,
+    handleSignIn,
+    formatLastSync,
+    getSyncStatusText,
+    appVersion,
+    syncEnabled,
+    setSyncEnabled,
+    lastSync,
+    router,
+  } = useSettings();
 
   const { handleAuthAction } = useSignOut();
 
-  if (!isLoaded)
-  {
+  if (!isLoaded) {
     return (
       <View style={styles.wrapper}>
         <ScreenContainer>
@@ -70,11 +82,7 @@ export default function Settings()
                   variant="outline"
                 />
 
-                <Button
-                  title="Sign out"
-                  onPress={handleAuthAction}
-                  variant="error"
-                />
+                <Button title="Sign out" onPress={handleAuthAction} variant="error" />
               </>
             ) : (
               <>
@@ -82,19 +90,15 @@ export default function Settings()
                   <View style={[styles.statusDot, { backgroundColor: Colors.textSecondary }]} />
                   <Text style={styles.statusText}>Not signed in</Text>
                 </View>
-                <Button
-                  title="Sign in / Register"
-                  onPress={handleSignIn}
-                  variant="primary"
-                />
+                <Button title="Sign in / Register" onPress={handleSignIn} variant="primary" />
               </>
             )}
           </View>
         </View>
 
         {/* Sync Section */}
-        {isSignedIn && user
-          ? <View style={styles.section}>
+        {isSignedIn && user ? (
+          <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <SettingsIcon size={20} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Sync</Text>
@@ -125,10 +129,13 @@ export default function Settings()
               )}
             </View>
           </View>
-          : <View style={styles.section}>
-            <Text style={styles.note}>To use the sync feature, please sign in to your account.</Text>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.note}>
+              To use the sync feature, please sign in to your account.
+            </Text>
           </View>
-        }
+        )}
 
         {/* App Section */}
         <View style={styles.section}>
@@ -141,11 +148,7 @@ export default function Settings()
               <Text style={styles.appInfoLabel}>Version</Text>
               <Text style={styles.appInfoValue}>{appVersion}</Text>
             </View>
-            <Button
-              title="Clear local data"
-              onPress={handleClearLocalData}
-              variant="error"
-            />
+            <Button title="Clear local data" onPress={handleClearLocalData} variant="error" />
           </View>
         </View>
       </ScreenContainer>
@@ -306,7 +309,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.text,
     padding: Spacing.sm,
-    marginVertical: Spacing.sm
-  }
+    marginVertical: Spacing.sm,
+  },
 });
-

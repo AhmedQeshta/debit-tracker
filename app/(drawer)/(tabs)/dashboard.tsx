@@ -71,7 +71,7 @@ export default function Dashboard() {
           </Pressable>
           <Pressable
             style={styles.iconButton}
-            onPress={() => router.push('/(drawer)/settings')}
+            onPress={() => router.push('/(drawer)/(tabs)/settings')}
             hitSlop={8}>
             <Settings size={20} color={Colors.text} />
           </Pressable>

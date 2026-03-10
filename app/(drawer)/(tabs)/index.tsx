@@ -53,7 +53,7 @@ export default function Home() {
 
         <View style={styles.headerActions}>
           <Pressable
-            onPress={() => router.push('/(drawer)/settings')}
+            onPress={() => router.push('/(drawer)/(tabs)/settings')}
             style={styles.iconButton}
             hitSlop={8}>
             <Settings size={20} color={Colors.text} />
