@@ -1,4 +1,5 @@
 import { createMenuItems } from '@/components/ui/CreateMenuItems';
+import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
@@ -13,6 +14,10 @@ import { TextInput } from 'react-native';
 export const useBudgetDetail = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [showMoreFields, setShowMoreFields] = useState(false);
+  const [itemTitle, setItemTitle] = useState('');
+  const [itemAmount, setItemAmount] = useState('');
+  const [itemTitleError, setItemTitleError] = useState('');
+  const [itemAmountError, setItemAmountError] = useState('');
   const titleInputRef = useRef<TextInput>(null);
 
   const router = useRouter();
@@ -38,12 +43,7 @@ export const useBudgetDetail = () => {
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
-
-  const [itemTitle, setItemTitle] = useState('');
-  const [itemAmount, setItemAmount] = useState('');
-  const [itemTitleError, setItemTitleError] = useState('');
-  const [itemAmountError, setItemAmountError] = useState('');
-
+  const { handleBudgetResetPeriod } = useBudgetPeriod();
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
   const totalSpent = budget
     ? budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0)
@@ -176,5 +176,6 @@ export const useBudgetDetail = () => {
     titleInputRef,
     sortedItems,
     daysUntilReset,
+    handleBudgetResetPeriod,
   };
 };

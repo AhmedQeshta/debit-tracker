@@ -1,12 +1,11 @@
 import { Actions } from '@/components/ui/Actions';
-import { useToast } from '@/hooks/useToast';
 import { formatCurrency, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { IBudgetCardProps } from '@/types/budget';
 import { IMenuItem } from '@/types/common';
 import { useRouter } from 'expo-router';
-import { Archive, Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
+import { Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -19,7 +18,6 @@ export const BudgetCard = ({
   getRemainingBudget,
 }: IBudgetCardProps) => {
   const router = useRouter();
-  const { toastInfo } = useToast();
   const [menuVisible, setMenuVisible] = useState(false);
   const totalSpent = getTotalSpent(item.id);
   const remaining = getRemainingBudget(item.id);
@@ -59,11 +57,6 @@ export const BudgetCard = ({
       onPress: () => handleResetPeriod(item.id, item.title),
     },
     {
-      icon: <Archive size={18} color={Colors.text} />,
-      label: 'Archive Budget',
-      onPress: () => toastInfo('Archive will be available in the next update'),
-    },
-    {
       icon: item.pinned ? (
         <PinOff size={18} color={Colors.text} />
       ) : (
@@ -91,6 +84,7 @@ export const BudgetCard = ({
           <Text style={styles.budgetTitle} numberOfLines={1}>
             {item.title}
           </Text>
+          {item.archivedAt ? <Text style={styles.archivedBadge}>Archived</Text> : null}
         </View>
         <Actions menuVisible={menuVisible} setMenuVisible={setMenuVisible} menuItems={menuItems} />
       </View>
@@ -147,6 +141,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: Colors.text,
+  },
+  archivedBadge: {
+    color: Colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.round,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
   },
   amountLine: {
     color: Colors.textSecondary,

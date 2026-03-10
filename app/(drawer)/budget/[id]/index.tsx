@@ -2,12 +2,10 @@ import { Actions } from '@/components/ui/Actions';
 import { Button } from '@/components/ui/Button';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
-import { useToast } from '@/hooks/useToast';
 import { formatCurrency, getDayLabel, getMonthLabel, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import {
-  Archive,
   ArrowLeft,
   CalendarDays,
   ChevronDown,
@@ -46,31 +44,26 @@ export default function BudgetDetail() {
     titleInputRef,
     sortedItems,
     daysUntilReset,
+    handleBudgetResetPeriod,
   } = useBudgetDetail();
-  const { toastInfo } = useToast();
 
   const displayedMenuItems = useMemo(() => {
     const items = [...menuItems];
     const destructiveIndex = items.findIndex((item) => item.danger);
     const periodItem = {
       icon: <CalendarDays size={18} color={Colors.text} />,
-      label: 'Change period',
-      onPress: () => toastInfo('Period selection is coming soon.'),
-    };
-    const archiveItem = {
-      icon: <Archive size={18} color={Colors.text} />,
-      label: 'Archive Budget',
-      onPress: () => toastInfo('Archive support is coming soon.'),
+      label: 'Reset period',
+      onPress: () => handleBudgetResetPeriod(budget!.id, budget!.title),
     };
 
     if (destructiveIndex >= 0) {
-      items.splice(destructiveIndex, 0, periodItem, archiveItem);
+      items.splice(destructiveIndex, 0, periodItem);
       return items;
     }
 
-    items.push(periodItem, archiveItem);
+    items.push(periodItem);
     return items;
-  }, [menuItems, toastInfo]);
+  }, [budget, handleBudgetResetPeriod, menuItems]);
 
   if (!budget) {
     return (

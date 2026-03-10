@@ -1,3 +1,4 @@
+import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
@@ -5,39 +6,21 @@ import { calculateLatestTransactions, getBalance } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
-import { Budget, Friend } from '@/types/models';
+import { HomeBudgetPreview, HomeSettlePerson, HomeSummaryMetrics } from '@/types/common';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from './useNavigation';
 
-interface HomeSettlePerson {
-  friend: Friend;
-  balance: number;
-}
-
-interface HomeBudgetPreview {
-  budget: Budget;
-  spent: number;
-  progress: number;
-  warningLabel: string | null;
-}
-
-interface HomeSummaryMetrics {
-  netBalance: number;
-  youOwe: number;
-  owedToYou: number;
-  trend: 'up' | 'down' | 'flat';
-  trendText: string;
-}
-
-export const useHome = () => {
+export const useHome = (summaryCurrency: string) => {
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
+  const { handleBudgetResetPeriod } = useBudgetPeriod();
+
   const router = useRouter();
 
   const allFriends = useFriendsStore(
@@ -84,15 +67,8 @@ export const useHome = () => {
   const allBudgets = useBudgetStore(
     useShallow((state) => state.budgets.filter((b) => !b.deletedAt)),
   );
-  const {
-    getTotalSpent,
-    getRemainingBudget,
-    pinBudget,
-    unpinBudget,
-    deleteBudget,
-    removeItem,
-    updateBudget,
-  } = useBudgetStore();
+  const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
+    useBudgetStore();
   const activeBudgets = useMemo(
     () => allBudgets.filter((budget) => !budget.deletedAt && !budget.archivedAt),
     [allBudgets],
@@ -114,17 +90,22 @@ export const useHome = () => {
   );
 
   const summary = useMemo<HomeSummaryMetrics>(() => {
-    const youOwe = allTransactions
+    const transactionsInCurrency = allTransactions.filter((transaction) => {
+      const friend = activeFriends.find((item) => item.id === transaction.friendId);
+      return (friend?.currency || '$') === summaryCurrency;
+    });
+
+    const youOwe = transactionsInCurrency
       .filter((transaction) => transaction.amount < 0)
       .reduce((total, transaction) => total + Math.abs(transaction.amount), 0);
 
-    const owedToYou = allTransactions
+    const owedToYou = transactionsInCurrency
       .filter((transaction) => transaction.amount > 0)
       .reduce((total, transaction) => total + transaction.amount, 0);
 
     const netBalance = owedToYou - youOwe;
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const weekDelta = allTransactions
+    const weekDelta = transactionsInCurrency
       .filter((transaction) => transaction.date >= sevenDaysAgo)
       .reduce((total, transaction) => total + transaction.amount, 0);
 
@@ -139,7 +120,7 @@ export const useHome = () => {
       trend,
       trendText,
     };
-  }, [allTransactions]);
+  }, [activeFriends, allTransactions, summaryCurrency]);
 
   const settleUpPeople = useMemo<HomeSettlePerson[]>(() => {
     return activeFriends
@@ -211,58 +192,6 @@ export const useHome = () => {
 
   const handleBudgetEdit = (budgetId: string) => {
     router.push(`/(drawer)/budget/${budgetId}/edit`);
-  };
-
-  const handleBudgetResetPeriod = (budgetId: string, title: string) => {
-    showConfirm(
-      'Reset Budget Period',
-      `Clear all transactions from "${title}" and start a new period?`,
-      async () => {
-        const budget = useBudgetStore
-          .getState()
-          .budgets.find((b) => b.id === budgetId && !b.deletedAt);
-        if (!budget) return;
-
-        const activeItems = budget.items.filter((item) => !item.deletedAt);
-        activeItems.forEach((entry) => {
-          removeItem(budgetId, entry.id);
-        });
-
-        toastSuccess('Budget period has been reset');
-
-        try {
-          await syncNow();
-        } catch (error) {
-          console.error('[Sync] Failed to sync after period reset:', error);
-        }
-      },
-      { confirmText: 'Reset' },
-    );
-  };
-
-  const handleBudgetArchive = (budgetId: string, title: string, archivedAt?: number) => {
-    const isArchived = Boolean(archivedAt);
-    if (isArchived) {
-      updateBudget(budgetId, { archivedAt: undefined });
-      toastSuccess('Budget unarchived');
-      return;
-    }
-
-    showConfirm(
-      'Archive Budget',
-      `Archive "${title}" from Home overview?`,
-      async () => {
-        updateBudget(budgetId, { archivedAt: Date.now() });
-        toastSuccess('Budget archived');
-
-        try {
-          await syncNow();
-        } catch (error) {
-          console.error('[Sync] Failed to sync after archive:', error);
-        }
-      },
-      { confirmText: 'Archive' },
-    );
   };
 
   const handleFriendEdit = (friendId: string) => {
@@ -367,7 +296,6 @@ export const useHome = () => {
     handleBudgetPinToggle,
     handleBudgetEdit,
     handleBudgetResetPeriod,
-    handleBudgetArchive,
     handlePinToggle,
     latestFriends,
     getFriendBalance,

@@ -17,15 +17,8 @@ export const useBudgetList = () => {
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
   const budgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
-  const {
-    pinBudget,
-    unpinBudget,
-    deleteBudget,
-    removeItem,
-    updateBudget,
-    getTotalSpent,
-    getRemainingBudget,
-  } = useBudgetStore();
+  const { pinBudget, unpinBudget, deleteBudget, removeItem, getTotalSpent, getRemainingBudget } =
+    useBudgetStore();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess, toastError } = useToast();
   const { syncNow } = useCloudSync();
@@ -83,31 +76,6 @@ export const useBudgetList = () => {
         }
       },
       { confirmText: 'Reset' },
-    );
-  };
-
-  const handleArchive = (budgetId: string, title: string, archivedAt?: number): void => {
-    const isArchived = Boolean(archivedAt);
-    if (isArchived) {
-      updateBudget(budgetId, { archivedAt: undefined });
-      toastSuccess('Budget unarchived');
-      return;
-    }
-
-    showConfirm(
-      'Archive Budget',
-      `Archive "${title}" from Home overview?`,
-      async () => {
-        updateBudget(budgetId, { archivedAt: Date.now() });
-        toastSuccess('Budget archived');
-
-        try {
-          await syncNow();
-        } catch (error) {
-          console.error('[Sync] Failed to sync after archive:', error);
-        }
-      },
-      { confirmText: 'Archive' },
     );
   };
 
@@ -209,7 +177,6 @@ export const useBudgetList = () => {
     handlePinToggle,
     handleDelete,
     handleResetPeriod,
-    handleArchive,
     handleRefresh,
     refreshing,
     router,

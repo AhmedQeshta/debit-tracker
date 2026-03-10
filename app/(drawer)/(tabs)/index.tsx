@@ -1,3 +1,4 @@
+import { HomeBudgetOverviewCard } from '@/components/home/HomeBudgetOverviewCard';
 import { HomeGetStartedCard } from '@/components/home/HomeGetStartedCard';
 import { HomeQuickActions } from '@/components/home/HomeQuickActions';
 import { HomeSectionHeader } from '@/components/home/HomeSectionHeader';
@@ -9,6 +10,7 @@ import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useHome } from '@/hooks/useHome';
+import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { formatAbsoluteCurrency, formatCurrency, getBalanceDirectionTone } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
@@ -18,6 +20,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Home() {
   const router = useRouter();
+  const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
+    useSummaryCurrency();
   const {
     summary,
     settleUpPeople,
@@ -28,10 +32,12 @@ export default function Home() {
     handleTransactionDelete,
     handleBudgetPinToggle,
     handleBudgetDelete,
+    handleBudgetEdit,
+    handleBudgetResetPeriod,
     handleAddFriend,
     handleCreateBudget,
     handleAddTransactionPress,
-  } = useHome();
+  } = useHome(summaryCurrency);
   const { openDrawer } = useDrawerContext();
   const { handleCopyAmount } = useCopyAmount();
 
@@ -55,8 +61,20 @@ export default function Home() {
         </View>
       </View>
 
+      <View style={styles.summaryHeader}>
+        <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+        <Pressable
+          style={styles.currencyButton}
+          onPress={handleSummaryCurrencyToggle}
+          accessibilityRole="button"
+          accessibilityLabel="Change summary currency"
+          accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+          <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
+        </Pressable>
+      </View>
+
       <HomeSummaryCard
-        netBalanceText={formatAbsoluteCurrency(summary.netBalance)}
+        netBalanceText={formatAbsoluteCurrency(summary.netBalance, summaryCurrency)}
         netBalanceDirectionText={
           summary.netBalance > 0
             ? 'They owe you'
@@ -65,8 +83,8 @@ export default function Home() {
               : 'All settled'
         }
         netBalanceTone={getBalanceDirectionTone(summary.netBalance)}
-        youOweText={formatCurrency(summary.youOwe)}
-        owedToYouText={formatCurrency(summary.owedToYou)}
+        youOweText={formatCurrency(summary.youOwe, summaryCurrency)}
+        owedToYouText={formatCurrency(summary.owedToYou, summaryCurrency)}
         trend={summary.trend}
         trendText={summary.trendText}
       />
@@ -185,43 +203,19 @@ export default function Home() {
           </View>
         ) : (
           budgetsOverview.map(({ budget, spent, progress, warningLabel }) => (
-            <View key={budget.id} style={styles.budgetCard}>
-              <View style={styles.budgetTopRow}>
-                <Text style={styles.budgetTitle} numberOfLines={1}>
-                  {budget.title}
-                </Text>
-                {warningLabel ? <Text style={styles.warningLabel}>{warningLabel}</Text> : null}
-              </View>
-
-              <Text style={styles.budgetAmounts}>
-                {formatCurrency(spent, budget.currency)} /{' '}
-                {formatCurrency(budget.totalBudget, budget.currency)}
-              </Text>
-
-              <View style={styles.progressTrack}>
-                <View
-                  style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]}
-                />
-              </View>
-
-              <View style={styles.budgetActions}>
-                <Button
-                  title="Open"
-                  variant="outline"
-                  onPress={() => router.push(`/(drawer)/budget/${budget.id}`)}
-                />
-                <Button
-                  title={budget.pinned ? 'Unpin' : 'Pin'}
-                  variant="outline"
-                  onPress={() => handleBudgetPinToggle(budget.id)}
-                />
-                <Button
-                  title="Delete"
-                  variant="error"
-                  onPress={() => handleBudgetDelete(budget.id, budget.title)}
-                />
-              </View>
-            </View>
+            <HomeBudgetOverviewCard
+              key={budget.id}
+              budget={budget}
+              spent={spent}
+              progress={progress}
+              warningLabel={warningLabel}
+              onOpen={(id) => router.push(`/(drawer)/budget/${id}`)}
+              onEdit={handleBudgetEdit}
+              onPinToggle={handleBudgetPinToggle}
+              onDelete={handleBudgetDelete}
+              onCopyRemaining={(remaining, currency) => handleCopyAmount(remaining, currency)}
+              onResetPeriod={handleBudgetResetPeriod}
+            />
           ))
         )}
       </View>
@@ -267,6 +261,33 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  summaryHeaderText: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  currencyButton: {
+    minHeight: 32,
+    minWidth: 44,
+    borderRadius: Spacing.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+  },
+  currencyButtonText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   sectionBody: {
     marginTop: Spacing.xs,
@@ -349,47 +370,60 @@ const styles = StyleSheet.create({
   amountOwed: {
     color: Colors.success,
   },
-  budgetCard: {
+  budgetCardCompact: {
     backgroundColor: Colors.card,
     borderRadius: Spacing.borderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
   },
-  budgetTopRow: {
+  budgetCompactTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.sm,
   },
-  budgetTitle: {
+  budgetTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
     flex: 1,
+  },
+  budgetCompactTitle: {
     color: Colors.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   warningLabel: {
     color: Colors.error,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
   },
-  budgetAmounts: {
+  budgetCompactAmounts: {
     marginTop: Spacing.xs,
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
   },
-  progressTrack: {
+  progressTrackCompact: {
     marginTop: Spacing.sm,
-    height: 8,
-    borderRadius: 8,
+    height: 6,
+    borderRadius: Spacing.borderRadius.round,
     backgroundColor: Colors.surface,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
   },
-  budgetActions: {
+  budgetCompactFooter: {
     marginTop: Spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  budgetCompactMeta: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

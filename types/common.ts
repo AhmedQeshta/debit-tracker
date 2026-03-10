@@ -1,3 +1,4 @@
+import { Budget, Friend } from '@/types/models';
 import { ReactNode } from 'react';
 
 export interface IActionCardProps {
@@ -224,4 +225,24 @@ export interface ToastItemProps {
     type: 'success' | 'error' | 'info';
   };
   onDismiss: () => void;
+}
+
+export interface HomeSettlePerson {
+  friend: Friend;
+  balance: number;
+}
+
+export interface HomeBudgetPreview {
+  budget: Budget;
+  spent: number;
+  progress: number;
+  warningLabel: string | null;
+}
+
+export interface HomeSummaryMetrics {
+  netBalance: number;
+  youOwe: number;
+  owedToYou: number;
+  trend: 'up' | 'down' | 'flat';
+  trendText: string;
 }
