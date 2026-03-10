@@ -122,7 +122,10 @@ export default function Home() {
             const badgeText = isYouOwe ? 'You owe' : 'They owe you';
 
             return (
-              <View key={item.friend.id} style={styles.settleItem}>
+              <Pressable
+                key={item.friend.id}
+                style={styles.settleItem}
+                onPress={() => router.push(`/(drawer)/friend/${item.friend.id}`)}>
                 <View style={styles.settleAvatar}>
                   <Text style={styles.settleAvatarText}>
                     {item.friend.name.charAt(0).toUpperCase()}
@@ -151,7 +154,7 @@ export default function Home() {
                     }
                   />
                 </View>
-              </View>
+              </Pressable>
             );
           })
         )}
