@@ -30,6 +30,7 @@ export interface IBudgetCardProps {
   handlePinToggle: (id: string) => void;
   handleDelete: (id: string, title: string) => void;
   handleResetPeriod: (id: string, title: string) => void;
+  handleArchive: (id: string, title: string, archivedAt?: number) => void;
   getTotalSpent: (id: string) => number;
   getRemainingBudget: (id: string) => number;
 }

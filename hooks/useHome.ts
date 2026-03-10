@@ -84,10 +84,17 @@ export const useHome = () => {
   const allBudgets = useBudgetStore(
     useShallow((state) => state.budgets.filter((b) => !b.deletedAt)),
   );
-  const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
-    useBudgetStore();
+  const {
+    getTotalSpent,
+    getRemainingBudget,
+    pinBudget,
+    unpinBudget,
+    deleteBudget,
+    removeItem,
+    updateBudget,
+  } = useBudgetStore();
   const activeBudgets = useMemo(
-    () => allBudgets.filter((budget) => !budget.deletedAt),
+    () => allBudgets.filter((budget) => !budget.deletedAt && !budget.archivedAt),
     [allBudgets],
   );
 
@@ -202,6 +209,62 @@ export const useHome = () => {
     );
   };
 
+  const handleBudgetEdit = (budgetId: string) => {
+    router.push(`/(drawer)/budget/${budgetId}/edit`);
+  };
+
+  const handleBudgetResetPeriod = (budgetId: string, title: string) => {
+    showConfirm(
+      'Reset Budget Period',
+      `Clear all transactions from "${title}" and start a new period?`,
+      async () => {
+        const budget = useBudgetStore
+          .getState()
+          .budgets.find((b) => b.id === budgetId && !b.deletedAt);
+        if (!budget) return;
+
+        const activeItems = budget.items.filter((item) => !item.deletedAt);
+        activeItems.forEach((entry) => {
+          removeItem(budgetId, entry.id);
+        });
+
+        toastSuccess('Budget period has been reset');
+
+        try {
+          await syncNow();
+        } catch (error) {
+          console.error('[Sync] Failed to sync after period reset:', error);
+        }
+      },
+      { confirmText: 'Reset' },
+    );
+  };
+
+  const handleBudgetArchive = (budgetId: string, title: string, archivedAt?: number) => {
+    const isArchived = Boolean(archivedAt);
+    if (isArchived) {
+      updateBudget(budgetId, { archivedAt: undefined });
+      toastSuccess('Budget unarchived');
+      return;
+    }
+
+    showConfirm(
+      'Archive Budget',
+      `Archive "${title}" from Home overview?`,
+      async () => {
+        updateBudget(budgetId, { archivedAt: Date.now() });
+        toastSuccess('Budget archived');
+
+        try {
+          await syncNow();
+        } catch (error) {
+          console.error('[Sync] Failed to sync after archive:', error);
+        }
+      },
+      { confirmText: 'Archive' },
+    );
+  };
+
   const handleFriendEdit = (friendId: string) => {
     navigateToFriendEdit(friendId);
   };
@@ -302,6 +365,9 @@ export const useHome = () => {
     handleTransactionDelete,
     handleBudgetDelete,
     handleBudgetPinToggle,
+    handleBudgetEdit,
+    handleBudgetResetPeriod,
+    handleBudgetArchive,
     handlePinToggle,
     latestFriends,
     getFriendBalance,
