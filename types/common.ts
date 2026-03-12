@@ -1,4 +1,5 @@
 import { Budget, Friend } from '@/types/models';
+import { LucideIcon } from 'lucide-react-native';
 import { ReactNode } from 'react';
 
 export interface IActionCardProps {
@@ -245,4 +246,37 @@ export interface HomeSummaryMetrics {
   owedToYou: number;
   trend: 'up' | 'down' | 'flat';
   trendText: string;
+}
+
+export interface SettingsRowProps {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  value?: string;
+  onPress?: () => void;
+  destructive?: boolean;
+  showChevron?: boolean;
+  showDivider?: boolean;
+  rightSlot?: React.ReactNode;
+  accessibilityLabel?: string;
+}
+
+export interface SettingsSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+export interface SettingsToggleRowProps {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled?: boolean;
+  showDivider?: boolean;
+}
+
+export interface StatusPillProps {
+  label: string;
+  tone?: 'neutral' | 'success' | 'error';
 }

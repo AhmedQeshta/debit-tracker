@@ -1,16 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors } from '@/theme/colors';
-import { ArrowLeft, Menu } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
+import { ArrowLeft, Menu } from 'lucide-react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function Header({ openDrawer, title, isGoBack = false }: { openDrawer?: () => void; title: string, isGoBack?: boolean })
-{
+interface HeaderProps {
+  openDrawer?: () => void;
+  title: string;
+  subtitle?: string;
+  isGoBack?: boolean;
+}
+
+export default function Header({ openDrawer, title, subtitle, isGoBack = false }: HeaderProps) {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={openDrawer} style={styles.menuButton} activeOpacity={0.7}>
-        {isGoBack ? <ArrowLeft size={25} color={Colors.text} /> : <Menu size={24} color={Colors.text} />}
+        {isGoBack ? (
+          <ArrowLeft size={25} color={Colors.text} />
+        ) : (
+          <Menu size={24} color={Colors.text} />
+        )}
       </TouchableOpacity>
-      <Text style={styles.actionsTitle}>{title}</Text>
+      <View style={styles.titleWrap}>
+        <Text style={styles.actionsTitle}>{title}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      </View>
     </View>
   );
 }
@@ -26,6 +39,9 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
     padding: Spacing.xs,
   },
+  titleWrap: {
+    flex: 1,
+  },
   arrowLeft: {
     fontSize: 24,
     fontWeight: '700',
@@ -35,5 +51,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text,
+  },
+  subtitle: {
+    marginTop: 2,
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
   },
 });

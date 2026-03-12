@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { AlertTriangle } from 'lucide-react-native';
+import React from 'react';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -31,16 +31,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <View style={styles.dialog}>
           <View style={styles.header}>
-            <AlertTriangle size={24} color={Colors.error} />
+            <View style={styles.iconWrap}>
+              <AlertTriangle size={20} color={Colors.error} />
+            </View>
             <Text style={styles.title}>{title}</Text>
           </View>
           <Text style={styles.message}>{message}</Text>
@@ -48,15 +45,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
               onPress={onCancel}
-              activeOpacity={0.7}
-            >
+              activeOpacity={0.7}>
               <Text style={styles.cancelButtonText}>{cancelText}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
               onPress={handleConfirm}
-              activeOpacity={0.7}
-            >
+              activeOpacity={0.7}>
               <Text style={styles.confirmButtonText}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
@@ -87,18 +82,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  iconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: Spacing.borderRadius.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.error,
+    backgroundColor: Colors.surface,
   },
   title: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '700',
     color: Colors.text,
     flex: 1,
   },
   message: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    lineHeight: 24,
+    fontSize: 15,
+    color: Colors.text,
+    lineHeight: 22,
     marginBottom: Spacing.lg,
   },
   actions: {
@@ -122,14 +127,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.error,
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.text,
   },
   confirmButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#fff',
   },
 });
-
