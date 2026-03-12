@@ -1,4 +1,5 @@
 import { createMenuItems } from '@/components/ui/CreateMenuItems';
+import { useBudgetAmount } from '@/hooks/budget/useBudgetAmount';
 import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
@@ -42,6 +43,7 @@ export const useBudgetDetail = () => {
   const { handleBudgetPinToggle: togglePin } = useOperations();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
+  const { handleBudgetAmountCopy } = useBudgetAmount();
   const { syncNow } = useCloudSync();
   const { handleBudgetResetPeriod } = useBudgetPeriod();
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
@@ -97,7 +99,6 @@ export const useBudgetDetail = () => {
       { confirmText: 'Delete' },
     );
   };
-
   const handlePinToggle = (): void => {
     if (!budget) return;
     togglePin(budget);
@@ -177,5 +178,6 @@ export const useBudgetDetail = () => {
     sortedItems,
     daysUntilReset,
     handleBudgetResetPeriod,
+    handleBudgetAmountCopy,
   };
 };

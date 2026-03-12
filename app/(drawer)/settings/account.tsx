@@ -53,7 +53,9 @@ export default function AccountManagement() {
 
   return (
     <ScreenContainer>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push('/(drawer)/(tabs)/settings')}>
         <ArrowLeft size={25} color={Colors.text} />
         <Text style={styles.title}>Manage Account</Text>
       </TouchableOpacity>

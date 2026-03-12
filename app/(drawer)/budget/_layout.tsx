@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
 import { Colors } from '@/theme/colors';
+import { Stack } from 'expo-router';
 
 const STACK_OPTIONS = {
   headerStyle: {
@@ -14,10 +14,8 @@ const STACK_OPTIONS = {
 export default function BudgetLayout() {
   return (
     <Stack screenOptions={STACK_OPTIONS}>
-      <Stack.Screen name="index" options={{ title: 'Budgets', headerShown: false }} />
       <Stack.Screen name="new" options={{ title: 'New Budget', headerShown: false }} />
       <Stack.Screen name="[id]" options={{ title: 'Budget Details', headerShown: false }} />
     </Stack>
   );
 }
-

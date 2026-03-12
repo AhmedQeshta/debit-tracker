@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   Circle,
+  Copy,
   Pin,
   Trash2,
 } from 'lucide-react-native';
@@ -45,11 +46,17 @@ export default function BudgetDetail() {
     sortedItems,
     daysUntilReset,
     handleBudgetResetPeriod,
+    handleBudgetAmountCopy,
   } = useBudgetDetail();
 
   const displayedMenuItems = useMemo(() => {
     const items = [...menuItems];
     const destructiveIndex = items.findIndex((item) => item.danger);
+    const copyItem = {
+      icon: <Copy size={18} color={Colors.text} />,
+      label: 'Copy Remaining Amount',
+      onPress: () => handleBudgetAmountCopy(budget!.id),
+    };
     const periodItem = {
       icon: <CalendarDays size={18} color={Colors.text} />,
       label: 'Reset period',
@@ -57,13 +64,14 @@ export default function BudgetDetail() {
     };
 
     if (destructiveIndex >= 0) {
-      items.splice(destructiveIndex, 0, periodItem);
+      items.splice(destructiveIndex, 0, copyItem, periodItem);
       return items;
     }
 
+    items.push(copyItem);
     items.push(periodItem);
     return items;
-  }, [budget, handleBudgetResetPeriod, menuItems]);
+  }, [budget, handleBudgetAmountCopy, handleBudgetResetPeriod, menuItems]);
 
   if (!budget) {
     return (
@@ -83,13 +91,17 @@ export default function BudgetDetail() {
   const isNearLimit = !isOverspent && usageRatio >= NEAR_LIMIT_THRESHOLD;
   const progressColor = isOverspent ? Colors.error : isNearLimit ? WARNING_COLOR : Colors.primary;
   const spentColor = isOverspent ? Colors.error : Colors.text;
+  const spendingCount = sortedItems.length;
+  const avgSpendPerItem = spendingCount > 0 ? totalSpent / spendingCount : 0;
+  const lastUpdatedText =
+    spendingCount > 0 ? getDayLabel(sortedItems[0].createdAt) : 'No spending yet';
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
         <View style={styles.appBar}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.push('/(drawer)/(tabs)/budget')}
             style={styles.backButton}
             activeOpacity={0.75}
             accessibilityRole="button"
@@ -172,6 +184,32 @@ export default function BudgetDetail() {
               <Text style={styles.overviewStatLabel}>Resets in</Text>
               <Text style={styles.overviewStatValue}>{daysUntilReset} days</Text>
             </View>
+          </View>
+        </View>
+
+        <View style={styles.detailInfoCard}>
+          <Text style={styles.detailInfoTitle}>Budget details</Text>
+
+          <View style={styles.detailInfoRow}>
+            <Text style={styles.detailInfoLabel}>Currency</Text>
+            <Text style={styles.detailInfoValue}>{budget.currency}</Text>
+          </View>
+
+          <View style={styles.detailInfoRow}>
+            <Text style={styles.detailInfoLabel}>Items tracked</Text>
+            <Text style={styles.detailInfoValue}>{spendingCount}</Text>
+          </View>
+
+          <View style={styles.detailInfoRow}>
+            <Text style={styles.detailInfoLabel}>Average per item</Text>
+            <Text style={styles.detailInfoValue}>
+              {formatCurrency(avgSpendPerItem, budget.currency)}
+            </Text>
+          </View>
+
+          <View style={styles.detailInfoRow}>
+            <Text style={styles.detailInfoLabel}>Last update</Text>
+            <Text style={styles.detailInfoValue}>{lastUpdatedText}</Text>
           </View>
         </View>
 
@@ -453,6 +491,38 @@ const styles = StyleSheet.create({
   },
   overspentValue: {
     color: Colors.error,
+  },
+  detailInfoCard: {
+    backgroundColor: Colors.card,
+    borderRadius: Spacing.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  detailInfoTitle: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
+  },
+  detailInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  detailInfoLabel: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    flex: 1,
+  },
+  detailInfoValue: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'right',
   },
   quickAddCard: {
     backgroundColor: Colors.card,
