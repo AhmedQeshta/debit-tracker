@@ -32,6 +32,7 @@ export interface IBudgetCardProps {
   handleResetPeriod: (id: string, title: string) => void;
   getTotalSpent: (id: string) => number;
   getRemainingBudget: (id: string) => number;
+  onCopyAmount: (budgetId: string) => void;
 }
 
 export interface IBudgetFormData {

@@ -1,3 +1,4 @@
+import { useBudgetAmount } from '@/hooks/budget/useBudgetAmount';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
@@ -23,7 +24,6 @@ export const useBudgetList = () => {
   const { toastSuccess, toastError } = useToast();
   const { syncNow } = useCloudSync();
   const sortedBudgets = sortBudgets(budgets);
-
   const handlePinToggle = (budgetId: string): void => {
     const budget = budgets.find((b) => b.id === budgetId);
     if (budget) {
@@ -171,6 +171,8 @@ export const useBudgetList = () => {
     };
   }, [displayedBudgets, getTotalSpent]);
 
+  const { handleBudgetAmountCopy } = useBudgetAmount(displayedBudgets);
+
   return {
     budgets,
     sortedBudgets,
@@ -192,5 +194,6 @@ export const useBudgetList = () => {
     summary,
     hydrated,
     displayedBudgets,
+    handleBudgetAmountCopy,
   };
 };

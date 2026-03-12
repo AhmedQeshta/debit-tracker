@@ -1,6 +1,7 @@
 import { Budget, Friend } from '@/types/models';
 import { LucideIcon } from 'lucide-react-native';
 import { ReactNode } from 'react';
+import { NativeSyntheticEvent, TextInput, TextInputSubmitEditingEventData } from 'react-native';
 
 export interface IActionCardProps {
   icon: React.ComponentType<{ size?: number; color?: string }>;
@@ -279,4 +280,22 @@ export interface SettingsToggleRowProps {
 export interface StatusPillProps {
   label: string;
   tone?: 'neutral' | 'success' | 'error';
+}
+
+export type ReturnKeyType = 'done' | 'go' | 'next' | 'search' | 'send';
+
+export interface PasswordInputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  onBlur?: () => void;
+  placeholder?: string;
+  error?: string;
+  helperText?: string;
+  returnKeyType?: ReturnKeyType;
+  autoComplete?: 'password' | 'current-password' | 'new-password' | 'off';
+  textContentType?: 'password' | 'newPassword' | 'none';
+  onSubmitEditing?: (e: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
+  blurOnSubmit?: boolean;
+  inputRef?: React.RefObject<TextInput | null>;
 }

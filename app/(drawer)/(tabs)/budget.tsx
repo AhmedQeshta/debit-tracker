@@ -33,6 +33,7 @@ export default function BudgetTab() {
     summary,
     hydrated,
     displayedBudgets,
+    handleBudgetAmountCopy,
   } = useBudgetList();
 
   return (
@@ -123,6 +124,7 @@ export default function BudgetTab() {
                   handleResetPeriod={handleResetPeriod}
                   getTotalSpent={getTotalSpent}
                   getRemainingBudget={getRemainingBudget}
+                  onCopyAmount={handleBudgetAmountCopy}
                 />
               );
             }}

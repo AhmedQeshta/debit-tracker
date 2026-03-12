@@ -5,7 +5,7 @@ import { Spacing } from '@/theme/spacing';
 import { IBudgetCardProps } from '@/types/budget';
 import { IMenuItem } from '@/types/common';
 import { useRouter } from 'expo-router';
-import { Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
+import { Copy, Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -16,6 +16,7 @@ export const BudgetCard = ({
   handleResetPeriod,
   getTotalSpent,
   getRemainingBudget,
+  onCopyAmount,
 }: IBudgetCardProps) => {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -47,14 +48,9 @@ export const BudgetCard = ({
 
   const menuItems: IMenuItem[] = [
     {
-      icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit Budget',
-      onPress: () => router.push(`/(drawer)/budget/${item.id}/edit`),
-    },
-    {
-      icon: <RotateCcw size={18} color={Colors.text} />,
-      label: 'Reset period',
-      onPress: () => handleResetPeriod(item.id, item.title),
+      icon: <Copy size={18} color={Colors.text} />,
+      label: 'Copy Remaining Amount',
+      onPress: () => onCopyAmount(item.id),
     },
     {
       icon: item.pinned ? (
@@ -64,6 +60,16 @@ export const BudgetCard = ({
       ),
       label: item.pinned ? 'Unpin Budget' : 'Pin Budget',
       onPress: () => handlePinToggle(item.id),
+    },
+    {
+      icon: <RotateCcw size={18} color={Colors.text} />,
+      label: 'Reset period',
+      onPress: () => handleResetPeriod(item.id, item.title),
+    },
+    {
+      icon: <Pencil size={18} color={Colors.text} />,
+      label: 'Edit Budget',
+      onPress: () => router.push(`/(drawer)/budget/${item.id}/edit`),
     },
     {
       icon: <Trash2 size={18} color={Colors.error} />,
