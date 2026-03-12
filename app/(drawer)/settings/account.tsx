@@ -8,13 +8,26 @@ import { ArrowLeft, User } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
-export default function AccountManagement()
-{
-
-  const { control, handleSubmit, errors, loading, updatingEmail, showEmailInput, newEmail, setShowEmailInput, setNewEmail, handleEmailUpdate, handleEmailSubmit, updateName, user, isLoaded, isSignedIn, router } = useAccount();
-  if (!isLoaded)
-  {
+export default function AccountManagement() {
+  const {
+    control,
+    handleSubmit,
+    errors,
+    loading,
+    updatingEmail,
+    showEmailInput,
+    newEmail,
+    setShowEmailInput,
+    setNewEmail,
+    handleEmailUpdate,
+    handleEmailSubmit,
+    updateName,
+    user,
+    isLoaded,
+    isSignedIn,
+    router,
+  } = useAccount();
+  if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -23,8 +36,7 @@ export default function AccountManagement()
     );
   }
 
-  if (!isSignedIn || !user)
-  {
+  if (!isSignedIn || !user) {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
@@ -38,7 +50,6 @@ export default function AccountManagement()
       </ScreenContainer>
     );
   }
-
 
   return (
     <ScreenContainer>
@@ -113,8 +124,7 @@ export default function AccountManagement()
               <View style={styles.emailActions}>
                 <Button
                   title="Cancel"
-                  onPress={() =>
-                  {
+                  onPress={() => {
                     setShowEmailInput(false);
                     setNewEmail('');
                   }}
@@ -144,7 +154,8 @@ export default function AccountManagement()
               </View>
               {user.emailAddresses.length > 1 && (
                 <Text style={styles.emailHint}>
-                  You have {user.emailAddresses.length} email address(es) associated with your account.
+                  You have {user.emailAddresses.length} email address(es) associated with your
+                  account.
                 </Text>
               )}
             </>
@@ -158,15 +169,6 @@ export default function AccountManagement()
             loading={loading}
             variant="primary"
           />
-        </View>
-
-        <View style={styles.passwordSection}>
-          <TouchableOpacity
-            style={styles.changePasswordButton}
-            onPress={() => router.push('/(drawer)/settings/change-password')}
-            activeOpacity={0.7}>
-            <Text style={styles.changePasswordText}>Change Password</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </ScreenContainer>
@@ -329,4 +331,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
