@@ -1,35 +1,30 @@
-import { CURRENCIES } from "@/lib/utils";
-import { Colors } from "@/theme/colors";
-import { Spacing } from "@/theme/spacing";
-import { ICurrencyPickerProps } from "@/types/budget";
-import { TouchableOpacity, StyleSheet, View } from "react-native";
-import { Text } from "react-native";
-
+import { CURRENCIES } from '@/lib/utils';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { ICurrencyPickerProps } from '@/types/budget';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const CurrencyPicker = ({ currency, setCurrency }: ICurrencyPickerProps) => {
   if (CURRENCIES.length === 0) return null;
   return (
     <>
       <Text style={styles.label}>Currency</Text>
-        <View style={styles.currencyPicker}>
-          { CURRENCIES.map((curr) => (
-            <TouchableOpacity
-              key={curr.symbol}
+      <View style={styles.currencyPicker}>
+        {CURRENCIES.map((curr) => (
+          <TouchableOpacity
+            key={curr.symbol}
+            style={[styles.currencyChip, currency === curr.symbol && styles.currencyChipSelected]}
+            onPress={() => setCurrency(curr.symbol)}>
+            <Text
               style={[
-                styles.currencyChip,
-                currency === curr.symbol && styles.currencyChipSelected,
-              ]}
-              onPress={() => setCurrency(curr.symbol)}>
-              <Text
-                style={[
-                  styles.currencyChipText,
-                  currency === curr.symbol && styles.currencyChipTextSelected,
-                ]}>
-                {curr.symbol} {curr.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                styles.currencyChipText,
+                currency === curr.symbol && styles.currencyChipTextSelected,
+              ]}>
+              {curr.symbol} {curr.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </>
   );
 };

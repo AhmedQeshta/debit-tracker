@@ -1,26 +1,46 @@
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { useToast } from '@/hooks/useToast';
-import { filterFriends, getBalance } from '@/lib/utils';
+import { filterFriends, formatDateLabel, getBalance } from '@/lib/utils';
 import { syncService } from '@/services/syncService';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
+import {
+  FriendBalanceStatus,
+  FriendsFilterBy,
+  FriendsListItem,
+  FriendsSortBy,
+  IFriendListRow,
+} from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
+import * as Clipboard from 'expo-clipboard';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useFriendsList = () => {
+  const [search, setSearch] = useState('');
+  const [isGrid, setIsGrid] = useState(false);
+  const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
+  const [filterBy, setFilterBy] = useState<FriendsFilterBy>('all');
+  const [showControls, setShowControls] = useState(true);
+  const [isLoading] = useState(false);
+
+  const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
+    useSummaryCurrency();
+
   const { pinFriend, unpinFriend, deleteFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
+  const router = useRouter();
   const { showConfirm } = useConfirmDialog();
-  const { toastSuccess } = useToast();
+  const { toastSuccess, toastError } = useToast();
   const { syncNow, isOnline } = useCloudSync();
   const { getToken } = useAuth();
-  const [search, setSearch] = useState('');
-  const [isGrid, setIsGrid] = useState(false);
+
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
@@ -31,15 +51,77 @@ export const useFriendsList = () => {
     [transactions],
   );
 
-  const filteredFriends = useMemo(() => {
+  const friendRows = useMemo(() => {
     const filtered = filterFriends(friends, search);
-    return [...filtered].sort((a, b) =>
-      a.pinned && !b.pinned ? -1 : !a.pinned && b.pinned ? 1 : b.createdAt - a.createdAt,
-    );
-  }, [friends, search]);
+    const rows = filtered
+      .map<IFriendListRow>((friend) => {
+        const balance = getBalance(friend.id, transactions);
+        const status: FriendBalanceStatus =
+          balance > 0 ? 'owes-you' : balance < 0 ? 'you-owe' : 'settled';
+        const directionLabel: IFriendListRow['directionLabel'] =
+          balance > 0 ? 'Owes you' : balance < 0 ? 'You owe' : 'Settled';
+
+        return {
+          friend,
+          balance,
+          amountText: `${friend.currency || '$'}${Math.abs(balance).toFixed(2)}`,
+          directionLabel,
+          status,
+          subtitle:
+            friend.bio || `Last activity ${formatDateLabel(friend.updatedAt || friend.createdAt)}`,
+        };
+      })
+      .filter((row) => (filterBy === 'all' ? true : row.status === filterBy));
+
+    return rows.sort((a, b) => {
+      if (a.friend.pinned && !b.friend.pinned) return -1;
+      if (!a.friend.pinned && b.friend.pinned) return 1;
+
+      if (sortBy === 'name') {
+        return a.friend.name.localeCompare(b.friend.name);
+      }
+
+      if (sortBy === 'balance') {
+        return Math.abs(b.balance) - Math.abs(a.balance);
+      }
+
+      return b.friend.createdAt - a.friend.createdAt;
+    });
+  }, [friends, transactions, search, filterBy, sortBy]);
+
+  const summary = useMemo(() => {
+    const activeFriends = friends.filter((friend) => (friend.currency || '$') === summaryCurrency);
+    const balances = activeFriends.map((friend) => getBalance(friend.id, transactions));
+
+    const youOweTotal = balances
+      .filter((value) => value < 0)
+      .reduce((total, value) => total + Math.abs(value), 0);
+
+    const owedToYouTotal = balances
+      .filter((value) => value > 0)
+      .reduce((total, value) => total + value, 0);
+
+    const settledCount = balances.filter((value) => value === 0).length;
+    const netBalance = balances.reduce((total, value) => total + value, 0);
+
+    return {
+      totalFriends: activeFriends.length,
+      youOweTotal,
+      owedToYouTotal,
+      settledCount,
+      netBalance,
+    };
+  }, [friends, transactions, summaryCurrency]);
+
+  const openAddTransaction = (friendId: string, settle = false): void => {
+    router.push({
+      pathname: '/(drawer)/transaction/new',
+      params: settle ? { friendId, settle: '1' } : { friendId },
+    });
+  };
 
   const handlePinToggle = (friendId: string): void => {
-    const friend = filteredFriends.find((f) => f.id === friendId);
+    const friend = friendRows.find((f) => f.friend.id === friendId)?.friend;
     if (friend) {
       if (friend.pinned) unpinFriend(friendId);
       else pinFriend(friendId);
@@ -125,16 +207,55 @@ export const useFriendsList = () => {
     );
   };
 
+  const listData = useMemo(() => {
+    if (isLoading) {
+      return Array.from({ length: isGrid ? 6 : 8 }, (_, index) => ({
+        type: 'skeleton' as const,
+        id: `skeleton-${index}`,
+      }));
+    }
+
+    return friendRows as FriendsListItem[];
+  }, [isLoading, isGrid, friendRows]);
+
+  const handleCopyAmount = async (friendId: string) => {
+    const friend = friendRows.find((row) => row.friend.id === friendId);
+    if (!friend) return;
+
+    const amount = friend.amountText;
+
+    try {
+      await Clipboard.setStringAsync(amount);
+      toastSuccess(`Copied ${amount} to clipboard`);
+    } catch (error) {
+      console.error('Failed to copy amount: ', error);
+      toastError('Failed to copy amount');
+    }
+  };
+
   return {
     friends,
-    filteredFriends,
+    friendRows,
+    summary,
     search,
     setSearch,
     isGrid,
     setIsGrid,
+    sortBy,
+    setSortBy,
+    filterBy,
+    setFilterBy,
     handlePinToggle,
     handleFriendEdit,
     handleFriendDelete,
     getFriendBalance,
+    handleCopyAmount,
+    handleSettle: (friendId: string) => openAddTransaction(friendId, true),
+    summaryCurrencyLabel,
+    handleSummaryCurrencyToggle,
+    summaryCurrency,
+    showControls,
+    setShowControls,
+    listData,
   };
 };

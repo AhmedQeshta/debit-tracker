@@ -15,7 +15,17 @@ export const useSettings = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const router = useRouter();
-  const { syncEnabled, setSyncEnabled, syncStatus, lastSync, isLoggedIn } = useSyncStatus();
+  const {
+    syncEnabled,
+    setSyncEnabled,
+    syncStatus,
+    lastSync,
+    isLoggedIn,
+    isOnline,
+    isSyncing,
+    lastError,
+    handleSync,
+  } = useSyncStatus();
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const { showConfirm } = useConfirmDialog();
@@ -23,8 +33,8 @@ export const useSettings = () => {
 
   const handleClearLocalData = () => {
     showConfirm(
-      'Clear Local Data',
-      'This will delete all your local data including friends, transactions, and budgets. This action cannot be undone. Are you sure?',
+      'Clear local data?',
+      'This will remove local friends, transactions, budgets, and cached app data from this device. Your account remains active, and cloud data can be restored after sync. This action cannot be undone.',
       async () => {
         try {
           // Clear all stores using their set methods
@@ -41,7 +51,7 @@ export const useSettings = () => {
           toastError('Failed to clear local data. Please try again.');
         }
       },
-      { confirmText: 'Clear' },
+      { confirmText: 'Clear data', cancelText: 'Cancel' },
     );
   };
 
@@ -67,11 +77,10 @@ export const useSettings = () => {
 
   const getSyncStatusText = () => {
     if (!syncEnabled) return 'Disabled';
-    if (!isLoggedIn) return 'Not signed in';
-    if (syncStatus === 'pulling') return 'Pulling...';
-    if (syncStatus === 'pushing') return 'Pushing...';
+    if (!isLoggedIn || !isOnline) return 'Offline';
+    if (isSyncing || syncStatus === 'pulling' || syncStatus === 'pushing') return 'Syncing...';
     if (syncStatus === 'error') return 'Error';
-    if (syncStatus === 'success') return 'Synced';
+    if (syncStatus === 'success') return 'Idle';
     return 'Idle';
   };
 
@@ -90,6 +99,10 @@ export const useSettings = () => {
     syncStatus,
     lastSync,
     isLoggedIn,
+    isOnline,
+    isSyncing,
+    lastError,
+    handleSync,
     openDrawer,
   };
 };

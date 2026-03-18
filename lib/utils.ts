@@ -1,4 +1,6 @@
 import { Colors } from '@/theme/colors';
+import { BudgetSortKey } from '@/types/budget';
+import { ToastMessage } from '@/types/common';
 import { Budget, Friend, Transaction } from '@/types/models';
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
@@ -44,6 +46,39 @@ export const getBalanceStatus = (balance: number) => {
   return balance < 0 ? 'They owe you' : balance > 0 ? 'You owe them' : 'Settled';
 };
 
+export type BalanceDirectionTone = 'positive' | 'negative' | 'neutral';
+
+export const getBalanceDirectionTone = (netBalance: number): BalanceDirectionTone => {
+  if (netBalance > 0) return 'positive';
+  if (netBalance < 0) return 'negative';
+  return 'neutral';
+};
+
+export const getBalanceDirectionText = (netBalance: number, friendName: string) => {
+  if (netBalance > 0) return `${friendName} owes you`;
+  if (netBalance < 0) return `You owe ${friendName}`;
+  return 'All settled';
+};
+
+export const formatAbsoluteCurrency = (amount: number, currency?: string) => {
+  return currency ? formatCurrency(Math.abs(amount), currency) : Math.abs(amount).toFixed(2);
+};
+
+export const getBalanceBreakdown = (transactions: Transaction[]) => {
+  const youOwe = transactions
+    .filter((transaction) => transaction.amount < 0)
+    .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
+
+  const owedToYou = transactions
+    .filter((transaction) => transaction.amount > 0)
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  return {
+    youOwe,
+    owedToYou,
+  };
+};
+
 export const getButtonStyle = (
   variant: 'primary' | 'secondary' | 'error' | 'outline',
   styles: any,
@@ -64,7 +99,7 @@ export const getTextStyle = (
   variant: 'primary' | 'secondary' | 'error' | 'outline',
   styles: any,
 ) => {
-  if (variant === 'outline') return [styles.text, { color: Colors.primary }];
+  if (variant === 'outline') return [styles.text, { color: Colors.text }];
   return styles.text;
 };
 
@@ -74,8 +109,8 @@ export const CURRENCIES = [
   { symbol: '€', label: 'EUR' },
 ];
 
-export const formatCurrency = (amount: number, currency: string) => {
-  return `${currency || '$'} ${amount.toFixed(2)}`;
+export const formatCurrency = (amount: number, currency?: string) => {
+  return currency ? `${currency} ${amount.toFixed(2)}` : amount.toFixed(2);
 };
 
 export const safeId = (id: string | string[] | undefined): string => {
@@ -138,3 +173,104 @@ export const getProgressText = (pullProgress: string | any) => {
       return 'Downloading your data...';
   }
 };
+
+export const formatSignedCurrency = (amount: number) => {
+  const prefix = amount > 0 ? '+' : amount < 0 ? '-' : '';
+  return `${prefix}${formatCurrency(Math.abs(amount), '$')}`;
+};
+
+export const getBackgroundColor = (toast: ToastMessage) => {
+  switch (toast.type) {
+    case 'success':
+      return Colors.success + '20';
+    case 'error':
+      return Colors.error + '20';
+    case 'info':
+      return Colors.primary + '20';
+  }
+};
+export const getBorderColor = (toast: ToastMessage) => {
+  switch (toast.type) {
+    case 'success':
+      return Colors.success;
+    case 'error':
+      return Colors.error;
+    case 'info':
+      return Colors.primary;
+  }
+};
+
+export const SORT_OPTIONS = [
+  { key: 'recent', label: 'Recent' },
+  { key: 'name', label: 'Name' },
+  { key: 'balance', label: 'Balance' },
+] as const;
+
+export const FILTER_OPTIONS = [
+  { key: 'all', label: 'All' },
+  { key: 'you-owe', label: 'You owe' },
+  { key: 'owes-you', label: 'Owes you' },
+  { key: 'settled', label: 'Settled' },
+] as const;
+
+export const getMonthLabel = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+export const getDayLabel = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const dayValue = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const diff = Math.floor((today - dayValue) / (1000 * 60 * 60 * 24));
+
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+export const getStatus = (synced: boolean, hasSyncError: boolean) => {
+  if (synced) return 'synced' as const;
+  if (hasSyncError) return 'failed' as const;
+  return 'pending' as const;
+};
+
+export const formatDateLabel = (timestamp?: number): string => {
+  if (!timestamp) {
+    return 'No recent activity';
+  }
+
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+export const WARNING_COLOR = '#E0AE49';
+
+export const SORT_LABELS: Record<BudgetSortKey, string> = {
+  recent: 'Recent',
+  name: 'Name',
+  usage: 'Usage',
+};
+
+export const getNextSortKey = (current: BudgetSortKey): BudgetSortKey => {
+  if (current === 'recent') return 'name';
+  if (current === 'name') return 'usage';
+  return 'recent';
+};
+
+export const RANGE_OPTIONS = [
+  { key: 'week', label: 'This week' },
+  { key: 'month', label: 'This month' },
+  { key: 'all', label: 'All time' },
+] as const;

@@ -1,7 +1,7 @@
 import { Colors } from '@/theme/colors';
 import { IMenuItem } from '@/types/common';
 import { Budget, Friend } from '@/types/models';
-import { Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
+import { Copy, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
 
 export const createMenuItems = (
   type: string,
@@ -9,6 +9,7 @@ export const createMenuItems = (
   onDelete?: () => void,
   item?: Friend | Budget,
   onPinToggle?: () => void,
+  onCopyAmount?: () => void,
 ): IMenuItem[] => {
   const menuItems = [];
 
@@ -21,6 +22,14 @@ export const createMenuItems = (
       ),
       label: item.pinned ? `Unpin ${type}` : `Pin ${type}`,
       onPress: onPinToggle,
+    });
+  }
+
+  if (onCopyAmount) {
+    menuItems.push({
+      icon: <Copy size={18} color={Colors.text} />,
+      label: `Copy ${type} amount`,
+      onPress: onCopyAmount,
     });
   }
 

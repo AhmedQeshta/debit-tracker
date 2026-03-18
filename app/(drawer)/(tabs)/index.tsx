@@ -1,199 +1,432 @@
-import { BudgetCard } from '@/components/budget/BudgetCard';
-import { FriendCard } from '@/components/friend/FriendCard';
+import { HomeBudgetOverviewCard } from '@/components/home/HomeBudgetOverviewCard';
+import { HomeGetStartedCard } from '@/components/home/HomeGetStartedCard';
+import { HomeQuickActions } from '@/components/home/HomeQuickActions';
+import { HomeSectionHeader } from '@/components/home/HomeSectionHeader';
+import { HomeSummaryCard } from '@/components/home/HomeSummaryCard';
 import { TransactionItem } from '@/components/transaction/TransactionItem';
-import { ActionCard } from '@/components/ui/ActionCard';
+import { Button } from '@/components/ui/Button';
 import { EmptySection } from '@/components/ui/EmptySection';
-import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useHome } from '@/hooks/useHome';
-import { useFriendsStore } from '@/store/friendsStore';
+import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
+import { formatAbsoluteCurrency, formatCurrency, getBalanceDirectionTone } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
-import { PlusCircle, UserPlus, Users } from 'lucide-react-native';
-import { StyleSheet, Text, View } from 'react-native';
-import { useShallow } from 'zustand/react/shallow';
+import { Menu, Settings } from 'lucide-react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Home() {
   const router = useRouter();
-  const { openDrawer } = useDrawerContext();
-  // Get latest transactions sorted by date (most recent first), limit to 5
+  const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
+    useSummaryCurrency();
   const {
-    latestTransactions,
-    getFriendBalance,
-    latestFriends,
-    handlePinToggle,
-    latestBudgets,
-    getBudgetTotalSpent,
-    getBudgetRemaining,
+    summary,
+    settleUpPeople,
+    recentTransactions,
+    budgetsOverview,
+    isFreshState,
+    navigateToTransactionEdit,
+    handleTransactionDelete,
     handleBudgetPinToggle,
     handleBudgetDelete,
-    handleFriendDelete,
-    handleTransactionEdit,
-    handleTransactionDelete,
-  } = useHome();
-  const friends = useFriendsStore(useShallow((state) => state.friends));
+    navigateToBudgetEdit,
+    handleBudgetResetPeriod,
+    navigateToCreateBudget,
+    navigateToCreateFriend,
+    handleAddTransactionPress,
+  } = useHome(summaryCurrency);
+  const { openDrawer } = useDrawerContext();
+  const { handleCopyAmount } = useCopyAmount();
 
   return (
-    <View style={styles.wrapper}>
-      <ScreenContainer>
-        <Header openDrawer={openDrawer} title="Actions" />
-        <View style={styles.actions}>
-          <ActionCard
-            icon={UserPlus}
-            title="Add Friend"
-            onPress={() => router.push('/(drawer)/friend/new')}
-          />
-          <ActionCard
-            icon={PlusCircle}
-            title="Add Transaction"
-            onPress={() => router.push('/(drawer)/transaction/new')}
-            disabled={latestFriends.length === 0}
-          />
-          <ActionCard
-            icon={Users}
-            title="Show All Friends"
-            onPress={() => router.push('/friends')}
-            disabled={latestFriends.length === 0}
-          />
+    <ScreenContainer>
+      <View style={styles.headerRow}>
+        <View style={styles.headerLeft}>
+          <Pressable onPress={openDrawer} style={styles.iconButton} hitSlop={8}>
+            <Menu size={20} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Home</Text>
         </View>
 
-        <Text style={styles.title}>Latest Friends</Text>
-        <View style={styles.userList}>
-          {latestFriends.length === 0 ? (
-            <EmptySection
-              title={'No Friends Yet'}
-              description={'Start tracking your debts by adding your first friend'}
-              icon={'users'}
-            />
-          ) : (
-            latestFriends.map((friend) => {
-              return (
-                <FriendCard
-                  key={friend.id}
-                  friend={friend}
-                  balance={getFriendBalance(friend.id)}
-                  showActions={true}
-                  handleFriendDelete={handleFriendDelete}
-                  handlePinToggle={handlePinToggle}
-                />
-              );
-            })
-          )}
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => router.push('/(drawer)/(tabs)/settings')}
+            style={styles.iconButton}
+            hitSlop={8}>
+            <Settings size={20} color={Colors.text} />
+          </Pressable>
         </View>
+      </View>
 
-        <Text style={styles.title}>Latest Budgets</Text>
-        <View style={styles.budgetsList}>
-          {latestBudgets.length === 0 ? (
-            <EmptySection
-              title="No Budgets"
-              description="Create your first budget to start tracking your spending"
-              icon="budgets"
-            />
-          ) : (
-            latestBudgets.map((budget) => (
-              <BudgetCard
-                key={budget.id}
-                item={budget}
-                handlePinToggle={handleBudgetPinToggle}
-                handleDelete={handleBudgetDelete}
-                getTotalSpent={getBudgetTotalSpent}
-                getRemainingBudget={getBudgetRemaining}
-              />
-            ))
-          )}
-        </View>
+      <View style={styles.summaryHeader}>
+        <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+        <Pressable
+          style={styles.currencyButton}
+          onPress={handleSummaryCurrencyToggle}
+          accessibilityRole="button"
+          accessibilityLabel="Change summary currency"
+          accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+          <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
+        </Pressable>
+      </View>
 
-        <Text style={styles.transactionsTitle}>Latest Transactions</Text>
-        <View style={styles.transactionsList}>
-          {latestTransactions.length === 0 ? (
+      <HomeSummaryCard
+        netBalanceText={formatAbsoluteCurrency(summary.netBalance, summaryCurrency)}
+        netBalanceDirectionText={
+          summary.netBalance > 0
+            ? 'They owe you'
+            : summary.netBalance < 0
+              ? 'You owe others'
+              : 'All settled'
+        }
+        netBalanceTone={getBalanceDirectionTone(summary.netBalance)}
+        youOweText={formatCurrency(summary.youOwe, summaryCurrency)}
+        owedToYouText={formatCurrency(summary.owedToYou, summaryCurrency)}
+        trend={summary.trend}
+        trendText={summary.trendText}
+      />
+
+      <HomeSectionHeader title="Quick Actions" />
+      <HomeQuickActions
+        onAddTransaction={handleAddTransactionPress}
+        onAddFriend={navigateToCreateFriend}
+        onCreateBudget={navigateToCreateBudget}
+      />
+
+      {isFreshState ? (
+        <HomeGetStartedCard
+          onAddFriend={navigateToCreateFriend}
+          onAddTransaction={handleAddTransactionPress}
+          onCreateBudget={navigateToCreateBudget}
+        />
+      ) : null}
+
+      <HomeSectionHeader
+        title="Settle Up"
+        seeAllLabel="See all"
+        onSeeAll={() => router.push('/friends')}
+      />
+      <View style={styles.sectionBody}>
+        {settleUpPeople.length === 0 ? (
+          <View style={styles.compactEmptyCard}>
+            <Text style={styles.compactEmptyTitle}>No balances to settle</Text>
+            <Text style={styles.compactEmptyText}>Add a friend to get started.</Text>
+            <Button title="Add Friend" onPress={navigateToCreateFriend} />
+          </View>
+        ) : (
+          settleUpPeople.map((item) => {
+            const isYouOwe = item.balance < 0;
+            const badgeText = isYouOwe ? 'You owe' : 'They owe you';
+
+            return (
+              <Pressable
+                key={item.friend.id}
+                style={styles.settleItem}
+                onPress={() => router.push(`/(drawer)/friend/${item.friend.id}`)}>
+                <View style={styles.settleAvatar}>
+                  <Text style={styles.settleAvatarText}>
+                    {item.friend.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+
+                <View style={styles.settleMain}>
+                  <Text style={styles.settleName} numberOfLines={1}>
+                    {item.friend.name}
+                  </Text>
+                  <Text style={[styles.settleBadge, isYouOwe ? styles.badgeOwe : styles.badgeOwed]}>
+                    {badgeText}
+                  </Text>
+                </View>
+
+                <View style={styles.settleRight}>
+                  <Text
+                    style={[styles.settleAmount, isYouOwe ? styles.amountOwe : styles.amountOwed]}>
+                    {formatAbsoluteCurrency(item.balance, item.friend.currency || '$')}
+                  </Text>
+                  <Button
+                    title="Settle"
+                    variant="outline"
+                    onPress={() =>
+                      router.push(`/(drawer)/transaction/new?friendId=${item.friend.id}`)
+                    }
+                  />
+                </View>
+              </Pressable>
+            );
+          })
+        )}
+      </View>
+
+      <HomeSectionHeader
+        title="Recent Transactions"
+        seeAllLabel="See all"
+        onSeeAll={() => router.push('/transactions')}
+      />
+      <View style={styles.sectionBody}>
+        {recentTransactions.length === 0 ? (
+          <View style={styles.compactEmptyCard}>
             <EmptySection
               title={'No Transactions Yet'}
               description={'Add your first transaction to start tracking debts'}
               icon={'transactions'}
             />
-          ) : (
-            latestTransactions.map((transaction) => {
-              const friend = friends.find((f) => f.id === transaction.friendId);
-              return (
-                <TransactionItem
-                  key={transaction.id}
-                  transaction={transaction}
-                  currency={friend?.currency || '$'}
-                  onEdit={handleTransactionEdit}
-                  onDelete={handleTransactionDelete}
-                />
-              );
-            })
-          )}
-        </View>
-      </ScreenContainer>
-    </View>
+            <Button title="Add Transaction" onPress={handleAddTransactionPress} />
+          </View>
+        ) : (
+          recentTransactions.map(({ transaction, friend }) => (
+            <TransactionItem
+              key={transaction.id}
+              transaction={transaction}
+              currency={friend?.currency || '$'}
+              onEdit={navigateToTransactionEdit}
+              onDelete={handleTransactionDelete}
+              onCopyAmount={() => handleCopyAmount(transaction.amount, friend?.currency || '$')}
+            />
+          ))
+        )}
+      </View>
+
+      <HomeSectionHeader
+        title="Budgets Overview"
+        seeAllLabel="See all"
+        onSeeAll={() => router.push('/budget')}
+      />
+      <View style={styles.sectionBody}>
+        {budgetsOverview.length === 0 ? (
+          <View style={styles.compactEmptyCard}>
+            <EmptySection
+              title="No Budgets"
+              description="Create your first budget to start tracking your spending"
+              icon="budgets"
+            />
+            <Button title="Create Budget" onPress={navigateToCreateBudget} />
+          </View>
+        ) : (
+          budgetsOverview.map(({ budget, spent, progress, warningLabel }) => (
+            <HomeBudgetOverviewCard
+              key={budget.id}
+              budget={budget}
+              spent={spent}
+              progress={progress}
+              warningLabel={warningLabel}
+              onOpen={(id) => router.push(`/(drawer)/budget/${id}`)}
+              onEdit={navigateToBudgetEdit}
+              onPinToggle={handleBudgetPinToggle}
+              onDelete={handleBudgetDelete}
+              onCopyRemaining={(remaining, currency) => handleCopyAmount(remaining, currency)}
+              onResetPeriod={handleBudgetResetPeriod}
+            />
+          ))
+        )}
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  headerRow: {
+    minHeight: 52,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  headerTitle: {
+    color: Colors.text,
+    fontSize: 32 / 1.2,
+    fontWeight: '800',
+  },
+  menuIcon: {
+    color: Colors.text,
+    fontSize: 28,
+    lineHeight: 28,
+    marginTop: -2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  summaryHeaderText: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  currencyButton: {
+    minHeight: 32,
+    minWidth: 44,
+    borderRadius: Spacing.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+  },
+  currencyButtonText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  sectionBody: {
+    marginTop: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  compactEmptyCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.lg,
+    padding: Spacing.sm,
+  },
+  compactEmptyTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  compactEmptyText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    marginBottom: Spacing.sm,
+  },
+  settleItem: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.lg,
+    padding: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  settleAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settleAvatarText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  settleMain: {
     flex: 1,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
+  settleName: {
     color: Colors.text,
-    marginBottom: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  userList: {
-    marginBottom: Spacing.sm,
-  },
-  budgetsList: {
-    marginBottom: Spacing.sm,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.xl * 2,
-    paddingHorizontal: Spacing.lg,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  emptyTitle: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
   },
-  emptyText: {
-    color: Colors.textSecondary,
-    textAlign: 'center',
+  settleBadge: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  badgeOwe: {
+    color: Colors.error,
+  },
+  badgeOwed: {
+    color: Colors.success,
+  },
+  settleRight: {
+    alignItems: 'flex-end',
+    width: 116,
+    gap: 2,
+  },
+  settleAmount: {
     fontSize: 14,
-    lineHeight: 20,
+    fontWeight: '700',
   },
-  actions: {
+  amountOwe: {
+    color: Colors.error,
+  },
+  amountOwed: {
+    color: Colors.success,
+  },
+  budgetCardCompact: {
+    backgroundColor: Colors.card,
+    borderRadius: Spacing.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  budgetCompactTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  budgetTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
+  },
+  budgetCompactTitle: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  warningLabel: {
+    color: Colors.error,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  budgetCompactAmounts: {
+    marginTop: Spacing.xs,
+    color: Colors.textSecondary,
+    fontSize: 13,
+  },
+  progressTrackCompact: {
+    marginTop: Spacing.sm,
+    height: 6,
+    borderRadius: Spacing.borderRadius.round,
+    backgroundColor: Colors.surface,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+  },
+  budgetCompactFooter: {
     marginTop: Spacing.sm,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -Spacing.xs,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
-  transactionsList: {
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  transactionsTitle: {
-    fontSize: 20,
+  budgetCompactMeta: {
+    color: Colors.textSecondary,
+    fontSize: 12,
     fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.md,
   },
 });

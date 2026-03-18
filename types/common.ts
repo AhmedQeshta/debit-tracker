@@ -1,4 +1,7 @@
+import { Budget, Friend } from '@/types/models';
+import { LucideIcon } from 'lucide-react-native';
 import { ReactNode } from 'react';
+import { NativeSyntheticEvent, TextInput, TextInputSubmitEditingEventData } from 'react-native';
 
 export interface IActionCardProps {
   icon: React.ComponentType<{ size?: number; color?: string }>;
@@ -22,10 +25,12 @@ export interface IInputProps {
   placeholder?: string;
   keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
   error?: string;
+  helperText?: string;
   multiline?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   secureTextEntry?: boolean;
   onBlur?: () => void;
+  maxLength?: number;
 }
 
 export interface IScreenContainerProps {
@@ -160,4 +165,137 @@ export interface ToastContextType {
   toastError: (message: string) => void;
   toastInfo: (message: string) => void;
   removeToast: (id: string) => void;
+}
+
+export interface HomeQuickActionsProps {
+  onAddTransaction: () => void;
+  onAddFriend: () => void;
+  onCreateBudget: () => void;
+}
+
+export interface QuickActionItemProps {
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+}
+
+export interface HomeGetStartedCardProps {
+  onAddFriend: () => void;
+  onAddTransaction: () => void;
+  onCreateBudget: () => void;
+}
+
+export interface HomeSectionHeaderProps {
+  title: string;
+  seeAllLabel?: string;
+  onSeeAll?: () => void;
+}
+
+export interface HomeSummaryCardProps {
+  netBalanceText: string;
+  netBalanceDirectionText: string;
+  netBalanceTone: 'positive' | 'negative' | 'neutral';
+  youOweText: string;
+  owedToYouText: string;
+  trend: 'up' | 'down' | 'flat';
+  trendText: string;
+  updatedText?: string;
+}
+
+export interface IStepItemProps {
+  step: string;
+  title: string;
+  actionLabel: string;
+  onPress: () => void;
+  variant?: 'primary' | 'outline';
+}
+
+export interface OtpInputProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  error?: string;
+  helperText?: string;
+  length?: number;
+}
+
+export interface ToastItemProps {
+  toast: {
+    id: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  };
+  onDismiss: () => void;
+}
+
+export interface HomeSettlePerson {
+  friend: Friend;
+  balance: number;
+}
+
+export interface HomeBudgetPreview {
+  budget: Budget;
+  spent: number;
+  progress: number;
+  warningLabel: string | null;
+}
+
+export interface HomeSummaryMetrics {
+  netBalance: number;
+  youOwe: number;
+  owedToYou: number;
+  trend: 'up' | 'down' | 'flat';
+  trendText: string;
+}
+
+export interface SettingsRowProps {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  value?: string;
+  onPress?: () => void;
+  destructive?: boolean;
+  showChevron?: boolean;
+  showDivider?: boolean;
+  rightSlot?: React.ReactNode;
+  accessibilityLabel?: string;
+}
+
+export interface SettingsSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+export interface SettingsToggleRowProps {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled?: boolean;
+  showDivider?: boolean;
+}
+
+export interface StatusPillProps {
+  label: string;
+  tone?: 'neutral' | 'success' | 'error';
+}
+
+export type ReturnKeyType = 'done' | 'go' | 'next' | 'search' | 'send';
+
+export interface PasswordInputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  onBlur?: () => void;
+  placeholder?: string;
+  error?: string;
+  helperText?: string;
+  returnKeyType?: ReturnKeyType;
+  autoComplete?: 'password' | 'current-password' | 'new-password' | 'off';
+  textContentType?: 'password' | 'newPassword' | 'none';
+  onSubmitEditing?: (e: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
+  blurOnSubmit?: boolean;
+  inputRef?: React.RefObject<TextInput | null>;
 }

@@ -1,3 +1,4 @@
+import { useNavigation } from '@/hooks/useNavigation';
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { useAuth, useSignIn } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,8 @@ export const useForgotPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { navigateToHome } = useNavigation();
 
   const isLoaded = signInLoaded && authLoaded;
 
@@ -118,7 +121,7 @@ export const useForgotPassword = () => {
       if (result.status === 'complete' && result.createdSessionId) {
         // Sign the user in automatically
         await setActive({ session: result.createdSessionId });
-        router.replace('/');
+        navigateToHome();
       } else {
         // No session created, redirect to sign-in
         setError('Password updated successfully. Please sign in.');

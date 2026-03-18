@@ -2,8 +2,9 @@ import { useToast } from '@/hooks/useToast';
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { TextInput } from 'react-native';
 
 interface ChangePasswordFormData {
   currentPassword: string;
@@ -21,7 +22,12 @@ export const useChangePassword = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setError,
+    clearErrors,
   } = useForm<ChangePasswordFormData>({
+    mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -31,6 +37,7 @@ export const useChangePassword = () => {
 
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [signOutOtherSessions, setSignOutOtherSessions] = useState(false);
 
   const isLoaded = userLoaded && authLoaded;
 
@@ -42,9 +49,11 @@ export const useChangePassword = () => {
 
     // Validate passwords match
     if (data.newPassword !== data.confirmPassword) {
-      setAuthError('New passwords do not match');
+      setError('confirmPassword', { message: 'Passwords do not match' });
       return;
     }
+
+    clearErrors('confirmPassword');
 
     try {
       await checkOfflineAndThrow();
@@ -60,12 +69,13 @@ export const useChangePassword = () => {
       await user.updatePassword({
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
-        signOutOfOtherSessions: false, // Keep other sessions active
+        signOutOfOtherSessions: signOutOtherSessions,
       });
 
       // Success - show toast and reset form
-      toastSuccess('Your password has been changed successfully.');
+      toastSuccess('Password updated');
       reset();
+      setSignOutOtherSessions(false);
       router.push('/(drawer)/settings/account');
     } catch (err: any) {
       // Enhanced error extraction for Clerk errors
@@ -93,22 +103,69 @@ export const useChangePassword = () => {
         errorMessage = formatClerkError(err);
       }
 
-      setAuthError(errorMessage);
+      const normalizedError = errorMessage.toLowerCase();
+      if (normalizedError.includes('current') && normalizedError.includes('password')) {
+        setError('currentPassword', { message: 'Current password is incorrect' });
+        setAuthError(null);
+      } else {
+        setAuthError(errorMessage);
+      }
+
       console.error('Change password error:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  const newPasswordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
+
+  const currentPassword = watch('currentPassword');
+  const newPassword = watch('newPassword');
+  const confirmPassword = watch('confirmPassword');
+
+  const hasMinLength = newPassword.length >= 8;
+  const hasNumberOrSymbol = /[0-9\W_]/.test(newPassword);
+  const hasUppercase = /[A-Z]/.test(newPassword);
+
+  const strength = useMemo(() => {
+    const score = [hasMinLength, hasNumberOrSymbol, hasUppercase, newPassword.length >= 12].filter(
+      Boolean,
+    ).length;
+
+    if (!newPassword) return 'Weak';
+    if (score <= 1) return 'Weak';
+    if (score <= 3) return 'OK';
+    return 'Strong';
+  }, [hasMinLength, hasNumberOrSymbol, hasUppercase, newPassword]);
+
+  const isFormReady =
+    currentPassword.trim().length > 0 &&
+    hasMinLength &&
+    hasNumberOrSymbol &&
+    confirmPassword.length > 0 &&
+    confirmPassword === newPassword;
+
   return {
     control,
     handleSubmit,
     errors,
+    watch,
     loading,
     authError,
+    setAuthError,
     onChangePassword,
     isLoaded,
     isSignedIn: !!user,
     router,
+    signOutOtherSessions,
+    setSignOutOtherSessions,
+    newPasswordRef,
+    confirmPasswordRef,
+    strength,
+    isFormReady,
+    hasMinLength,
+    hasNumberOrSymbol,
+    hasUppercase,
   };
 };

@@ -4,22 +4,37 @@ import { Button } from '@/components/ui/Button';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Copy, Filter, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react-native';
+import React, { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptySection } from '@/components/ui/EmptySection';
 import Header from '@/components/ui/Header';
 import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
-import { getBalanceStatus, getBalanceText } from '@/lib/utils';
+import { useCopyAmount } from '@/hooks/useCopyAmount';
+import { useToast } from '@/hooks/useToast';
+import {
+  formatAbsoluteCurrency,
+  getBalanceDirectionText,
+  getBalanceDirectionTone,
+} from '@/lib/utils';
 
-export default function FriendDetails()
-{
+type TransactionsFilter = 'all' | 'you-paid' | 'they-paid' | 'pending';
+const TransactionsTaps = [
+  { key: 'all', label: 'All' },
+  { key: 'you-paid', label: 'You paid' },
+  { key: 'they-paid', label: 'They paid' },
+  { key: 'pending', label: 'Pending' },
+];
+export default function FriendDetails() {
   const {
     friend,
     transactions,
     balance,
+    breakdown,
+    pendingCount,
+    lastActivity,
     handleEditFriend,
     handleDeleteFriend,
     handleEditTransaction,
@@ -30,8 +45,62 @@ export default function FriendDetails()
   } = useFriendDetail();
   const insets = useSafeAreaInsets();
   const [friendMenuVisible, setFriendMenuVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<TransactionsFilter>('all');
+  const [searchVisible, setSearchVisible] = useState(false);
+  const { toastInfo } = useToast();
+  const { handleCopyAmount } = useCopyAmount();
 
-  if (!friend){
+  const handleCopyBalance = async () => {
+    if (!friend) return;
+
+    await handleCopyAmount(balance, friend.currency || '$', {
+      successMessage: 'Balance copied to clipboard',
+      errorMessage: 'Failed to copy balance',
+    });
+  };
+  const isLoading = !!id && !friend;
+
+  const tone = getBalanceDirectionTone(balance);
+
+  const filteredTransactions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesFilter = (amount: number, synced: boolean) => {
+      if (activeFilter === 'you-paid') return amount > 0;
+      if (activeFilter === 'they-paid') return amount < 0;
+      if (activeFilter === 'pending') return !synced;
+      return true;
+    };
+
+    return transactions.filter((transaction) => {
+      const filterMatch = matchesFilter(transaction.amount, transaction.synced);
+      if (!filterMatch) return false;
+      if (!query) return true;
+
+      return (
+        transaction.title.toLowerCase().includes(query) ||
+        transaction.note?.toLowerCase().includes(query)
+      );
+    });
+  }, [activeFilter, searchQuery, transactions]);
+
+  const handleNewTransaction = () => {
+    router.push({ pathname: '/(drawer)/transaction/new', params: { friendId: id } });
+  };
+
+  if (isLoading) {
+    return (
+      <ScreenContainer>
+        <View style={styles.loadingCard} />
+        <View style={styles.loadingBalance} />
+        <View style={styles.loadingRow} />
+        <View style={styles.loadingRow} />
+        <View style={styles.loadingRow} />
+      </ScreenContainer>
+    );
+  }
+
+  if (!friend) {
     return (
       <EmptySection
         title={'Friend Not Found'}
@@ -44,8 +113,11 @@ export default function FriendDetails()
   return (
     <ScreenContainer>
       <View style={styles.titleRow}>
-
-        <Header openDrawer={() => router.push('/(drawer)/(tabs)/friends')} title="Friend Details" isGoBack={true} />
+        <Header
+          openDrawer={() => router.push('/(drawer)/(tabs)/friends')}
+          title={friend.name}
+          isGoBack={true}
+        />
 
         <View style={styles.userActions}>
           <Actions
@@ -62,9 +134,19 @@ export default function FriendDetails()
                 onPress: handlePinToggle,
               },
               {
+                icon: <Copy size={18} color={Colors.text} />,
+                label: 'Copy Balance',
+                onPress: handleCopyBalance,
+              },
+              {
                 icon: <Pencil size={18} color={Colors.text} />,
                 label: 'Edit Friend',
                 onPress: handleEditFriend,
+              },
+              {
+                icon: <Filter size={18} color={Colors.text} />,
+                label: 'Export',
+                onPress: () => toastInfo('Export is coming soon'),
               },
               {
                 icon: <Trash2 size={18} color={Colors.error} />,
@@ -77,8 +159,8 @@ export default function FriendDetails()
         </View>
       </View>
 
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryHeader}>
           <View style={styles.avatarPlaceholder}>
             <Text style={styles.avatarText}>{friend.name.charAt(0)}</Text>
           </View>
@@ -92,45 +174,131 @@ export default function FriendDetails()
         <View style={styles.nameContainer}>
           <View style={styles.nameRow}>
             <Text style={styles.name}>{friend.name}</Text>
-            {friend.pinned && (
-              <View style={styles.pinIndicator}>
-                <Pin size={16} color={Colors.primary} fill={Colors.primary} />
-                <Text style={styles.pinText}>Pinned</Text>
-              </View>
-            )}
+            <View style={styles.statusChip}>
+              <Text style={styles.statusChipText}>{friend.synced ? 'Synced' : 'Active'}</Text>
+            </View>
           </View>
-          {friend.bio ? <Text style={styles.bio}>{friend.bio}</Text> : null}
+          {!!friend.bio && <Text style={styles.bio}>{friend.bio}</Text>}
+        </View>
+      </View>
+
+      <View style={styles.balanceCard}>
+        <View style={styles.balanceTopRow}>
+          <Text style={styles.balanceLabel}>Balance</Text>
+          {pendingCount > 0 ? (
+            <View style={styles.pendingBadge}>
+              <Text style={styles.pendingBadgeText}>Pending sync</Text>
+            </View>
+          ) : null}
         </View>
 
-        <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={[styles.balance, balance < 0 ? styles.negative : styles.positive]}>
-            {getBalanceText(balance, friend.currency || '$')}
-          </Text>
-          <Text style={styles.balanceStatus}>{getBalanceStatus(balance)}</Text>
+        <View style={styles.balanceMainRow}>
+          <View>
+            <Text
+              style={[
+                styles.balance,
+                tone === 'positive'
+                  ? styles.positive
+                  : tone === 'negative'
+                    ? styles.negative
+                    : styles.neutral,
+              ]}>
+              {formatAbsoluteCurrency(balance, friend.currency || '$')}
+            </Text>
+          </View>
+          <Pressable style={styles.copyBalanceButton} onPress={handleCopyBalance}>
+            <Copy size={16} color={Colors.text} />
+            <Text style={styles.copyBalanceButtonText}>Copy</Text>
+          </Pressable>
         </View>
+        <Text style={styles.balanceStatus}>{getBalanceDirectionText(balance, friend.name)}</Text>
+        <View style={styles.breakdownRow}>
+          <Text style={styles.breakdownLabel}>You owe:</Text>
+          <Text style={styles.breakdownValue}>
+            {formatAbsoluteCurrency(breakdown.youOwe, friend.currency || '$')}
+          </Text>
+        </View>
+        <View style={styles.breakdownRow}>
+          <Text style={styles.breakdownLabel}>Owed to you:</Text>
+          <Text style={styles.breakdownValue}>
+            {formatAbsoluteCurrency(breakdown.owedToYou, friend.currency || '$')}
+          </Text>
+        </View>
+        <Text style={styles.lastActivity}>
+          Last activity:{' '}
+          {lastActivity ? new Date(lastActivity).toLocaleDateString() : 'No activity yet'}
+        </Text>
+      </View>
+
+      <View style={styles.primaryActionsRow}>
+        <Pressable style={styles.primaryAction} onPress={handleNewTransaction}>
+          <Text style={styles.primaryActionText}>Add transaction</Text>
+        </Pressable>
       </View>
 
       <View style={styles.historyHeader}>
-        <Text style={styles.historyTitle}>History</Text>
-        <Button
-          title="+ Add Record"
-          variant="secondary"
-          onPress={() => router.push({ pathname: '/(drawer)/transaction/new', params: { friendId: id } })}
+        <Text style={styles.historyTitle}>Transactions</Text>
+        <View style={styles.historyActions}>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => setSearchVisible((value) => !value)}>
+            <Search size={18} color={Colors.text} />
+          </Pressable>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => toastInfo('Use tabs below to filter transactions')}>
+            <Filter size={18} color={Colors.text} />
+          </Pressable>
+        </View>
+      </View>
+
+      {searchVisible ? (
+        <TextInput
+          placeholder="Search transactions"
+          placeholderTextColor={Colors.textSecondary}
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
+      ) : null}
+
+      <View style={styles.tabsRow}>
+        {TransactionsTaps.map((tab) => {
+          const selected = activeFilter === tab.key;
+          return (
+            <Pressable
+              key={tab.key}
+              style={[styles.tabItem, selected && styles.tabItemActive]}
+              onPress={() => setActiveFilter(tab.key as TransactionsFilter)}>
+              <Text style={[styles.tabText, selected && styles.tabTextActive]}>{tab.label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <View style={[styles.list, { paddingBottom: insets.bottom + Spacing.md }]}>
-        {transactions.length === 0 ? (
-          <Text style={styles.emptyText}>No transaction history found.</Text>
+        {filteredTransactions.length === 0 ? (
+          <View style={styles.emptyTransactionsState}>
+            <Text style={styles.emptyTitle}>No transactions yet</Text>
+            <Text style={styles.emptyText}>Add a transaction to start tracking this balance.</Text>
+            <View style={styles.emptyCta}>
+              <Button title="Add transaction" onPress={handleNewTransaction} />
+            </View>
+          </View>
         ) : (
-          transactions.map((item) => (
+          filteredTransactions.map((item) => (
             <TransactionItem
               key={item.id}
               transaction={item}
               currency={friend.currency || '$'}
               onEdit={handleEditTransaction}
               onDelete={handleDeleteTransaction}
+              onCopyAmount={() =>
+                void handleCopyAmount(item.amount, friend.currency || '$', {
+                  successMessage: 'Transaction amount copied to clipboard',
+                  errorMessage: 'Failed to copy amount',
+                })
+              }
             />
           ))
         )}
@@ -143,129 +311,180 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  summaryCard: {
+    backgroundColor: Colors.card,
+    borderRadius: Spacing.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  header: {
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-  },
-  avatarContainer: {
+  summaryHeader: {
     position: 'relative',
-    marginBottom: Spacing.lg,
   },
   avatarPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   avatarText: {
-    fontSize: 48,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#000',
   },
   pinBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -6,
+    right: -6,
     backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 6,
-    borderWidth: 2,
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 1,
     borderColor: Colors.primary,
   },
   nameContainer: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-    width: '100%',
+    marginLeft: Spacing.md,
+    flex: 1,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.xs,
   },
   name: {
     color: Colors.text,
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
   },
-  pinIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  statusChip: {
     backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: Spacing.borderRadius.round,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
-  pinText: {
-    color: Colors.primary,
-    fontSize: 12,
+  statusChipText: {
+    color: Colors.textSecondary,
+    fontSize: 11,
     fontWeight: '600',
   },
   bio: {
     color: Colors.textSecondary,
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 13,
     marginTop: Spacing.xs,
-    paddingHorizontal: Spacing.lg,
   },
   userActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  iconButton: {
-    padding: Spacing.sm,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
+    marginTop: Spacing.sm,
   },
   balanceCard: {
     backgroundColor: Colors.card,
-    padding: Spacing.xl,
+    padding: Spacing.md,
     borderRadius: Spacing.borderRadius.lg,
-    width: '100%',
-    alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  balanceTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  pendingBadge: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.primary,
+    borderWidth: 1,
+    borderRadius: Spacing.borderRadius.round,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  pendingBadgeText: {
+    color: Colors.primary,
+    fontSize: 11,
+    fontWeight: '600',
   },
   balanceLabel: {
     color: Colors.textSecondary,
-    fontSize: 13,
+    fontSize: 12,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     fontWeight: '600',
-    marginBottom: Spacing.xs,
   },
   balance: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    marginVertical: Spacing.xs,
+    fontSize: 36,
+    fontWeight: '800',
+    marginBottom: Spacing.xs,
+  },
+  balanceMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  copyBalanceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  copyBalanceButtonText: {
+    color: Colors.text,
+    fontSize: 12,
+    fontWeight: '600',
   },
   balanceStatus: {
     color: Colors.textSecondary,
-    fontSize: 14,
-    marginTop: Spacing.xs,
+    fontSize: 15,
+    marginBottom: Spacing.md,
     fontWeight: '500',
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  breakdownLabel: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+  },
+  breakdownValue: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  lastActivity: {
+    marginTop: Spacing.xs,
+    color: Colors.textSecondary,
+    fontSize: 12,
   },
   positive: {
     color: Colors.success,
@@ -273,41 +492,147 @@ const styles = StyleSheet.create({
   negative: {
     color: Colors.error,
   },
+  neutral: {
+    color: Colors.text,
+  },
+  primaryActionsRow: {
+    marginTop: Spacing.md,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  primaryAction: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: Spacing.borderRadius.lg,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryActionText: {
+    color: Colors.background,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  secondaryAction: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: Spacing.borderRadius.lg,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryActionText: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: '600',
+  },
   historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.md,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   historyTitle: {
     color: Colors.text,
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '700',
   },
+  historyActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  headerIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: Spacing.borderRadius.round,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchInput: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderWidth: 1,
+    borderRadius: Spacing.borderRadius.md,
+    minHeight: 44,
+    color: Colors.text,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderWidth: 1,
+    borderRadius: Spacing.borderRadius.lg,
+    padding: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  tabItem: {
+    flex: 1,
+    minHeight: 36,
+    borderRadius: Spacing.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabItemActive: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  tabTextActive: {
+    color: Colors.background,
+  },
   list: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
+  },
+  emptyTransactionsState: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.lg,
+    backgroundColor: Colors.card,
+    padding: Spacing.lg,
+  },
+  emptyTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
   },
   emptyText: {
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginTop: Spacing.xl,
-    fontStyle: 'italic',
+    fontSize: 13,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
+  emptyCta: {
+    width: '100%',
+    marginTop: Spacing.md,
   },
-  errorText: {
-    color: Colors.error,
-    fontSize: 18,
-    marginBottom: Spacing.lg,
+  loadingCard: {
+    height: 88,
+    borderRadius: Spacing.borderRadius.lg,
+    backgroundColor: Colors.surface,
+    marginBottom: Spacing.md,
   },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
+  loadingBalance: {
+    height: 220,
+    borderRadius: Spacing.borderRadius.lg,
+    backgroundColor: Colors.surface,
+    marginBottom: Spacing.md,
+  },
+  loadingRow: {
+    height: 72,
+    borderRadius: Spacing.borderRadius.md,
+    backgroundColor: Colors.surface,
+    marginBottom: Spacing.sm,
   },
 });

@@ -1,3 +1,4 @@
+import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
@@ -5,19 +6,27 @@ import { calculateLatestTransactions, getBalance } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
-import { useRouter } from 'expo-router';
+import { HomeBudgetPreview, HomeSettlePerson, HomeSummaryMetrics } from '@/types/common';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from './useNavigation';
 
-export const useHome = () => {
+export const useHome = (summaryCurrency: string) => {
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
-  const router = useRouter();
+  const { handleBudgetResetPeriod } = useBudgetPeriod();
+
+  const {
+    navigateToBudgetEdit,
+    navigateToTransactionEdit,
+    navigateToCreateBudget,
+    navigateToCreateFriend,
+    navigateToCreateTransaction,
+  } = useNavigation();
 
   const allFriends = useFriendsStore(
     useShallow((state) => state.friends.filter((f) => !f.deletedAt)),
@@ -35,6 +44,11 @@ export const useHome = () => {
 
   const allTransactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
+  );
+
+  const activeFriends = useMemo(
+    () => allFriends.filter((friend) => !friend.deletedAt),
+    [allFriends],
   );
 
   const latestTransactions = useMemo(
@@ -60,6 +74,10 @@ export const useHome = () => {
   );
   const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
     useBudgetStore();
+  const activeBudgets = useMemo(
+    () => allBudgets.filter((budget) => !budget.deletedAt && !budget.archivedAt),
+    [allBudgets],
+  );
 
   const latestBudgets = useMemo(
     () => [...allBudgets].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5),
@@ -75,6 +93,80 @@ export const useHome = () => {
     () => (budgetId: string) => getRemainingBudget(budgetId),
     [getRemainingBudget],
   );
+
+  const summary = useMemo<HomeSummaryMetrics>(() => {
+    const transactionsInCurrency = allTransactions.filter((transaction) => {
+      const friend = activeFriends.find((item) => item.id === transaction.friendId);
+      return (friend?.currency || '$') === summaryCurrency;
+    });
+
+    const youOwe = transactionsInCurrency
+      .filter((transaction) => transaction.amount < 0)
+      .reduce((total, transaction) => total + Math.abs(transaction.amount), 0);
+
+    const owedToYou = transactionsInCurrency
+      .filter((transaction) => transaction.amount > 0)
+      .reduce((total, transaction) => total + transaction.amount, 0);
+
+    const netBalance = owedToYou - youOwe;
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const weekDelta = transactionsInCurrency
+      .filter((transaction) => transaction.date >= sevenDaysAgo)
+      .reduce((total, transaction) => total + transaction.amount, 0);
+
+    const trend = weekDelta > 0 ? 'up' : weekDelta < 0 ? 'down' : 'flat';
+    const trendText =
+      trend === 'up' ? 'Up this week' : trend === 'down' ? 'Down this week' : 'Stable';
+
+    return {
+      netBalance,
+      youOwe,
+      owedToYou,
+      trend,
+      trendText,
+    };
+  }, [activeFriends, allTransactions, summaryCurrency]);
+
+  const settleUpPeople = useMemo<HomeSettlePerson[]>(() => {
+    return activeFriends
+      .map((friend) => {
+        const balance = getBalance(friend.id, allTransactions);
+        return { friend, balance };
+      })
+      .filter((item) => item.balance !== 0)
+      .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+      .slice(0, 3);
+  }, [activeFriends, allTransactions]);
+
+  const recentTransactions = useMemo(() => {
+    const friendsById = new Map(activeFriends.map((friend) => [friend.id, friend]));
+    return latestTransactions.slice(0, 5).map((transaction) => ({
+      transaction,
+      friend: friendsById.get(transaction.friendId),
+    }));
+  }, [activeFriends, latestTransactions]);
+
+  const budgetsOverview = useMemo<HomeBudgetPreview[]>(() => {
+    return activeBudgets.slice(0, 5).map((budget) => {
+      const spent = getTotalSpent(budget.id);
+      const progressRatio = budget.totalBudget > 0 ? spent / budget.totalBudget : 0;
+      const progress = Math.max(0, Math.min(1, progressRatio));
+
+      let warningLabel: string | null = null;
+      if (progressRatio >= 1) warningLabel = 'Over limit';
+      else if (progressRatio >= 0.8) warningLabel = 'Near limit';
+
+      return {
+        budget,
+        spent,
+        progress,
+        warningLabel,
+      };
+    });
+  }, [activeBudgets, getTotalSpent]);
+
+  const isFreshState =
+    activeFriends.length === 0 && allTransactions.length === 0 && activeBudgets.length === 0;
 
   const handleBudgetPinToggle = (budgetId: string) => {
     const budget = allBudgets.find((b) => b.id === budgetId);
@@ -139,10 +231,6 @@ export const useHome = () => {
     );
   };
 
-  const handleTransactionEdit = (id: string) => {
-    router.push(`/(drawer)/transaction/${id}/edit`);
-  };
-
   const handleTransactionDelete = (id: string) => {
     const transaction = useTransactionsStore.getState().transactions.find((t) => t.id === id);
     if (!transaction) return;
@@ -166,19 +254,45 @@ export const useHome = () => {
     );
   };
 
+  const handleAddTransactionPress = () => {
+    if (allFriends.length > 0) {
+      navigateToCreateTransaction();
+      return;
+    }
+
+    showConfirm(
+      'Add a friend first',
+      'You need at least one friend before adding a transaction.',
+      () => navigateToCreateFriend(),
+      { confirmText: 'Add Friend', cancelText: 'Later' },
+    );
+  };
+
   return {
-    latestTransactions,
-    getFriendBalance,
-    latestFriends,
+    allFriends: activeFriends,
+    allTransactions,
+    allBudgets: activeBudgets,
+    summary,
+    settleUpPeople,
+    recentTransactions,
+    budgetsOverview,
+    isFreshState,
+    handleFriendEdit,
+    handleFriendDelete,
+    navigateToTransactionEdit,
+    handleTransactionDelete,
+    handleBudgetDelete,
+    handleBudgetPinToggle,
+    navigateToBudgetEdit,
+    handleBudgetResetPeriod,
     handlePinToggle,
+    latestFriends,
+    getFriendBalance,
     latestBudgets,
     getBudgetTotalSpent,
     getBudgetRemaining,
-    handleBudgetPinToggle,
-    handleBudgetDelete,
-    handleFriendEdit,
-    handleFriendDelete,
-    handleTransactionEdit,
-    handleTransactionDelete,
+    navigateToCreateBudget,
+    navigateToCreateFriend,
+    handleAddTransactionPress,
   };
 };

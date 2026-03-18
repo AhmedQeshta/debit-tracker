@@ -16,6 +16,10 @@ export const useNavigation = () => {
     router.replace('/(drawer)/(tabs)/budget');
   };
 
+  const navigateToCreateBudget = (): void => {
+    router.push('/(drawer)/budget/new');
+  };
+
   // Friend navigation methods
   const navigateToFriend = (id: string): void => {
     router.push(`/(drawer)/friend/${id}`);
@@ -25,9 +29,27 @@ export const useNavigation = () => {
     router.push(`/(drawer)/friend/${id}/edit`);
   };
 
+  const navigateToCreateFriend = (): void => {
+    router.push('/(drawer)/friend/new');
+  };
+
+  // Transaction
+  const navigateToTransactionEdit = (id: string): void => {
+    router.push(`/(drawer)/transaction/${id}/edit`);
+  };
+
+  const navigateToCreateTransaction = (): void => {
+    router.push('/(drawer)/transaction/new');
+  };
+
   // Common navigation methods
   const navigateBack = (): void => {
     router.back();
+  };
+
+  // Budget navigation methods
+  const navigateToHome = (): void => {
+    router.push(`/`);
   };
 
   return {
@@ -35,10 +57,15 @@ export const useNavigation = () => {
     navigateToBudget,
     navigateToBudgetEdit,
     navigateToBudgetList,
+    navigateToCreateBudget,
     // Friend navigation
     navigateToFriend,
     navigateToFriendEdit,
+    navigateToCreateFriend,
+    navigateToTransactionEdit,
+    navigateToCreateTransaction,
     // Common navigation
     navigateBack,
+    navigateToHome,
   };
 };

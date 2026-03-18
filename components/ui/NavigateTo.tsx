@@ -4,10 +4,20 @@ import { useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
-export default function NavigateTo({ navigatePath }: { navigatePath: string }) {
+export default function NavigateTo({
+  navigatePath,
+  onPress,
+}: {
+  navigatePath: string;
+  onPress?: () => void;
+}) {
   const router = useRouter();
 
   const handleNavigate = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
     router.push(navigatePath as any);
   };
 

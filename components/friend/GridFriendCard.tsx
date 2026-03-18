@@ -1,17 +1,37 @@
-import { GridFriendCardProps } from '@/types/friend';
-import { View, Text, StyleSheet } from 'react-native';
-import { Actions } from '../ui/Actions';
-import { useState } from 'react';
+import { useNavigation } from '@/hooks/useNavigation';
 import { Colors } from '@/theme/colors';
-import { Pin } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
+import { GridFriendCardProps } from '@/types/friend';
+import { Pin } from 'lucide-react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Actions } from '../ui/Actions';
 
-export const GridFriendCard = ({ friend, balance, menuItems }: GridFriendCardProps) => {
+export const GridFriendCard = ({ row, menuItems }: GridFriendCardProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
+  const { navigateToFriend } = useNavigation();
+
+  const initials = row.friend.name
+    .split(' ')
+    .map((part) => part.charAt(0))
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  const toneStyle =
+    row.status === 'owes-you'
+      ? styles.positive
+      : row.status === 'you-owe'
+        ? styles.negative
+        : styles.neutral;
 
   return (
     <View style={styles.gridItem}>
-      <View style={styles.gridCard}>
+      <Pressable
+        style={styles.gridCard}
+        onPress={() => navigateToFriend(row.friend.id)}
+        accessibilityRole="button"
+        accessibilityLabel={`${row.friend.name}, ${row.directionLabel} ${row.amountText}`}>
         <View style={styles.gridCardHeader}>
           <View style={styles.gridActions}>
             <Actions
@@ -23,17 +43,19 @@ export const GridFriendCard = ({ friend, balance, menuItems }: GridFriendCardPro
         </View>
         <View style={styles.gridAvatarContainer}>
           <View style={styles.gridAvatar}>
-            <Text style={styles.gridAvatarText}>{friend.name.charAt(0)}</Text>
+            <Text style={styles.gridAvatarText}>{initials}</Text>
           </View>
-          {friend.pinned && (
+          {row.friend.pinned && (
             <View style={styles.gridPinIndicator}>
               <Pin size={12} color={Colors.primary} fill={Colors.primary} />
             </View>
           )}
         </View>
         <View style={styles.gridNameRow}>
-          <Text style={styles.gridName}>{friend.name}</Text>
-          {friend.pinned && (
+          <Text style={styles.gridName} numberOfLines={1}>
+            {row.friend.name}
+          </Text>
+          {row.friend.pinned && (
             <Pin
               size={14}
               color={Colors.primary}
@@ -42,11 +64,12 @@ export const GridFriendCard = ({ friend, balance, menuItems }: GridFriendCardPro
             />
           )}
         </View>
-        <Text style={[styles.gridAmount, balance < 0 ? styles.negative : styles.positive]}>
-          {friend.currency || '$'}
-          {Math.abs(balance).toFixed(2)}
+        <Text style={styles.gridSubtitle} numberOfLines={1}>
+          {row.subtitle}
         </Text>
-      </View>
+        <Text style={[styles.gridAmount, toneStyle]}>{row.amountText}</Text>
+        <Text style={[styles.gridDirection, toneStyle]}>{row.directionLabel}</Text>
+      </Pressable>
     </View>
   );
 };
@@ -58,13 +81,14 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     backgroundColor: Colors.card,
-    padding: Spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.sm,
     borderRadius: Spacing.borderRadius.lg,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
     position: 'relative',
-    minHeight: 160,
+    minHeight: 182,
   },
   gridCardHeader: {
     width: '100%',
@@ -89,7 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gridAvatarText: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '700',
     color: '#000',
   },
@@ -109,20 +133,33 @@ const styles = StyleSheet.create({
   },
   gridName: {
     color: Colors.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    marginBottom: Spacing.xs,
     textAlign: 'center',
+    maxWidth: '88%',
+  },
+  gridSubtitle: {
+    color: Colors.textSecondary,
+    fontSize: 11,
+    marginBottom: Spacing.xs,
   },
   gridAmount: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
+  },
+  gridDirection: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '600',
   },
   negative: {
     color: Colors.error,
   },
   positive: {
     color: Colors.success,
+  },
+  neutral: {
+    color: Colors.text,
   },
   gridPinIcon: {
     marginLeft: Spacing.xs,

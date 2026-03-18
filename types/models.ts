@@ -55,6 +55,7 @@ export interface Budget {
   totalBudget: number;
   items: BudgetItem[];
   pinned: boolean;
+  archivedAt?: number;
   createdAt: number;
   updatedAt?: number;
   synced?: boolean;
