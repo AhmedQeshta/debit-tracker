@@ -7,7 +7,6 @@ import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { HomeBudgetPreview, HomeSettlePerson, HomeSummaryMetrics } from '@/types/common';
-import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from './useNavigation';
@@ -21,7 +20,13 @@ export const useHome = (summaryCurrency: string) => {
   const { syncNow } = useCloudSync();
   const { handleBudgetResetPeriod } = useBudgetPeriod();
 
-  const router = useRouter();
+  const {
+    navigateToBudgetEdit,
+    navigateToTransactionEdit,
+    navigateToCreateBudget,
+    navigateToCreateFriend,
+    navigateToCreateTransaction,
+  } = useNavigation();
 
   const allFriends = useFriendsStore(
     useShallow((state) => state.friends.filter((f) => !f.deletedAt)),
@@ -190,10 +195,6 @@ export const useHome = (summaryCurrency: string) => {
     );
   };
 
-  const handleBudgetEdit = (budgetId: string) => {
-    router.push(`/(drawer)/budget/${budgetId}/edit`);
-  };
-
   const handleFriendEdit = (friendId: string) => {
     navigateToFriendEdit(friendId);
   };
@@ -230,10 +231,6 @@ export const useHome = (summaryCurrency: string) => {
     );
   };
 
-  const handleTransactionEdit = (id: string) => {
-    router.push(`/(drawer)/transaction/${id}/edit`);
-  };
-
   const handleTransactionDelete = (id: string) => {
     const transaction = useTransactionsStore.getState().transactions.find((t) => t.id === id);
     if (!transaction) return;
@@ -257,24 +254,16 @@ export const useHome = (summaryCurrency: string) => {
     );
   };
 
-  const handleAddFriend = () => {
-    router.push('/(drawer)/friend/new');
-  };
-
-  const handleCreateBudget = () => {
-    router.push('/(drawer)/budget/new');
-  };
-
   const handleAddTransactionPress = () => {
     if (allFriends.length > 0) {
-      router.push('/(drawer)/transaction/new');
+      navigateToCreateTransaction();
       return;
     }
 
     showConfirm(
       'Add a friend first',
       'You need at least one friend before adding a transaction.',
-      () => handleAddFriend(),
+      () => navigateToCreateFriend(),
       { confirmText: 'Add Friend', cancelText: 'Later' },
     );
   };
@@ -290,11 +279,11 @@ export const useHome = (summaryCurrency: string) => {
     isFreshState,
     handleFriendEdit,
     handleFriendDelete,
-    handleTransactionEdit,
+    navigateToTransactionEdit,
     handleTransactionDelete,
     handleBudgetDelete,
     handleBudgetPinToggle,
-    handleBudgetEdit,
+    navigateToBudgetEdit,
     handleBudgetResetPeriod,
     handlePinToggle,
     latestFriends,
@@ -302,8 +291,8 @@ export const useHome = (summaryCurrency: string) => {
     latestBudgets,
     getBudgetTotalSpent,
     getBudgetRemaining,
-    handleAddFriend,
-    handleCreateBudget,
+    navigateToCreateBudget,
+    navigateToCreateFriend,
     handleAddTransactionPress,
   };
 };

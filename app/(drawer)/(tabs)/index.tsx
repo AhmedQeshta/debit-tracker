@@ -28,14 +28,14 @@ export default function Home() {
     recentTransactions,
     budgetsOverview,
     isFreshState,
-    handleTransactionEdit,
+    navigateToTransactionEdit,
     handleTransactionDelete,
     handleBudgetPinToggle,
     handleBudgetDelete,
-    handleBudgetEdit,
+    navigateToBudgetEdit,
     handleBudgetResetPeriod,
-    handleAddFriend,
-    handleCreateBudget,
+    navigateToCreateBudget,
+    navigateToCreateFriend,
     handleAddTransactionPress,
   } = useHome(summaryCurrency);
   const { openDrawer } = useDrawerContext();
@@ -92,15 +92,15 @@ export default function Home() {
       <HomeSectionHeader title="Quick Actions" />
       <HomeQuickActions
         onAddTransaction={handleAddTransactionPress}
-        onAddFriend={handleAddFriend}
-        onCreateBudget={handleCreateBudget}
+        onAddFriend={navigateToCreateFriend}
+        onCreateBudget={navigateToCreateBudget}
       />
 
       {isFreshState ? (
         <HomeGetStartedCard
-          onAddFriend={handleAddFriend}
+          onAddFriend={navigateToCreateFriend}
           onAddTransaction={handleAddTransactionPress}
-          onCreateBudget={handleCreateBudget}
+          onCreateBudget={navigateToCreateBudget}
         />
       ) : null}
 
@@ -114,7 +114,7 @@ export default function Home() {
           <View style={styles.compactEmptyCard}>
             <Text style={styles.compactEmptyTitle}>No balances to settle</Text>
             <Text style={styles.compactEmptyText}>Add a friend to get started.</Text>
-            <Button title="Add Friend" onPress={handleAddFriend} />
+            <Button title="Add Friend" onPress={navigateToCreateFriend} />
           </View>
         ) : (
           settleUpPeople.map((item) => {
@@ -181,7 +181,7 @@ export default function Home() {
               key={transaction.id}
               transaction={transaction}
               currency={friend?.currency || '$'}
-              onEdit={handleTransactionEdit}
+              onEdit={navigateToTransactionEdit}
               onDelete={handleTransactionDelete}
               onCopyAmount={() => handleCopyAmount(transaction.amount, friend?.currency || '$')}
             />
@@ -202,7 +202,7 @@ export default function Home() {
               description="Create your first budget to start tracking your spending"
               icon="budgets"
             />
-            <Button title="Create Budget" onPress={handleCreateBudget} />
+            <Button title="Create Budget" onPress={navigateToCreateBudget} />
           </View>
         ) : (
           budgetsOverview.map(({ budget, spent, progress, warningLabel }) => (
@@ -213,7 +213,7 @@ export default function Home() {
               progress={progress}
               warningLabel={warningLabel}
               onOpen={(id) => router.push(`/(drawer)/budget/${id}`)}
-              onEdit={handleBudgetEdit}
+              onEdit={navigateToBudgetEdit}
               onPinToggle={handleBudgetPinToggle}
               onDelete={handleBudgetDelete}
               onCopyRemaining={(remaining, currency) => handleCopyAmount(remaining, currency)}
