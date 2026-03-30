@@ -54,23 +54,35 @@ export const useDashboard = (summaryCurrency: string) => {
     [stats.friends, summaryCurrency, transactionsInRange],
   );
 
-  const youOwe = useMemo(
-    () =>
-      transactionsInSummaryCurrency
-        .filter((transaction) => transaction.amount < 0)
-        .reduce((total, transaction) => total + Math.abs(transaction.amount), 0),
-    [transactionsInSummaryCurrency],
-  );
+  const summaryStats = useMemo(() => {
+    const activeFriends = stats.friends.filter(
+      (friend) => (friend.currency || '$') === summaryCurrency,
+    );
+    const balances = activeFriends.map((friend) => getBalance(friend.id, transactionsInRange));
 
-  const owedToYou = useMemo(
-    () =>
-      transactionsInSummaryCurrency
-        .filter((transaction) => transaction.amount > 0)
-        .reduce((total, transaction) => total + transaction.amount, 0),
-    [transactionsInSummaryCurrency],
-  );
+    const youOweTotal = balances
+      .filter((value) => value < 0)
+      .reduce((total, value) => total + Math.abs(value), 0);
 
-  const netBalance = useMemo(() => owedToYou - youOwe, [owedToYou, youOwe]);
+    const owedToYouTotal = balances
+      .filter((value) => value > 0)
+      .reduce((total, value) => total + value, 0);
+
+    const settledCount = balances.filter((value) => value === 0).length;
+    const netBalanceTotal = balances.reduce((total, value) => total + value, 0);
+
+    return {
+      totalFriends: activeFriends.length,
+      youOweTotal,
+      owedToYouTotal,
+      settledCount,
+      netBalance: netBalanceTotal,
+    };
+  }, [stats.friends, summaryCurrency, transactionsInRange]);
+
+  const youOwe = summaryStats.youOweTotal;
+  const owedToYou = summaryStats.owedToYouTotal;
+  const netBalance = summaryStats.netBalance;
 
   const weekDelta = useMemo(() => {
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -181,6 +193,7 @@ export const useDashboard = (summaryCurrency: string) => {
     youOwe,
     owedToYou,
     netBalance,
+    summaryStats,
     trendText,
     selectedRange,
     setSelectedRange,

@@ -1,3 +1,4 @@
+import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
@@ -17,7 +18,6 @@ import {
 } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
 import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -35,10 +35,10 @@ export const useFriendsList = () => {
   const { pinFriend, unpinFriend, deleteFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
-  const router = useRouter();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess, toastError } = useToast();
   const { syncNow, isOnline } = useCloudSync();
+  const { handleSettleUp } = useSettle();
   const { getToken } = useAuth();
 
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
@@ -112,13 +112,6 @@ export const useFriendsList = () => {
       netBalance,
     };
   }, [friends, transactions, summaryCurrency]);
-
-  const openAddTransaction = (friendId: string, settle = false): void => {
-    router.push({
-      pathname: '/(drawer)/transaction/new',
-      params: settle ? { friendId, settle: '1' } : { friendId },
-    });
-  };
 
   const handlePinToggle = (friendId: string): void => {
     const friend = friendRows.find((f) => f.friend.id === friendId)?.friend;
@@ -250,7 +243,7 @@ export const useFriendsList = () => {
     handleFriendDelete,
     getFriendBalance,
     handleCopyAmount,
-    handleSettle: (friendId: string) => openAddTransaction(friendId, true),
+    handleSettle: (friendId: string) => handleSettleUp(friendId),
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,
     summaryCurrency,

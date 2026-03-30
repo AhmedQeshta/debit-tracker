@@ -38,6 +38,32 @@ export const useSyncStore = create<ISyncState>()(
           queue: state.queue.filter((item) => item.id !== id),
         })),
 
+      clearQueueForFriend: (friendId: string, transactionIds?: string[]) =>
+        set((state) => {
+          const transactionIdSet = new Set(transactionIds || []);
+          return {
+            queue: state.queue.filter((item) => {
+              if (item.type === 'settle_friend' && item.payload?.friendId === friendId) {
+                return false;
+              }
+
+              if (item.type !== 'transaction') {
+                return true;
+              }
+
+              if (item.payload?.friendId === friendId) {
+                return false;
+              }
+
+              if (item.payload?.id && transactionIdSet.has(item.payload.id)) {
+                return false;
+              }
+
+              return true;
+            }),
+          };
+        }),
+
       setSyncing: (status: boolean) => set({ isSyncing: status }),
 
       setIsSigningOut: (status: boolean) => set({ isSigningOut: status }),

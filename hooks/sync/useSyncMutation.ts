@@ -1,8 +1,8 @@
-import { useSyncStore } from '@/store/syncStore';
 import { syncService } from '@/services/syncService';
+import { useSyncStore } from '@/store/syncStore';
+import { SyncQueueItem } from '@/types/models';
 import { useAuth } from '@clerk/clerk-expo';
 import NetInfo from '@react-native-community/netinfo';
-import { SyncQueueItem } from '@/types/models';
 
 export const useSyncMutation = () => {
   const { syncEnabled, addToQueue } = useSyncStore();
@@ -33,5 +33,29 @@ export const useSyncMutation = () => {
     }
   };
 
-  return { mutate };
+  const mutateSettleFriend = async (friendId: string) => {
+    if (!syncEnabled) return;
+
+    const createdAt = Date.now();
+    const queueId = `settle_${friendId}_${createdAt}`;
+    addToQueue({
+      id: queueId,
+      type: 'settle_friend',
+      action: 'settle',
+      payload: { friendId, createdAt },
+    });
+
+    const state = await NetInfo.fetch();
+    const isOnline = !!state.isConnected;
+
+    if (isOnline && isSignedIn && userId) {
+      try {
+        await syncService.pushChanges(getToken, userId);
+      } catch (e) {
+        console.error('[Sync] Immediate settle sync failed, item remains in queue:', e);
+      }
+    }
+  };
+
+  return { mutate, mutateSettleFriend };
 };

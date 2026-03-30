@@ -37,7 +37,7 @@ export const syncService = {
       return;
 
     // Get cloudUserId from store (UUID for owner_id FK)
-    const { cloudUserId } = useSyncStore.getState();
+    const { cloudUserId, queue } = useSyncStore.getState();
 
     if (!cloudUserId) return;
 
@@ -65,8 +65,11 @@ export const syncService = {
       deletedBudgets.length +
       deletedFriends.length;
 
-    // If no dirty items AND no deletions, nothing to sync
-    if (totalDirty === 0 && totalDeleted === 0) {
+    const settleQueueItems = queue.filter((item) => item.type === 'settle_friend');
+    const totalQueuedSettle = settleQueueItems.length;
+
+    // If no dirty items, no deletions, and no settle intents, nothing to sync
+    if (totalDirty === 0 && totalDeleted === 0 && totalQueuedSettle === 0) {
       return;
     }
 
@@ -86,6 +89,38 @@ export const syncService = {
           return { success: false, error: result.error, count: 0 };
         }
         return { success: true, count: data.length };
+      } catch (e: any) {
+        if (isJwtExpiredError(e)) {
+          useSyncStore.getState().setSyncStatus('needs_login');
+          throw e;
+        }
+        return { success: false, error: e, count: 0 };
+      }
+    };
+
+    const executeDelete = async (table: string, ids: string[]) => {
+      if (ids.length === 0) return { success: true, count: 0 };
+      try {
+        // Delete in batches to avoid query size limits
+        const batchSize = 100;
+        let deletedCount = 0;
+        for (let i = 0; i < ids.length; i += batchSize) {
+          const batch = ids.slice(i, i + batchSize);
+          const result = await retryOnceOnJwtExpired(
+            async () =>
+              await supabase.from(table).delete().eq('owner_id', cloudUserId).in('id', batch),
+            getToken,
+          );
+          if (result.error) {
+            if (isJwtExpiredError(result.error)) {
+              useSyncStore.getState().setSyncStatus('needs_login');
+              throw result.error;
+            }
+            return { success: false, error: result.error, count: deletedCount };
+          }
+          deletedCount += batch.length;
+        }
+        return { success: true, count: deletedCount };
       } catch (e: any) {
         if (isJwtExpiredError(e)) {
           useSyncStore.getState().setSyncStatus('needs_login');
@@ -150,40 +185,39 @@ export const syncService = {
         }
       }
 
-      if (totalDeleted > 0) {
-        // Helper to execute delete with retry
-        const executeDelete = async (table: string, ids: string[]) => {
-          if (ids.length === 0) return { success: true, count: 0 };
-          try {
-            // Delete in batches to avoid query size limits
-            const batchSize = 100;
-            let deletedCount = 0;
-            for (let i = 0; i < ids.length; i += batchSize) {
-              const batch = ids.slice(i, i + batchSize);
-              const result = await retryOnceOnJwtExpired(
-                async () =>
-                  await supabase.from(table).delete().eq('owner_id', cloudUserId).in('id', batch),
-                getToken,
-              );
-              if (result.error) {
-                if (isJwtExpiredError(result.error)) {
-                  useSyncStore.getState().setSyncStatus('needs_login');
-                  throw result.error;
-                }
-                return { success: false, error: result.error, count: deletedCount };
-              }
-              deletedCount += batch.length;
-            }
-            return { success: true, count: deletedCount };
-          } catch (e: any) {
-            if (isJwtExpiredError(e)) {
-              useSyncStore.getState().setSyncStatus('needs_login');
-              throw e;
-            }
-            return { success: false, error: e, count: 0 };
+      // E) Execute settle intents by deleting all transactions for each friend remotely.
+      if (settleQueueItems.length > 0) {
+        for (const queueItem of settleQueueItems) {
+          const friendId = queueItem.payload?.friendId;
+          if (!friendId) {
+            useSyncStore.getState().removeFromQueue(queueItem.id);
+            continue;
           }
-        };
 
+          const result = await retryOnceOnJwtExpired(
+            async () =>
+              await supabase
+                .from('transactions')
+                .delete()
+                .eq('owner_id', cloudUserId)
+                .eq('friend_id', friendId),
+            getToken,
+          );
+
+          if (result.error) {
+            if (isJwtExpiredError(result.error)) {
+              useSyncStore.getState().setSyncStatus('needs_login');
+              throw result.error;
+            }
+            console.error('[Sync] Failed to settle friend transactions:', result.error);
+            throw result.error;
+          }
+
+          useSyncStore.getState().removeFromQueue(queueItem.id);
+        }
+      }
+
+      if (totalDeleted > 0) {
         try {
           // 1. Delete Budget Items first (children)
           if (deletedBudgetItems.length > 0) {

@@ -165,13 +165,6 @@ export const useTransaction = () => {
     );
   };
 
-  const handleSettle = (friendId: string) => {
-    router.push({
-      pathname: '/(drawer)/transaction/new',
-      params: { friendId, settle: '1' },
-    });
-  };
-
   const handleRowPress = (id: string) => {
     router.push(`/(drawer)/transaction/${id}/edit`);
   };
@@ -219,7 +212,6 @@ export const useTransaction = () => {
     isLoading,
     handleEdit,
     handleDelete,
-    handleSettle,
     handleRowPress,
     handleRefresh,
     handleNavigateToNewTransaction,

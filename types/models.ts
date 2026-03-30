@@ -30,8 +30,8 @@ export interface Transaction {
 
 export interface SyncQueueItem {
   id: string;
-  type: 'friend' | 'transaction' | 'budget' | 'budget_item';
-  action: 'create' | 'update' | 'delete';
+  type: 'friend' | 'transaction' | 'budget' | 'budget_item' | 'settle_friend';
+  action: 'create' | 'update' | 'delete' | 'settle';
   payload: any;
 }
 

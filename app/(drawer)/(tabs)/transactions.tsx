@@ -32,7 +32,6 @@ export default function TransactionsScreen() {
     friends,
     handleEdit,
     handleDelete,
-    handleSettle,
     handleRowPress,
     handleRefresh,
     handleNavigateToNewTransaction,
@@ -148,7 +147,6 @@ export default function TransactionsScreen() {
               row={item}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onSettle={handleSettle}
               onPress={handleRowPress}
             />
           )}
