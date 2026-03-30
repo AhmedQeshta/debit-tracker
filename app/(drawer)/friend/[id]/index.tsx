@@ -40,6 +40,9 @@ export default function FriendDetails() {
     handleEditTransaction,
     handleDeleteTransaction,
     handlePinToggle,
+    handleSettleUp,
+    isSettling,
+    canSettle,
     router,
     id,
   } = useFriendDetail();
@@ -231,9 +234,18 @@ export default function FriendDetails() {
       </View>
 
       <View style={styles.primaryActionsRow}>
-        <Pressable style={styles.primaryAction} onPress={handleNewTransaction}>
-          <Text style={styles.primaryActionText}>Add transaction</Text>
-        </Pressable>
+        <View style={styles.actionColumn}>
+          <Button title="Add transaction" onPress={handleNewTransaction} />
+        </View>
+        <View style={styles.actionColumn}>
+          <Button
+            title={canSettle ? 'Settle up' : 'Settled'}
+            onPress={handleSettleUp}
+            variant="outline"
+            loading={isSettling}
+            disabled={!canSettle || isSettling}
+          />
+        </View>
       </View>
 
       <View style={styles.historyHeader}>
@@ -500,33 +512,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  primaryAction: {
+  actionColumn: {
     flex: 1,
-    minHeight: 48,
-    borderRadius: Spacing.borderRadius.lg,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryActionText: {
-    color: Colors.background,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  secondaryAction: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: Spacing.borderRadius.lg,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryActionText: {
-    color: Colors.text,
-    fontSize: 15,
-    fontWeight: '600',
   },
   historyHeader: {
     flexDirection: 'row',

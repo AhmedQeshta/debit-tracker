@@ -1,3 +1,4 @@
+import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
@@ -31,12 +32,21 @@ export const useFriendDetail = () => {
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
+  const {
+    handleSettleUp: settleFriendById,
+    isSettling: isSettlingFriend,
+    canSettle: canSettleFriend,
+  } = useSettle();
 
   const balance = useMemo(() => getBalance(friendId, transactions), [friendId, transactions]);
   const breakdown = useMemo(() => getBalanceBreakdown(transactions), [transactions]);
-  const pendingCount = useMemo(
-    () => transactions.filter((transaction) => !transaction.synced).length,
-    [transactions],
+  const pendingCount = useTransactionsStore(
+    useShallow(
+      (state) =>
+        state.transactions.filter(
+          (transaction) => transaction.friendId === friendId && !transaction.synced,
+        ).length,
+    ),
   );
   const lastActivity = useMemo(
     () => transactions.reduce((latest, transaction) => Math.max(latest, transaction.date), 0),
@@ -117,6 +127,14 @@ export const useFriendDetail = () => {
     togglePin(friend);
   };
 
+  const handleSettleUp = (): void => {
+    if (!friendId) return;
+    settleFriendById(friendId, friend?.name);
+  };
+
+  const isSettling = isSettlingFriend(friendId);
+  const canSettle = canSettleFriend(friendId);
+
   return {
     friend,
     transactions,
@@ -129,6 +147,9 @@ export const useFriendDetail = () => {
     handleEditTransaction,
     handleDeleteTransaction,
     handlePinToggle,
+    handleSettleUp,
+    isSettling,
+    canSettle,
     router,
     id: friendId,
   };

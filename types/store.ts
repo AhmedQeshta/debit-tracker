@@ -45,6 +45,7 @@ export interface ISyncState {
   pullProgress?: string; // Current step during pull: "friends", "transactions", "budgets", etc.
   addToQueue: (item: SyncQueueItem) => void;
   removeFromQueue: (id: string) => void;
+  clearQueueForFriend: (friendId: string, transactionIds?: string[]) => void;
   setSyncing: (status: boolean) => void;
   setIsSigningOut: (status: boolean) => void;
   clearQueue: () => void;
@@ -66,6 +67,7 @@ export interface ITransactionsState {
   addTransaction: (transaction: Transaction) => void;
   updateTransaction: (transaction: Transaction) => void;
   deleteTransaction: (id: string) => void;
+  settleTransactionsByFriendId: (friendId: string) => string[];
   setTransactions: (transactions: Transaction[]) => void;
   mergeTransactions: (transactions: Transaction[]) => void;
   markAsSynced: (id: string) => void;

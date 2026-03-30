@@ -1,4 +1,5 @@
 import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
+import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
@@ -19,6 +20,7 @@ export const useHome = (summaryCurrency: string) => {
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
   const { handleBudgetResetPeriod } = useBudgetPeriod();
+  const { handleSettleUp, isSettling: isSettlingFriend, canSettle: canSettleFriend } = useSettle();
 
   const {
     navigateToBudgetEdit,
@@ -294,5 +296,8 @@ export const useHome = (summaryCurrency: string) => {
     navigateToCreateBudget,
     navigateToCreateFriend,
     handleAddTransactionPress,
+    handleSettleUp,
+    isSettlingFriend,
+    canSettleFriend,
   };
 };

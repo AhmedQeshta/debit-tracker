@@ -2,7 +2,7 @@ import { Actions } from '@/components/ui/Actions';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ITransactionScreenItemProps } from '@/types/transaction';
-import { CheckCheck, Pencil, Trash2 } from 'lucide-react-native';
+import { Pencil, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -11,7 +11,6 @@ export const TransactionScreenItem = ({
   row,
   onEdit,
   onDelete,
-  onSettle,
   onPress,
 }: ITransactionScreenItemProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -24,13 +23,7 @@ export const TransactionScreenItem = ({
       onPress: () => onEdit(row.transaction.id),
     });
   }
-  if (onSettle) {
-    menuItems.push({
-      icon: <CheckCheck size={18} color={Colors.text} />,
-      label: 'Mark as settled',
-      onPress: () => onSettle(row.transaction.friendId),
-    });
-  }
+
   if (onDelete) {
     menuItems.push({
       icon: <Trash2 size={18} color={Colors.error} />,
@@ -50,14 +43,7 @@ export const TransactionScreenItem = ({
         <Pencil size={16} color={Colors.text} />
         <Text style={styles.swipeActionText}>Edit</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.swipeActionButton}
-        onPress={() => onSettle?.(row.transaction.friendId)}
-        accessibilityRole="button"
-        accessibilityLabel={`Mark ${row.title} as settled`}>
-        <CheckCheck size={16} color={Colors.text} />
-        <Text style={styles.swipeActionText}>Settle</Text>
-      </TouchableOpacity>
+
       <TouchableOpacity
         style={[styles.swipeActionButton, styles.swipeActionDelete]}
         onPress={() => onDelete?.(row.transaction.id, row.title)}

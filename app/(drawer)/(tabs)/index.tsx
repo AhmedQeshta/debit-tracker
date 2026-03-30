@@ -38,6 +38,9 @@ export default function Home() {
     navigateToCreateBudget,
     navigateToCreateFriend,
     handleAddTransactionPress,
+    handleSettleUp,
+    isSettlingFriend,
+    canSettleFriend,
   } = useHome(summaryCurrency);
   const { openDrawer } = useDrawerContext();
   const { handleCopyAmount } = useCopyAmount();
@@ -167,6 +170,8 @@ export default function Home() {
           settleUpPeople.map((item) => {
             const isYouOwe = item.balance < 0;
             const badgeText = isYouOwe ? 'You owe' : 'They owe you';
+            const isSettling = isSettlingFriend(item.friend.id);
+            const canSettle = canSettleFriend(item.friend.id);
 
             return (
               <Pressable
@@ -194,11 +199,11 @@ export default function Home() {
                     {formatAbsoluteCurrency(item.balance, item.friend.currency || '$')}
                   </Text>
                   <Button
-                    title="Settle"
+                    title={canSettle ? 'Settle up' : 'Settled'}
                     variant="outline"
-                    onPress={() =>
-                      router.push(`/(drawer)/transaction/new?friendId=${item.friend.id}`)
-                    }
+                    onPress={() => handleSettleUp(item.friend.id, item.friend.name)}
+                    loading={isSettling}
+                    disabled={!canSettle || isSettling}
                   />
                 </View>
               </Pressable>
