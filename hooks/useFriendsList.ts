@@ -18,7 +18,6 @@ import {
 } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
 import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -36,7 +35,6 @@ export const useFriendsList = () => {
   const { pinFriend, unpinFriend, deleteFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
-  const router = useRouter();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess, toastError } = useToast();
   const { syncNow, isOnline } = useCloudSync();
