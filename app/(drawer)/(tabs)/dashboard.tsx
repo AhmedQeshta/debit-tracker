@@ -17,10 +17,7 @@ export default function Dashboard() {
     friends,
     queueSize,
     isOnline,
-    youOwe,
-    owedToYou,
-    netBalance,
-    trendText,
+    summaryStats,
     selectedRange,
     setSelectedRange,
     rangeLabel,
@@ -52,6 +49,13 @@ export default function Dashboard() {
       emphasize: budgetsNearLimit > 0,
     });
   }
+
+  const netTone =
+    summaryStats.netBalance > 0
+      ? styles.positive
+      : summaryStats.netBalance < 0
+        ? styles.negative
+        : styles.neutral;
 
   return (
     <ScreenContainer>
@@ -122,37 +126,34 @@ export default function Dashboard() {
           </Pressable>
         </View>
 
-        <Text style={styles.summaryLabel}>Net balance</Text>
-        <Text style={styles.summaryValue}>
-          {formatCurrency(Math.abs(netBalance), summaryCurrency)}
-        </Text>
-        <Text style={styles.summaryDirection}>
-          {netBalance > 0
-            ? 'You are owed more overall'
-            : netBalance < 0
-              ? 'You owe more overall'
-              : 'All settled'}
-        </Text>
-
-        <View style={styles.summaryBreakdownRow}>
-          <View style={styles.summaryBreakdownItem}>
-            <Text style={styles.breakdownLabel}>You owe</Text>
-            <Text style={[styles.breakdownValue, { color: Colors.error }]}>
-              {formatCurrency(youOwe, summaryCurrency)}
+        <View style={styles.summaryStatsWrap}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Friends</Text>
+            <Text style={styles.summaryValue}>{summaryStats.totalFriends}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>You owe</Text>
+            <Text style={[styles.summaryValue, styles.negative]}>
+              {formatCurrency(summaryStats.youOweTotal, summaryCurrency)}
             </Text>
           </View>
-
-          <View style={styles.summaryBreakdownDivider} />
-
-          <View style={styles.summaryBreakdownItem}>
-            <Text style={styles.breakdownLabel}>Owed to you</Text>
-            <Text style={[styles.breakdownValue, { color: Colors.success }]}>
-              {formatCurrency(owedToYou, summaryCurrency)}
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Owed to you</Text>
+            <Text style={[styles.summaryValue, styles.positive]}>
+              {formatCurrency(summaryStats.owedToYouTotal, summaryCurrency)}
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Settled</Text>
+            <Text style={styles.summaryValue}>{summaryStats.settledCount}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Net</Text>
+            <Text style={[styles.summaryValue, netTone]}>
+              {formatCurrency(summaryStats.netBalance, summaryCurrency)}
             </Text>
           </View>
         </View>
-
-        <Text style={styles.trendLabel}>{trendText}</Text>
       </View>
 
       <View style={styles.quickInsightsRow}>
@@ -426,14 +427,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Spacing.borderRadius.lg,
-    padding: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   summaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
   },
   summaryHeaderText: {
     color: Colors.text,
@@ -458,51 +460,32 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     color: Colors.textSecondary,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
   },
   summaryValue: {
     color: Colors.text,
-    fontSize: 34,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-  summaryDirection: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    marginTop: 2,
-  },
-  summaryBreakdownRow: {
-    flexDirection: 'row',
-    marginTop: Spacing.md,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
-  },
-  summaryBreakdownItem: {
-    flex: 1,
-    padding: Spacing.sm,
-  },
-  summaryBreakdownDivider: {
-    width: 1,
-    backgroundColor: Colors.border,
-  },
-  breakdownLabel: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  breakdownValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
-  trendLabel: {
-    marginTop: Spacing.sm,
-    color: Colors.primary,
-    fontSize: 12,
-    fontWeight: '600',
+  summaryStatsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: Spacing.sm,
+  },
+  summaryItem: {
+    width: '32%',
+    gap: 2,
+  },
+  positive: {
+    color: Colors.success,
+  },
+  negative: {
+    color: Colors.error,
+  },
+  neutral: {
+    color: Colors.text,
   },
   quickInsightsRow: {
     flexDirection: 'row',

@@ -2,7 +2,6 @@ import { HomeBudgetOverviewCard } from '@/components/home/HomeBudgetOverviewCard
 import { HomeGetStartedCard } from '@/components/home/HomeGetStartedCard';
 import { HomeQuickActions } from '@/components/home/HomeQuickActions';
 import { HomeSectionHeader } from '@/components/home/HomeSectionHeader';
-import { HomeSummaryCard } from '@/components/home/HomeSummaryCard';
 import { TransactionItem } from '@/components/transaction/TransactionItem';
 import { Button } from '@/components/ui/Button';
 import { EmptySection } from '@/components/ui/EmptySection';
@@ -11,11 +10,12 @@ import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useHome } from '@/hooks/useHome';
 import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
-import { formatAbsoluteCurrency, formatCurrency, getBalanceDirectionTone } from '@/lib/utils';
+import { formatAbsoluteCurrency, formatCurrency, getBalance } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Settings } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Home() {
@@ -23,7 +23,8 @@ export default function Home() {
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
   const {
-    summary,
+    allFriends,
+    allTransactions,
     settleUpPeople,
     recentTransactions,
     budgetsOverview,
@@ -40,6 +41,38 @@ export default function Home() {
   } = useHome(summaryCurrency);
   const { openDrawer } = useDrawerContext();
   const { handleCopyAmount } = useCopyAmount();
+
+  const summaryStats = useMemo(() => {
+    const activeFriends = allFriends.filter(
+      (friend) => (friend.currency || '$') === summaryCurrency,
+    );
+    const balances = activeFriends.map((friend) => getBalance(friend.id, allTransactions));
+
+    const youOweTotal = balances
+      .filter((value) => value < 0)
+      .reduce((total, value) => total + Math.abs(value), 0);
+
+    const owedToYouTotal = balances
+      .filter((value) => value > 0)
+      .reduce((total, value) => total + value, 0);
+
+    const settledCount = balances.filter((value) => value === 0).length;
+    const netBalance = balances.reduce((total, value) => total + value, 0);
+
+    return {
+      totalFriends: activeFriends.length,
+      youOweTotal,
+      owedToYouTotal,
+      settledCount,
+      netBalance,
+    };
+  }, [allFriends, allTransactions, summaryCurrency]);
+
+  const netTone = useMemo(() => {
+    if (summaryStats.netBalance > 0) return styles.positive;
+    if (summaryStats.netBalance < 0) return styles.negative;
+    return styles.neutral;
+  }, [summaryStats.netBalance]);
 
   return (
     <ScreenContainer>
@@ -61,33 +94,47 @@ export default function Home() {
         </View>
       </View>
 
-      <View style={styles.summaryHeader}>
-        <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
-        <Pressable
-          style={styles.currencyButton}
-          onPress={handleSummaryCurrencyToggle}
-          accessibilityRole="button"
-          accessibilityLabel="Change summary currency"
-          accessibilityHint="Cycles through USD, ILS, and EUR currencies">
-          <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
-        </Pressable>
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryHeader}>
+          <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+          <Pressable
+            style={styles.currencyButton}
+            onPress={handleSummaryCurrencyToggle}
+            accessibilityRole="button"
+            accessibilityLabel="Change summary currency"
+            accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+            <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
+          </Pressable>
+        </View>
+        <View style={styles.summaryStatsWrap}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Friends</Text>
+            <Text style={styles.summaryValue}>{summaryStats.totalFriends}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>You owe</Text>
+            <Text style={[styles.summaryValue, styles.negative]}>
+              {formatCurrency(summaryStats.youOweTotal, summaryCurrency)}
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Owed to you</Text>
+            <Text style={[styles.summaryValue, styles.positive]}>
+              {formatCurrency(summaryStats.owedToYouTotal, summaryCurrency)}
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Settled</Text>
+            <Text style={styles.summaryValue}>{summaryStats.settledCount}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Net</Text>
+            <Text style={[styles.summaryValue, netTone]}>
+              {formatCurrency(summaryStats.netBalance, summaryCurrency)}
+            </Text>
+          </View>
+        </View>
       </View>
-
-      <HomeSummaryCard
-        netBalanceText={formatAbsoluteCurrency(summary.netBalance, summaryCurrency)}
-        netBalanceDirectionText={
-          summary.netBalance > 0
-            ? 'They owe you'
-            : summary.netBalance < 0
-              ? 'You owe others'
-              : 'All settled'
-        }
-        netBalanceTone={getBalanceDirectionTone(summary.netBalance)}
-        youOweText={formatCurrency(summary.youOwe, summaryCurrency)}
-        owedToYouText={formatCurrency(summary.owedToYou, summaryCurrency)}
-        trend={summary.trend}
-        trendText={summary.trendText}
-      />
 
       <HomeSectionHeader title="Quick Actions" />
       <HomeQuickActions
@@ -269,7 +316,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
   },
   summaryHeaderText: {
     color: Colors.text,
@@ -291,6 +337,45 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 12,
     fontWeight: '700',
+  },
+  summaryRow: {
+    marginBottom: Spacing.sm,
+    borderRadius: Spacing.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  summaryStatsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: Spacing.sm,
+  },
+  summaryItem: {
+    width: '32%',
+    gap: 2,
+  },
+  summaryLabel: {
+    color: Colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  summaryValue: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  positive: {
+    color: Colors.success,
+  },
+  negative: {
+    color: Colors.error,
+  },
+  neutral: {
+    color: Colors.text,
   },
   sectionBody: {
     marginTop: Spacing.xs,
