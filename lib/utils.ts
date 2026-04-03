@@ -1,7 +1,14 @@
 import { Colors } from '@/theme/colors';
 import { BudgetSortKey } from '@/types/budget';
 import { ToastMessage } from '@/types/common';
-import { Budget, Friend, Transaction } from '@/types/models';
+import {
+  Budget,
+  BudgetItem,
+  BudgetItemType,
+  BudgetMetrics,
+  Friend,
+  Transaction,
+} from '@/types/models';
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
   return [...allTransactions].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
@@ -142,6 +149,35 @@ export const sortBudgets = (budgets: Budget[]) =>
     if (!a.pinned && b.pinned) return 1;
     return b.createdAt - a.createdAt;
   });
+
+export const getBudgetItemType = (item: BudgetItem): BudgetItemType => {
+  return item.type === 'income' ? 'income' : 'expense';
+};
+
+export const calculateBudgetMetrics = (items: BudgetItem[], budgetLimit: number): BudgetMetrics => {
+  const activeItems = items.filter((item) => !item.deletedAt);
+
+  const totalSpent = activeItems
+    .filter((item) => getBudgetItemType(item) === 'expense')
+    .reduce((sum, item) => sum + Math.abs(item.amount), 0);
+
+  const totalIncome = activeItems
+    .filter((item) => getBudgetItemType(item) === 'income')
+    .reduce((sum, item) => sum + Math.abs(item.amount), 0);
+
+  const netSpent = totalSpent - totalIncome;
+  const remaining = budgetLimit - netSpent;
+  const progressRatio = budgetLimit > 0 ? Math.max(netSpent, 0) / budgetLimit : 0;
+
+  return {
+    totalSpent,
+    totalIncome,
+    netSpent,
+    remaining,
+    progressRatio,
+    isOverspent: netSpent > budgetLimit,
+  };
+};
 
 /**
  * Validation helpers

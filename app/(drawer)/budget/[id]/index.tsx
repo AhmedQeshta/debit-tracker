@@ -29,6 +29,8 @@ export default function BudgetDetail() {
     setItemTitle,
     itemAmount,
     setItemAmount,
+    itemType,
+    setItemType,
     itemTitleError,
     setItemTitleError,
     itemAmountError,
@@ -47,6 +49,8 @@ export default function BudgetDetail() {
     daysUntilReset,
     handleBudgetResetPeriod,
     handleBudgetAmountCopy,
+    syncStatus,
+    handleRetrySync,
   } = useBudgetDetail();
 
   const displayedMenuItems = useMemo(() => {
@@ -95,6 +99,11 @@ export default function BudgetDetail() {
   const avgSpendPerItem = spendingCount > 0 ? totalSpent / spendingCount : 0;
   const lastUpdatedText =
     spendingCount > 0 ? getDayLabel(sortedItems[0].createdAt) : 'No spending yet';
+  const getSignedAmountLabel = (amount: number, type?: 'expense' | 'income') => {
+    const safeAmount = Math.abs(amount);
+    const sign = type === 'income' ? '+' : '-';
+    return `${sign} ${formatCurrency(safeAmount, budget.currency)}`;
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -127,7 +136,7 @@ export default function BudgetDetail() {
         <View style={styles.overviewCard}>
           <View style={styles.overviewHeaderRow}>
             <Text style={styles.overviewMainLine}>
-              <Text style={[styles.overviewMainValue, { color: spentColor }]}>Spent </Text>
+              <Text style={[styles.overviewMainValue, { color: spentColor }]}>Net spent </Text>
               <Text style={[styles.overviewMainValue, { color: spentColor }]}>
                 {formatCurrency(totalSpent, budget.currency)}
               </Text>
@@ -232,6 +241,43 @@ export default function BudgetDetail() {
           </View>
 
           <View style={styles.quickAddRow}>
+            <View style={styles.typeToggleWrap}>
+              <TouchableOpacity
+                style={[
+                  styles.typeToggleButton,
+                  itemType === 'expense' ? styles.typeToggleButtonActive : null,
+                ]}
+                onPress={() => setItemType('expense')}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Expense minus type">
+                <Text
+                  style={[
+                    styles.typeToggleButtonText,
+                    itemType === 'expense' ? styles.typeToggleButtonTextActive : null,
+                  ]}>
+                  Expense (-)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.typeToggleButton,
+                  itemType === 'income' ? styles.typeToggleButtonActive : null,
+                ]}
+                onPress={() => setItemType('income')}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Income plus type">
+                <Text
+                  style={[
+                    styles.typeToggleButtonText,
+                    itemType === 'income' ? styles.typeToggleButtonTextActive : null,
+                  ]}>
+                  Income (+)
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TextInput
               ref={titleInputRef}
               style={[
@@ -291,15 +337,15 @@ export default function BudgetDetail() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Spending</Text>
+            <Text style={styles.sectionTitle}>Budget items</Text>
             <Text style={styles.sectionCount}>{sortedItems.length}</Text>
           </View>
 
           {sortedItems.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>No spending added yet</Text>
+              <Text style={styles.emptyTitle}>No budget items added yet</Text>
               <Text style={styles.emptyText}>
-                Track your first expense to start seeing progress.
+                Track your first expense or income to start seeing progress.
               </Text>
               <TouchableOpacity
                 style={styles.emptyCtaButton}
@@ -313,7 +359,8 @@ export default function BudgetDetail() {
           ) : (
             <View style={styles.spendingList}>
               {sortedItems.map((item) => {
-                const showSyncPill = item.synced === false;
+                const showSyncFailed = item.synced === false && syncStatus === 'error';
+                const showSyncPill = item.synced === false && !showSyncFailed;
 
                 return (
                   <Swipeable
@@ -352,13 +399,29 @@ export default function BudgetDetail() {
                       </View>
 
                       <View style={styles.rowRight}>
-                        <Text style={styles.rowAmount}>
-                          {formatCurrency(item.amount, budget.currency)}
+                        <Text
+                          style={[
+                            styles.rowAmount,
+                            item.type === 'income'
+                              ? styles.rowAmountIncome
+                              : styles.rowAmountExpense,
+                          ]}>
+                          {getSignedAmountLabel(item.amount, item.type)}
                         </Text>
                         {showSyncPill ? (
                           <View style={styles.pendingPill}>
                             <Text style={styles.pendingPillText}>Pending sync</Text>
                           </View>
+                        ) : null}
+                        {showSyncFailed ? (
+                          <TouchableOpacity
+                            style={styles.failedPill}
+                            onPress={handleRetrySync}
+                            activeOpacity={0.8}
+                            accessibilityRole="button"
+                            accessibilityLabel="Retry syncing this item">
+                            <Text style={styles.failedPillText}>Sync failed • Retry</Text>
+                          </TouchableOpacity>
                         ) : null}
                       </View>
                     </Pressable>
@@ -560,8 +623,36 @@ const styles = StyleSheet.create({
   },
   quickAddRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
     gap: Spacing.sm,
+  },
+  typeToggleWrap: {
+    width: '100%',
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.md,
+    overflow: 'hidden',
+    marginBottom: Spacing.xs,
+  },
+  typeToggleButton: {
+    flex: 1,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+  },
+  typeToggleButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  typeToggleButtonText: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  typeToggleButtonTextActive: {
+    color: Colors.background,
   },
   quickInput: {
     minHeight: 44,
@@ -666,9 +757,14 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.sm,
   },
   rowAmount: {
-    color: Colors.text,
     fontSize: 15,
     fontWeight: '700',
+  },
+  rowAmountIncome: {
+    color: Colors.success,
+  },
+  rowAmountExpense: {
+    color: Colors.text,
   },
   pendingPill: {
     marginTop: 5,
@@ -681,6 +777,18 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 10,
     fontWeight: '600',
+  },
+  failedPill: {
+    marginTop: 5,
+    backgroundColor: Colors.error + '20',
+    borderRadius: Spacing.borderRadius.round,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  failedPillText: {
+    color: Colors.error,
+    fontSize: 10,
+    fontWeight: '700',
   },
   swipeDeleteAction: {
     marginVertical: 2,

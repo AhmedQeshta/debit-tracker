@@ -159,7 +159,9 @@ export const useBudgetList = () => {
     );
 
     const usedPercent =
-      totalBudget > 0 ? Math.min(Math.round((totalSpent / totalBudget) * 100), 999) : 0;
+      totalBudget > 0
+        ? Math.max(0, Math.min(Math.round((totalSpent / totalBudget) * 100), 999))
+        : 0;
 
     return {
       totalBudget: formatTotals('budget'),

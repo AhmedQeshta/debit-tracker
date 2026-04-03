@@ -79,6 +79,11 @@ CREATE TABLE IF NOT EXISTS budgets (
     title TEXT NOT NULL,
     currency TEXT NOT NULL DEFAULT '$',
     total_budget NUMERIC NOT NULL DEFAULT 0,
+    total_spent NUMERIC NOT NULL DEFAULT 0,
+    total_income NUMERIC NOT NULL DEFAULT 0,
+    net_spent NUMERIC NOT NULL DEFAULT 0,
+    remaining NUMERIC NOT NULL DEFAULT 0,
+    is_overspent BOOLEAN NOT NULL DEFAULT FALSE,
     pinned BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -102,6 +107,7 @@ CREATE TABLE IF NOT EXISTS budget_items (
     budget_id TEXT NOT NULL REFERENCES budgets(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     amount NUMERIC NOT NULL,
+    type TEXT NOT NULL DEFAULT 'expense' CHECK (type IN ('expense', 'income')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -246,6 +252,54 @@ CREATE TRIGGER update_budget_items_updated_at
     BEFORE UPDATE ON budget_items
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+CREATE OR REPLACE FUNCTION recompute_budget_totals(p_budget_id TEXT, p_user_id TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_total_budget NUMERIC := 0;
+    v_total_spent NUMERIC := 0;
+    v_total_income NUMERIC := 0;
+    v_net_spent NUMERIC := 0;
+    v_remaining NUMERIC := 0;
+BEGIN
+    SELECT COALESCE(total_budget, 0)
+    INTO v_total_budget
+    FROM budgets
+    WHERE id = p_budget_id AND user_id = p_user_id;
+
+    IF NOT FOUND THEN
+        RETURN;
+    END IF;
+
+    SELECT
+        COALESCE(SUM(CASE WHEN COALESCE(type, 'expense') = 'expense' THEN ABS(amount) ELSE 0 END), 0),
+        COALESCE(SUM(CASE WHEN COALESCE(type, 'expense') = 'income' THEN ABS(amount) ELSE 0 END), 0)
+    INTO v_total_spent, v_total_income
+    FROM budget_items
+    WHERE budget_id = p_budget_id
+      AND user_id = p_user_id;
+
+    v_net_spent := v_total_spent - v_total_income;
+    v_remaining := v_total_budget - v_net_spent;
+
+    UPDATE budgets
+    SET
+        total_spent = v_total_spent,
+        total_income = v_total_income,
+        net_spent = v_net_spent,
+        remaining = v_remaining,
+        is_overspent = v_net_spent > v_total_budget,
+        updated_at = NOW()
+    WHERE id = p_budget_id
+      AND user_id = p_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION recompute_budget_totals(TEXT, TEXT) TO authenticated;
 
 -- =====================================================
 -- SCHEMA SUMMARY

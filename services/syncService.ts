@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { getBudgetItemType } from '@/lib/utils';
 import {
   GetTokenFunction,
   getFreshSupabaseJwt,
@@ -171,6 +172,9 @@ export const syncService = {
 
       // D) Push Budget Items (after budgets exist)
       if (dirtyBudgetItems.length > 0) {
+        const affectedBudgetIds = Array.from(
+          new Set(dirtyBudgetItems.map((item) => item.budgetId)),
+        );
         const itemsData = dirtyBudgetItems.map((bi) =>
           mapBudgetItemToDb(bi, cloudUserId, clerkUserId),
         );
@@ -179,6 +183,26 @@ export const syncService = {
           dirtyBudgetItems.forEach((item) => {
             useBudgetStore.getState().markItemAsSynced(item.budgetId, item.id);
           });
+
+          for (const budgetId of affectedBudgetIds) {
+            const rpcResult = await retryOnceOnJwtExpired(
+              async () =>
+                await supabase.rpc('recompute_budget_totals', {
+                  p_budget_id: budgetId,
+                  p_user_id: clerkUserId,
+                }),
+              getToken,
+            );
+
+            if (rpcResult.error) {
+              if (isJwtExpiredError(rpcResult.error)) {
+                useSyncStore.getState().setSyncStatus('needs_login');
+                throw rpcResult.error;
+              }
+              console.error('[Sync] Failed to recompute budget totals:', rpcResult.error);
+              throw rpcResult.error;
+            }
+          }
         } else {
           console.error(`[Sync] Failed to push budget items:`, result.error);
           throw result.error;
@@ -221,12 +245,38 @@ export const syncService = {
         try {
           // 1. Delete Budget Items first (children)
           if (deletedBudgetItems.length > 0) {
+            const affectedBudgetIds = Array.from(
+              new Set(deletedBudgetItems.map((item) => item.budgetId)),
+            );
             const itemIds = deletedBudgetItems.map((item) => item.id);
             const result = await executeDelete('budget_items', itemIds);
             if (result.success) {
               deletedBudgetItems.forEach((item) =>
                 useBudgetStore.getState().removeDeletedBudgetItem(item.budgetId, item.id),
               );
+
+              for (const budgetId of affectedBudgetIds) {
+                const rpcResult = await retryOnceOnJwtExpired(
+                  async () =>
+                    await supabase.rpc('recompute_budget_totals', {
+                      p_budget_id: budgetId,
+                      p_user_id: clerkUserId,
+                    }),
+                  getToken,
+                );
+
+                if (rpcResult.error) {
+                  if (isJwtExpiredError(rpcResult.error)) {
+                    useSyncStore.getState().setSyncStatus('needs_login');
+                    throw rpcResult.error;
+                  }
+                  console.error(
+                    '[Sync] Failed to recompute budget totals after delete:',
+                    rpcResult.error,
+                  );
+                  throw rpcResult.error;
+                }
+              }
             } else {
               console.error(`[Sync] Failed to delete budget items:`, result.error);
               // Keep in store for retry
@@ -354,6 +404,7 @@ export const syncService = {
           budgetId: item.budget_id,
           title: item.title,
           amount: Number(item.amount) || 0,
+          type: item.type === 'income' ? 'income' : 'expense',
           createdAt: safeDateToTimestamp(item.created_at),
           updatedAt: item.updated_at ? safeDateToTimestamp(item.updated_at) : undefined,
           synced: true,
@@ -362,6 +413,11 @@ export const syncService = {
         createdAt: safeDateToTimestamp(b.created_at),
         updatedAt: b.updated_at ? safeDateToTimestamp(b.updated_at) : undefined,
         synced: true,
+        totalSpent: Number(b.total_spent) || 0,
+        totalIncome: Number(b.total_income) || 0,
+        netSpent: Number(b.net_spent) || 0,
+        remaining: Number(b.remaining) || 0,
+        isOverspent: Boolean(b.is_overspent),
       }));
       useBudgetStore.getState().mergeBudgets(formattedBudgets as Budget[]);
     } else if (budgetsError) {
@@ -629,7 +685,8 @@ export const syncService = {
             .select(
               `
               id, owner_id, user_id, title, currency, total_budget, pinned, created_at, updated_at,
-              items:budget_items(id, owner_id, user_id, budget_id, title, amount, created_at, updated_at)
+              total_spent, total_income, net_spent, remaining, is_overspent,
+              items:budget_items(id, owner_id, user_id, budget_id, title, amount, type, created_at, updated_at)
             `,
             )
             .eq('owner_id', cloudUserId),
@@ -655,6 +712,7 @@ export const syncService = {
             budgetId: item.budget_id,
             title: item.title,
             amount: Number(item.amount) || 0,
+            type: item.type === 'income' ? 'income' : 'expense',
             createdAt: safeDateToTimestamp(item.created_at),
             updatedAt: item.updated_at ? safeDateToTimestamp(item.updated_at) : undefined,
             synced: true,
@@ -663,6 +721,11 @@ export const syncService = {
           createdAt: safeDateToTimestamp(b.created_at),
           updatedAt: b.updated_at ? safeDateToTimestamp(b.updated_at) : undefined,
           synced: true,
+          totalSpent: Number(b.total_spent) || 0,
+          totalIncome: Number(b.total_income) || 0,
+          netSpent: Number(b.net_spent) || 0,
+          remaining: Number(b.remaining) || 0,
+          isOverspent: Boolean(b.is_overspent),
         }));
         result.counts.budgets = result.budgets.length;
         result.counts.budgetItems = result.budgets.reduce((sum, b) => sum + b.items.length, 0);
@@ -757,7 +820,8 @@ const mapBudgetItemToDb = (bi: BudgetItem, cloudUserId: string, clerkUserId: str
   user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
   budget_id: bi.budgetId, // TEXT (FK to budgets)
   title: bi.title,
-  amount: bi.amount,
+  amount: Math.abs(bi.amount),
+  type: getBudgetItemType(bi),
   created_at: safeTimestampToISO(bi.createdAt),
   updated_at: new Date().toISOString(),
 });

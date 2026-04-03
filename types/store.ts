@@ -1,4 +1,12 @@
-import { Budget, BudgetItem, Friend, SyncQueueItem, Transaction } from '@/types/models';
+import {
+  Budget,
+  BudgetItem,
+  BudgetItemType,
+  BudgetMetrics,
+  Friend,
+  SyncQueueItem,
+  Transaction,
+} from '@/types/models';
 
 export type SyncStatus =
   | 'idle'
@@ -103,10 +111,11 @@ export interface IBudgetState {
   unpinBudget: (id: string) => void;
   setCurrency: (id: string, currency: string) => void;
   setTotalBudget: (id: string, amount: number) => void;
-  addItem: (budgetId: string, title: string, amount: number) => void;
+  addItem: (budgetId: string, title: string, amount: number, type?: BudgetItemType) => void;
   removeItem: (budgetId: string, itemId: string) => void;
   getTotalSpent: (budgetId: string) => number;
   getRemainingBudget: (budgetId: string) => number;
+  getBudgetMetrics: (budgetId: string) => BudgetMetrics;
   getBudget: (id: string) => Budget | undefined;
   getDirtyBudgets: () => Budget[];
   getDirtyBudgetItems: () => BudgetItem[];

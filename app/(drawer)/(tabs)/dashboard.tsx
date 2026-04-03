@@ -272,6 +272,7 @@ export default function Dashboard() {
 
           <View style={styles.sectionCard}>
             {budgetSnapshot.map((item) => {
+              const shownPercentUsed = Math.max(item.percentUsed, 0);
               const progress = Math.min(Math.max(item.percentUsed, 0), 100);
 
               return (
@@ -283,11 +284,11 @@ export default function Dashboard() {
                     <Text style={styles.budgetTitle} numberOfLines={1}>
                       {item.budget.title}
                     </Text>
-                    <Text style={styles.budgetUsage}>{Math.round(item.percentUsed)}% used</Text>
+                    <Text style={styles.budgetUsage}>{Math.round(shownPercentUsed)}% used</Text>
                   </View>
 
                   <Text style={styles.budgetAmountLine}>
-                    Spent {formatCurrency(item.spent, item.budget.currency)} of{' '}
+                    Net spent {formatCurrency(item.spent, item.budget.currency)} of{' '}
                     {formatCurrency(item.budget.totalBudget, item.budget.currency)}
                   </Text>
 

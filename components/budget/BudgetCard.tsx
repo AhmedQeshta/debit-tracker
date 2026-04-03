@@ -23,6 +23,7 @@ export const BudgetCard = ({
   const totalSpent = getTotalSpent(item.id);
   const remaining = getRemainingBudget(item.id);
   const percentUsed = item.totalBudget > 0 ? (totalSpent / item.totalBudget) * 100 : 0;
+  const shownPercentUsed = Math.max(0, percentUsed);
   const progress = Math.min(Math.max(percentUsed, 0), 100);
   const formatAmount = (amount: number) => formatCurrency(amount, item.currency);
   const transactionsCount = item.items.filter((entry) => !entry.deletedAt).length;
@@ -96,13 +97,13 @@ export const BudgetCard = ({
       </View>
 
       <Text style={styles.amountLine}>
-        Spent <Text style={styles.amountValue}>{formatAmount(totalSpent)}</Text> of{' '}
+        Net spent <Text style={styles.amountValue}>{formatAmount(totalSpent)}</Text> of{' '}
         <Text style={styles.amountValue}>{formatAmount(item.totalBudget)}</Text>
       </Text>
 
       <View
         style={styles.progressTrack}
-        accessibilityLabel={`Budget usage ${Math.round(percentUsed)} percent`}>
+        accessibilityLabel={`Budget usage ${Math.round(shownPercentUsed)} percent`}>
         <View
           style={[styles.progressFill, { width: `${progress}%`, backgroundColor: progressColor }]}
         />
@@ -111,7 +112,7 @@ export const BudgetCard = ({
       <View style={styles.budgetFooter}>
         <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
         <View style={styles.rightMeta}>
-          <Text style={styles.percentUsed}>{Math.round(percentUsed)}% used</Text>
+          <Text style={styles.percentUsed}>{Math.round(shownPercentUsed)}% used</Text>
           <Text style={styles.transactionsCount}>
             {transactionsCount} transaction{transactionsCount === 1 ? '' : 's'}
           </Text>
