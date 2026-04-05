@@ -1,9 +1,13 @@
-import { calculateBudgetMetrics } from '@/lib/utils';
+import {
+  calculateBudgetMetrics,
+  getTransactionBudgetItemId,
+  getTransactionBudgetItemType,
+} from '@/lib/utils';
 import { IBudgetState } from '@/types/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { Budget, BudgetItem } from '../types/models';
+import { Budget, BudgetItem, Transaction } from '../types/models';
 
 export const useBudgetStore = create<IBudgetState>()(
   persist(
@@ -245,6 +249,137 @@ export const useBudgetStore = create<IBudgetState>()(
               : b,
           ),
         }));
+      },
+      upsertItemFromTransaction: (transaction: Transaction, budgetId?: string) => {
+        const targetBudgetId = budgetId ?? transaction.budgetId;
+        if (!targetBudgetId) return null;
+
+        const now = Date.now();
+        const itemType = getTransactionBudgetItemType(transaction.amount);
+        const amount = Math.abs(transaction.amount);
+        const safeTitle = transaction.title?.trim() || 'Transaction';
+        const candidateId = getTransactionBudgetItemId(transaction.id);
+
+        let resultItem: BudgetItem | null = null;
+
+        set((state) => {
+          let existingItemId = candidateId;
+          let existingCreatedAt = transaction.date || transaction.createdAt || now;
+
+          state.budgets.forEach((budget) => {
+            const linkedItem = budget.items.find(
+              (item) => item.transactionId === transaction.id && !item.deletedAt,
+            );
+            if (linkedItem) {
+              existingItemId = linkedItem.id;
+              existingCreatedAt = linkedItem.createdAt || existingCreatedAt;
+            }
+          });
+
+          const nextItem: BudgetItem = {
+            id: existingItemId,
+            budgetId: targetBudgetId,
+            transactionId: transaction.id,
+            title: safeTitle,
+            amount,
+            type: itemType,
+            createdAt: existingCreatedAt,
+            updatedAt: now,
+            synced: false,
+          };
+
+          resultItem = nextItem;
+
+          const budgets = state.budgets.map((budget) => {
+            const linkedIndex = budget.items.findIndex(
+              (item) => item.transactionId === transaction.id && !item.deletedAt,
+            );
+
+            if (budget.id === targetBudgetId) {
+              if (linkedIndex >= 0) {
+                const updatedItems = [...budget.items];
+                updatedItems[linkedIndex] = {
+                  ...updatedItems[linkedIndex],
+                  ...nextItem,
+                  deletedAt: undefined,
+                };
+
+                return {
+                  ...budget,
+                  items: updatedItems,
+                  synced: false,
+                  updatedAt: now,
+                };
+              }
+
+              return {
+                ...budget,
+                items: [nextItem, ...budget.items],
+                synced: false,
+                updatedAt: now,
+              };
+            }
+
+            if (linkedIndex >= 0) {
+              const updatedItems = [...budget.items];
+              updatedItems[linkedIndex] = {
+                ...updatedItems[linkedIndex],
+                deletedAt: now,
+                synced: false,
+                updatedAt: now,
+              };
+
+              return {
+                ...budget,
+                items: updatedItems,
+                synced: false,
+                updatedAt: now,
+              };
+            }
+
+            return budget;
+          });
+
+          return { budgets };
+        });
+
+        return resultItem;
+      },
+      removeItemByTransactionId: (transactionId: string) => {
+        if (!transactionId) return null;
+
+        const now = Date.now();
+        let removedItem: BudgetItem | null = null;
+
+        set((state) => ({
+          budgets: state.budgets.map((budget) => {
+            const linkedIndex = budget.items.findIndex(
+              (item) => item.transactionId === transactionId && !item.deletedAt,
+            );
+
+            if (linkedIndex < 0) {
+              return budget;
+            }
+
+            const updatedItems = [...budget.items];
+            removedItem = { ...updatedItems[linkedIndex] };
+            updatedItems[linkedIndex] = {
+              ...updatedItems[linkedIndex],
+              deletedAt: now,
+              synced: false,
+              updatedAt: now,
+            };
+
+            return {
+              ...budget,
+              items: updatedItems,
+              synced: false,
+              updatedAt: now,
+            };
+          }),
+        }));
+
+        return removedItem;
       },
       removeItem: (budgetId: string, itemId: string) =>
         set((state) => ({

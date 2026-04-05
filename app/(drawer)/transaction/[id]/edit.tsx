@@ -10,7 +10,16 @@ import { Controller } from 'react-hook-form';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EditTransaction() {
-  const { control, errors, handleSubmit, transaction, loading, router } = useEditTransaction();
+  const {
+    control,
+    errors,
+    handleSubmit,
+    transaction,
+    loading,
+    router,
+    budgets,
+    getRemainingBudget,
+  } = useEditTransaction();
 
   if (!transaction) {
     return (
@@ -65,6 +74,45 @@ export default function EditTransaction() {
           />
         )}
         name="amount"
+      />
+
+      <Text style={styles.label}>Budget (Optional)</Text>
+      <Controller
+        control={control}
+        name="budgetId"
+        render={({ field: { value, onChange } }) => (
+          <View style={styles.budgetPicker}>
+            <TouchableOpacity
+              style={[styles.budgetChip, !value && styles.budgetChipActive]}
+              onPress={() => onChange('')}>
+              <Text style={[styles.budgetChipText, !value && styles.budgetChipTextActive]}>
+                No budget
+              </Text>
+            </TouchableOpacity>
+            {budgets.map((budget) => (
+              <TouchableOpacity
+                key={budget.id}
+                style={[styles.budgetChip, value === budget.id && styles.budgetChipActive]}
+                onPress={() => onChange(budget.id)}>
+                <Text
+                  style={[
+                    styles.budgetChipText,
+                    value === budget.id && styles.budgetChipTextActive,
+                  ]}>
+                  {budget.title} ({budget.currency || '$'}{' '}
+                  {getRemainingBudget(budget.id).toFixed(2)} left)
+                </Text>
+              </TouchableOpacity>
+            ))}
+            {value ? (
+              <View style={styles.selectedBudgetChip}>
+                <Text style={styles.selectedBudgetText}>
+                  Budget: {budgets.find((budget) => budget.id === value)?.title || 'Linked'}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        )}
       />
 
       <Controller
@@ -125,5 +173,44 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  budgetPicker: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  budgetChip: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.round,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  budgetChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  budgetChipText: {
+    color: Colors.text,
+    fontSize: 12,
+  },
+  budgetChipTextActive: {
+    color: '#000',
+    fontWeight: '700',
+  },
+  selectedBudgetChip: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.round,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  selectedBudgetText: {
+    color: Colors.text,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

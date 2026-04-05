@@ -112,6 +112,8 @@ export interface IBudgetState {
   setCurrency: (id: string, currency: string) => void;
   setTotalBudget: (id: string, amount: number) => void;
   addItem: (budgetId: string, title: string, amount: number, type?: BudgetItemType) => void;
+  upsertItemFromTransaction: (transaction: Transaction, budgetId?: string) => BudgetItem | null;
+  removeItemByTransactionId: (transactionId: string) => BudgetItem | null;
   removeItem: (budgetId: string, itemId: string) => void;
   getTotalSpent: (budgetId: string) => number;
   getRemainingBudget: (budgetId: string) => number;

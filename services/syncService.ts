@@ -440,6 +440,7 @@ export const syncService = {
       const mappedTransactions = transactions.map((t: any) => ({
         id: t.id,
         friendId: t.friend_id,
+        budgetId: t.budget_id || undefined,
         title: t.description || '',
         amount: (t.sign || 1) * Math.abs(t.amount), // Apply sign to amount
         sign: t.sign || (t.amount < 0 ? 1 : -1),
@@ -647,7 +648,7 @@ export const syncService = {
           await supabase
             .from('transactions')
             .select(
-              'id, owner_id, user_id, friend_id, amount, description, sign, created_at, updated_at',
+              'id, owner_id, user_id, friend_id, budget_id, amount, description, sign, created_at, updated_at',
             )
             .eq('owner_id', cloudUserId),
       );
@@ -664,6 +665,7 @@ export const syncService = {
         result.transactions = transactions.map((t: any) => ({
           id: t.id,
           friendId: t.friend_id,
+          budgetId: t.budget_id || undefined,
           title: t.description || '',
           amount: (t.sign || 1) * Math.abs(t.amount),
           sign: t.sign || (t.amount < 0 ? 1 : -1),
@@ -686,7 +688,7 @@ export const syncService = {
               `
               id, owner_id, user_id, title, currency, total_budget, pinned, created_at, updated_at,
               total_spent, total_income, net_spent, remaining, is_overspent,
-              items:budget_items(id, owner_id, user_id, budget_id, title, amount, type, created_at, updated_at)
+              items:budget_items(id, owner_id, user_id, budget_id, transaction_id, title, amount, type, created_at, updated_at)
             `,
             )
             .eq('owner_id', cloudUserId),
@@ -710,6 +712,7 @@ export const syncService = {
           items: (b.items || []).map((item: any) => ({
             id: item.id,
             budgetId: item.budget_id,
+            transactionId: item.transaction_id || undefined,
             title: item.title,
             amount: Number(item.amount) || 0,
             type: item.type === 'income' ? 'income' : 'expense',
@@ -793,6 +796,7 @@ const mapTransactionToDb = (t: Transaction, cloudUserId: string, clerkUserId: st
   owner_id: cloudUserId, // UUID (FK to app_users)
   user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
   friend_id: t.friendId, // TEXT (FK to friends, map camel to snake)
+  budget_id: t.budgetId || null,
   amount: Math.abs(t.amount), // Always positive, use sign for direction
   description: t.title || t.note || null, // Use title as description
   sign: t.sign || (t.amount < 0 ? -1 : 1), // 1 = add debt, -1 = reduce debt
@@ -819,6 +823,7 @@ const mapBudgetItemToDb = (bi: BudgetItem, cloudUserId: string, clerkUserId: str
   owner_id: cloudUserId, // UUID (FK to app_users)
   user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
   budget_id: bi.budgetId, // TEXT (FK to budgets)
+  transaction_id: bi.transactionId || null,
   title: bi.title,
   amount: Math.abs(bi.amount),
   type: getBudgetItemType(bi),

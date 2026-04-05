@@ -1,6 +1,7 @@
-import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useToast } from '@/hooks/useToast';
 import { safeId } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { IEditTransactionFormData } from '@/types/transaction';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -12,7 +13,9 @@ export const useEditTransaction = () => {
   const transactionId = safeId(id);
   const router = useRouter();
   const { transactions, updateTransaction } = useTransactionsStore();
-  const { syncNow } = useCloudSync();
+  const { budgets, getRemainingBudget, upsertItemFromTransaction, removeItemByTransactionId } =
+    useBudgetStore();
+  const { mutate } = useSyncMutation();
   const { toastSuccess } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -28,6 +31,7 @@ export const useEditTransaction = () => {
       amount: '',
       description: '',
       isNegative: true,
+      budgetId: '',
     },
   });
 
@@ -37,6 +41,7 @@ export const useEditTransaction = () => {
         amount: Math.abs(transaction.amount).toString(),
         description: transaction.title,
         isNegative: transaction.amount < 0,
+        budgetId: transaction.budgetId || '',
       });
     }
   }, [transaction, reset]);
@@ -51,6 +56,7 @@ export const useEditTransaction = () => {
 
       const updatedTransaction = {
         ...transaction,
+        budgetId: data.budgetId || undefined,
         amount: finalAmount,
         sign: data.isNegative ? 1 : -1,
         title: data.description,
@@ -59,15 +65,29 @@ export const useEditTransaction = () => {
       };
 
       updateTransaction(updatedTransaction);
+      await mutate('transaction', 'update', updatedTransaction);
 
-      // Trigger sync to push edit to Supabase
-      try {
-        await syncNow();
-        toastSuccess('Transaction updated successfully');
-      } catch (error) {
-        console.error('[Sync] Failed to sync after edit:', error);
-        toastSuccess('Transaction updated locally');
+      const previousBudgetId = transaction.budgetId;
+      const nextBudgetId = updatedTransaction.budgetId;
+
+      if (previousBudgetId && !nextBudgetId) {
+        const removedItem = removeItemByTransactionId(transaction.id);
+        if (removedItem) {
+          await mutate('budget_item', 'delete', removedItem);
+          await mutate('budget', 'update', { id: previousBudgetId, source: 'transaction' });
+        }
+      } else if (nextBudgetId) {
+        const linkedItem = upsertItemFromTransaction(updatedTransaction, nextBudgetId);
+        if (linkedItem) {
+          await mutate('budget_item', 'update', linkedItem);
+          await mutate('budget', 'update', { id: nextBudgetId, source: 'transaction' });
+          if (previousBudgetId && previousBudgetId !== nextBudgetId) {
+            await mutate('budget', 'update', { id: previousBudgetId, source: 'transaction_move' });
+          }
+        }
       }
+
+      toastSuccess('Transaction updated successfully');
 
       router.push(`/(drawer)/friend/${transaction.friendId}`);
     } finally {
@@ -81,6 +101,8 @@ export const useEditTransaction = () => {
     handleSubmit: handleSubmit(onSubmit),
     transaction,
     loading,
+    budgets: budgets.filter((budget) => !budget.archivedAt && !budget.deletedAt),
+    getRemainingBudget,
     router,
   };
 };

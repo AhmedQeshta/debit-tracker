@@ -383,6 +383,11 @@ export default function BudgetDetail() {
                         styles.spendingRow,
                         pressed && styles.spendingRowPressed,
                       ]}
+                      onPress={() =>
+                        item.transactionId
+                          ? router.push(`/(drawer)/transaction/${item.transactionId}/edit`)
+                          : undefined
+                      }
                       accessibilityRole="button"
                       accessibilityLabel={`${item.title}, ${formatCurrency(item.amount, budget.currency)}`}>
                       <View style={styles.rowDotWrap}>
@@ -396,6 +401,11 @@ export default function BudgetDetail() {
                         <Text style={styles.rowMeta} numberOfLines={1}>
                           {getDayLabel(item.createdAt)}
                         </Text>
+                        {item.transactionId ? (
+                          <Text style={styles.rowMeta} numberOfLines={1}>
+                            From transaction
+                          </Text>
+                        ) : null}
                       </View>
 
                       <View style={styles.rowRight}>

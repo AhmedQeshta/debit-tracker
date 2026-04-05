@@ -84,6 +84,12 @@ export const TransactionScreenItem = ({
           <Text style={styles.transactionFriend} numberOfLines={1}>
             {row.subtitle}
           </Text>
+          {row.budgetName ? (
+            <Text style={styles.transactionBudget} numberOfLines={1}>
+              Budget: {row.budgetName}
+              {row.budgetRemainingText ? ` • ${row.budgetRemainingText} left` : ''}
+            </Text>
+          ) : null}
           <Text style={styles.transactionDate}>
             {row.timeText} • {row.dateText}
           </Text>
@@ -160,6 +166,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textSecondary,
     marginTop: 4,
+  },
+  transactionBudget: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
   transactionAmount: {
     alignItems: 'flex-end',

@@ -9,6 +9,8 @@ export interface ITransactionRow {
   friendName: string;
   title: string;
   subtitle: string;
+  budgetName?: string;
+  budgetRemainingText?: string;
   amountText: string;
   amountDirectionLabel: 'Paid' | 'Received';
   amountTone: 'positive' | 'negative';
@@ -34,10 +36,12 @@ export interface IEditTransactionFormData {
   amount: string;
   description: string;
   isNegative: boolean;
+  budgetId?: string;
 }
 
 export interface ITransactionFormData {
   friendId: string;
+  budgetId?: string;
   amount: string;
   title: string;
   date: number;

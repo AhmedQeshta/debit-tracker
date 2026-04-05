@@ -154,6 +154,14 @@ export const getBudgetItemType = (item: BudgetItem): BudgetItemType => {
   return item.type === 'income' ? 'income' : 'expense';
 };
 
+export const getTransactionBudgetItemType = (amount: number): BudgetItemType => {
+  return amount < 0 ? 'expense' : 'income';
+};
+
+export const getTransactionBudgetItemId = (transactionId: string): string => {
+  return `txn_item_${transactionId}`;
+};
+
 export const calculateBudgetMetrics = (items: BudgetItem[], budgetLimit: number): BudgetMetrics => {
   const activeItems = items.filter((item) => !item.deletedAt);
 

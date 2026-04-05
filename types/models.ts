@@ -17,6 +17,7 @@ export interface Friend {
 export interface Transaction {
   id: string;
   friendId: string;
+  budgetId?: string;
   title: string;
   amount: number; // supports + or -
   sign: number; // 1 = add debt, -1 = reduce debt (optional for backward compatibility)
@@ -50,6 +51,7 @@ export interface BudgetItem {
   id: string;
   friendId?: string; // Optional if linked via budget, but prompt says "friend_id"
   budgetId: string;
+  transactionId?: string;
   title: string;
   amount: number; // price (positive number)
   type?: BudgetItemType; // missing type in legacy rows is treated as expense
