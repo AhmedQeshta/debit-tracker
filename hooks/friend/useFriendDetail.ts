@@ -1,10 +1,12 @@
 import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useOperations } from '@/hooks/useOperations';
 import { useToast } from '@/hooks/useToast';
 import { getBalance, getBalanceBreakdown, safeId } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -26,12 +28,14 @@ export const useFriendDetail = () => {
     ),
   );
   const { deleteTransaction } = useTransactionsStore();
+  const { removeItemByTransactionId } = useBudgetStore();
 
   const { navigateToFriendEdit } = useNavigation();
   const { handleFriendPinToggle: togglePin } = useOperations();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
+  const { mutate } = useSyncMutation();
   const {
     handleSettleUp: settleFriendById,
     isSettling: isSettlingFriend,
@@ -102,9 +106,15 @@ export const useFriendDetail = () => {
       'Delete Transaction',
       `Are you sure you want to delete "${transaction.title}"?`,
       async () => {
+        const removedItem = removeItemByTransactionId(transactionId);
+
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(transactionId);
-        // toastSuccess('Transaction deleted successfully');
+        await mutate('transaction', 'delete', transaction);
+        if (removedItem) {
+          await mutate('budget_item', 'delete', removedItem);
+          await mutate('budget', 'update', { id: removedItem.budgetId, source: 'transaction' });
+        }
 
         // Trigger sync to push deletion to Supabase
         try {

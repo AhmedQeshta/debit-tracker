@@ -82,7 +82,7 @@ export default function BudgetTab() {
               </Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Total spent</Text>
+              <Text style={styles.summaryLabel}>Net spent</Text>
               <Text style={styles.summaryValue} numberOfLines={1}>
                 {summary.totalSpent}
               </Text>

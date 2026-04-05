@@ -1,6 +1,7 @@
 import { Actions } from '@/components/ui/Actions';
 import { createMenuItems } from '@/components/ui/CreateMenuItems';
 import { formatAbsoluteCurrency } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ITransactionItemProps } from '@/types/transaction';
@@ -16,6 +17,9 @@ export const TransactionItem = ({
   onCopyAmount,
 }: ITransactionItemProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
+  const linkedBudget = useBudgetStore((state) =>
+    state.budgets.find((budget) => budget.id === transaction.budgetId && !budget.deletedAt),
+  );
 
   const menuItems = createMenuItems(
     'Transaction',
@@ -42,6 +46,7 @@ export const TransactionItem = ({
         <Text style={styles.meta}>
           {transaction.note || 'No note'} • {new Date(transaction.createdAt).toLocaleDateString()}
         </Text>
+        {linkedBudget ? <Text style={styles.meta}>Budget: {linkedBudget.title}</Text> : null}
       </View>
       <View style={styles.rightSide}>
         <Text style={[styles.amount, isPositive ? styles.positive : styles.negative]}>

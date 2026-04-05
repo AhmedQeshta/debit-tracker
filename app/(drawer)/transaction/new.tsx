@@ -10,8 +10,21 @@ import { Controller } from 'react-hook-form';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AddTransaction() {
-  const { friends, friendId, setFriendId, isNegative, control, handleSubmit, errors, loading } =
-    useTransactionForm();
+  const {
+    friends,
+    friendId,
+    setFriendId,
+    budgetId,
+    setBudgetId,
+    budgets,
+    selectedBudget,
+    getRemainingBudget,
+    isNegative,
+    control,
+    handleSubmit,
+    errors,
+    loading,
+  } = useTransactionForm();
   const router = useRouter();
 
   return (
@@ -45,6 +58,33 @@ export default function AddTransaction() {
                 </TouchableOpacity>
               ))
             )}
+          </View>
+
+          <Text style={styles.label}>Budget (Optional)</Text>
+          <View style={styles.userPicker}>
+            <TouchableOpacity
+              style={[styles.userChip, !budgetId && styles.userChipSelected]}
+              onPress={() => setBudgetId('')}>
+              <Text style={[styles.userChipText, !budgetId && styles.userChipTextSelected]}>
+                No budget
+              </Text>
+            </TouchableOpacity>
+
+            {budgets.map((budget) => (
+              <TouchableOpacity
+                key={budget.id}
+                style={[styles.userChip, budgetId === budget.id && styles.userChipSelected]}
+                onPress={() => setBudgetId(budget.id)}>
+                <Text
+                  style={[
+                    styles.userChipText,
+                    budgetId === budget.id && styles.userChipTextSelected,
+                  ]}>
+                  {budget.title} ({budget.currency || '$'}{' '}
+                  {getRemainingBudget(budget.id).toFixed(2)} left)
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           <View style={styles.amountHeader}>
@@ -83,6 +123,12 @@ export default function AddTransaction() {
             )}
             name="amount"
           />
+
+          {selectedBudget ? (
+            <View style={styles.selectedBudgetChip}>
+              <Text style={styles.selectedBudgetText}>Budget: {selectedBudget.title}</Text>
+            </View>
+          ) : null}
 
           <Controller
             control={control}
@@ -223,6 +269,21 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.error,
     fontSize: 14,
+  },
+  selectedBudgetChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.surface,
+    borderRadius: Spacing.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  selectedBudgetText: {
+    color: Colors.text,
+    fontSize: 12,
+    fontWeight: '600',
   },
   backButton: {
     flexDirection: 'row',

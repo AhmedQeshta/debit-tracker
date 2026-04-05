@@ -12,6 +12,7 @@ export interface BudgetFormData {
 export interface ItemFormData {
   title: string;
   amount: string;
+  type?: 'expense' | 'income';
 }
 
 export interface FormErrors {

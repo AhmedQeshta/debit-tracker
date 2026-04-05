@@ -1,5 +1,6 @@
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { useToast } from '@/hooks/useToast';
@@ -10,6 +11,7 @@ import {
   getMonthLabel,
   getStatus,
 } from '@/lib/utils';
+import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
@@ -28,9 +30,12 @@ export const useTransaction = () => {
     useSummaryCurrency();
   const { openDrawer } = useDrawerContext();
   const { deleteTransaction } = useTransactionsStore();
+  const { removeItemByTransactionId } = useBudgetStore();
+  const budgets = useBudgetStore(useShallow((state) => state.budgets.filter((b) => !b.deletedAt)));
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow, isOnline, isSyncing } = useCloudSync();
+  const { mutate } = useSyncMutation();
   const lastSyncError = useSyncStore((state) => state.lastError);
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
@@ -54,12 +59,21 @@ export const useTransaction = () => {
         transaction.amount > 0 ? 'Received' : 'Paid';
       const title = transaction.title;
       const subtitle = transaction.note ? transaction.note : `with ${friendName}`;
+      const linkedBudget = budgets.find((budget) => budget.id === transaction.budgetId);
+      const budgetRemainingText = linkedBudget
+        ? formatAbsoluteCurrency(
+            linkedBudget.remaining ?? linkedBudget.totalBudget - (linkedBudget.netSpent ?? 0),
+            linkedBudget.currency,
+          )
+        : undefined;
 
       return {
         transaction,
         friendName,
         title,
         subtitle,
+        budgetName: linkedBudget?.title,
+        budgetRemainingText,
         amountText: formatAbsoluteCurrency(transaction.amount, friendCurrency),
         amountDirectionLabel,
         amountTone,
@@ -86,7 +100,7 @@ export const useTransaction = () => {
     return searchedRows.sort((a, b) => {
       return b.transaction.date - a.transaction.date;
     });
-  }, [transactions, friends, lastSyncError, isOnline, searchQuery]);
+  }, [transactions, friends, budgets, lastSyncError, isOnline, searchQuery]);
 
   const groupedSections = useMemo<ITransactionSection[]>(() => {
     const buckets = rows.reduce<Record<string, typeof rows>>((accumulator, row) => {
@@ -150,9 +164,20 @@ export const useTransaction = () => {
       'Delete Transaction',
       `Are you sure you want to delete "${title}"?`,
       async () => {
+        const transaction = transactions.find((item) => item.id === id);
+        const removedItem = removeItemByTransactionId(id);
+
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(id);
         toastSuccess('Transaction deleted successfully');
+
+        if (transaction) {
+          await mutate('transaction', 'delete', transaction);
+        }
+        if (removedItem) {
+          await mutate('budget_item', 'delete', removedItem);
+          await mutate('budget', 'update', { id: removedItem.budgetId, source: 'transaction' });
+        }
 
         // Trigger sync to push deletion to Supabase
         try {

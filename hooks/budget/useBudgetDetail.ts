@@ -6,8 +6,10 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useOperations } from '@/hooks/useOperations';
 import { useToast } from '@/hooks/useToast';
-import { safeId, validateAmount, validateTitle } from '@/lib/utils';
+import { calculateBudgetMetrics, safeId, validateAmount, validateTitle } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
+import { useSyncStore } from '@/store/syncStore';
+import { BudgetItemType } from '@/types/models';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
@@ -17,6 +19,7 @@ export const useBudgetDetail = () => {
   const [showMoreFields, setShowMoreFields] = useState(false);
   const [itemTitle, setItemTitle] = useState('');
   const [itemAmount, setItemAmount] = useState('');
+  const [itemType, setItemType] = useState<BudgetItemType>('expense');
   const [itemTitleError, setItemTitleError] = useState('');
   const [itemAmountError, setItemAmountError] = useState('');
   const titleInputRef = useRef<TextInput>(null);
@@ -45,12 +48,22 @@ export const useBudgetDetail = () => {
   const { toastSuccess } = useToast();
   const { handleBudgetAmountCopy } = useBudgetAmount();
   const { syncNow } = useCloudSync();
+  const syncStatus = useSyncStore((state) => state.syncStatus);
   const { handleBudgetResetPeriod } = useBudgetPeriod();
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
-  const totalSpent = budget
-    ? budget.items.filter((item) => !item.deletedAt).reduce((sum, item) => sum + item.amount, 0)
-    : 0;
-  const remaining = budget ? budget.totalBudget - totalSpent : 0;
+  const metrics = budget
+    ? calculateBudgetMetrics(budget.items, budget.totalBudget)
+    : {
+        totalSpent: 0,
+        totalIncome: 0,
+        netSpent: 0,
+        remaining: 0,
+        progressRatio: 0,
+        isOverspent: false,
+      };
+
+  const totalSpent = metrics.netSpent;
+  const remaining = metrics.remaining;
 
   const handleAddItem = async (): Promise<void> => {
     const titleError = validateTitle(itemTitle);
@@ -68,9 +81,10 @@ export const useBudgetDetail = () => {
     setItemAmountError('');
 
     const amount = parseFloat(itemAmount);
-    addItem(budgetId, itemTitle.trim(), amount);
+    addItem(budgetId, itemTitle.trim(), amount, itemType);
     setItemTitle('');
     setItemAmount('');
+    setItemType('expense');
     toastSuccess('Budget item added successfully');
 
     // Trigger sync to push addition to Supabase
@@ -98,6 +112,14 @@ export const useBudgetDetail = () => {
       },
       { confirmText: 'Delete' },
     );
+  };
+
+  const handleRetrySync = async (): Promise<void> => {
+    try {
+      await syncNow();
+    } catch (error) {
+      console.error('[Sync] Retry failed:', error);
+    }
   };
   const handlePinToggle = (): void => {
     if (!budget) return;
@@ -157,6 +179,8 @@ export const useBudgetDetail = () => {
     setItemTitle,
     itemAmount,
     setItemAmount,
+    itemType,
+    setItemType,
     itemTitleError,
     setItemTitleError,
     itemAmountError,
@@ -179,5 +203,7 @@ export const useBudgetDetail = () => {
     daysUntilReset,
     handleBudgetResetPeriod,
     handleBudgetAmountCopy,
+    syncStatus,
+    handleRetrySync,
   };
 };

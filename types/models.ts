@@ -17,6 +17,7 @@ export interface Friend {
 export interface Transaction {
   id: string;
   friendId: string;
+  budgetId?: string;
   title: string;
   amount: number; // supports + or -
   sign: number; // 1 = add debt, -1 = reduce debt (optional for backward compatibility)
@@ -35,12 +36,25 @@ export interface SyncQueueItem {
   payload: any;
 }
 
+export type BudgetItemType = 'expense' | 'income';
+
+export interface BudgetMetrics {
+  totalSpent: number;
+  totalIncome: number;
+  netSpent: number;
+  remaining: number;
+  progressRatio: number;
+  isOverspent: boolean;
+}
+
 export interface BudgetItem {
   id: string;
   friendId?: string; // Optional if linked via budget, but prompt says "friend_id"
   budgetId: string;
+  transactionId?: string;
   title: string;
   amount: number; // price (positive number)
+  type?: BudgetItemType; // missing type in legacy rows is treated as expense
   createdAt: number;
   updatedAt?: number;
   synced?: boolean;
@@ -60,4 +74,9 @@ export interface Budget {
   updatedAt?: number;
   synced?: boolean;
   deletedAt?: number; // Timestamp when marked for deletion (pending sync)
+  totalSpent?: number;
+  totalIncome?: number;
+  netSpent?: number;
+  remaining?: number;
+  isOverspent?: boolean;
 }
