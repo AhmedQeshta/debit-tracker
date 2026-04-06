@@ -10,6 +10,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import {
   Cloud,
+  Download,
   FileText,
   Info,
   LogOut,
@@ -177,6 +178,12 @@ export default function Settings() {
         </SettingsSection>
 
         <SettingsSection title="App">
+          <SettingsRow
+            icon={Download}
+            title="Export data"
+            subtitle="Share friends and budgets as CSV or JSON"
+            onPress={() => router.push('/(drawer)/settings/export-data' as any)}
+          />
           <SettingsRow icon={Info} title="Version" value={appVersion} showChevron={false} />
           <SettingsRow
             icon={Palette}
