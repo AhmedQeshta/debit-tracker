@@ -149,7 +149,11 @@ export default function FriendDetails() {
               {
                 icon: <Filter size={18} color={Colors.text} />,
                 label: 'Export',
-                onPress: () => toastInfo('Export is coming soon'),
+                onPress: () =>
+                  router.push({
+                    pathname: '/(drawer)/settings/export-data' as any,
+                    params: { friendId: friend.id },
+                  }),
               },
               {
                 icon: <Trash2 size={18} color={Colors.error} />,
@@ -405,6 +409,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     marginTop: Spacing.sm,
+    marginLeft: -Spacing.lg,
   },
   balanceCard: {
     backgroundColor: Colors.card,

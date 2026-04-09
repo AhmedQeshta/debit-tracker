@@ -9,6 +9,7 @@ import {
   Friend,
   Transaction,
 } from '@/types/models';
+import { calculateRawNetSpent } from './budgetMath';
 
 export const calculateLatestTransactions = (allTransactions: Transaction[]) => {
   return [...allTransactions].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
@@ -154,8 +155,10 @@ export const getBudgetItemType = (item: BudgetItem): BudgetItemType => {
   return item.type === 'income' ? 'income' : 'expense';
 };
 
-export const getTransactionBudgetItemType = (amount: number): BudgetItemType => {
-  return amount < 0 ? 'expense' : 'income';
+export const getTransactionBudgetItemType = (sign?: number, amount?: number): BudgetItemType => {
+  if (sign === 1) return 'expense';
+  if (sign === -1) return 'income';
+  return (amount || 0) >= 0 ? 'expense' : 'income';
 };
 
 export const getTransactionBudgetItemId = (transactionId: string): string => {
@@ -173,7 +176,7 @@ export const calculateBudgetMetrics = (items: BudgetItem[], budgetLimit: number)
     .filter((item) => getBudgetItemType(item) === 'income')
     .reduce((sum, item) => sum + Math.abs(item.amount), 0);
 
-  const netSpent = totalSpent - totalIncome;
+  const netSpent = calculateRawNetSpent(totalSpent, totalIncome);
   const remaining = budgetLimit - netSpent;
   const progressRatio = budgetLimit > 0 ? Math.max(netSpent, 0) / budgetLimit : 0;
 

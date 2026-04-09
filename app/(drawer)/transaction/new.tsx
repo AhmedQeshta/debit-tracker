@@ -148,8 +148,8 @@ export default function AddTransaction() {
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
               {isNegative
-                ? 'Friendly reminder: You owe this friend.'
-                : 'Nice! This friend owes you.'}
+                ? 'Friendly reminder: You owe this friend. Expense mode: you paid now, so this reduces the linked budget.'
+                : 'Nice! This friend owes you. Income mode: money came back to you, so this increases the linked budget.'}
             </Text>
           </View>
 

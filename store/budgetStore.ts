@@ -1,3 +1,4 @@
+import { clampNetSpentForDisplay } from '@/lib/budgetMath';
 import {
   calculateBudgetMetrics,
   getTransactionBudgetItemId,
@@ -255,7 +256,7 @@ export const useBudgetStore = create<IBudgetState>()(
         if (!targetBudgetId) return null;
 
         const now = Date.now();
-        const itemType = getTransactionBudgetItemType(transaction.amount);
+        const itemType = getTransactionBudgetItemType(transaction.sign, transaction.amount);
         const amount = Math.abs(transaction.amount);
         const safeTitle = transaction.title?.trim() || 'Transaction';
         const candidateId = getTransactionBudgetItemId(transaction.id);
@@ -399,7 +400,10 @@ export const useBudgetStore = create<IBudgetState>()(
       getTotalSpent: (budgetId: string) => {
         const budget = get().budgets.find((b) => b.id === budgetId && !b.deletedAt);
         if (!budget) return 0;
-        return calculateBudgetMetrics(budget.items, budget.totalBudget).netSpent;
+        // Display net spent should never be negative in UI components.
+        return clampNetSpentForDisplay(
+          calculateBudgetMetrics(budget.items, budget.totalBudget).netSpent,
+        );
       },
       getRemainingBudget: (budgetId: string) => {
         const budget = get().budgets.find((b) => b.id === budgetId && !b.deletedAt);

@@ -1,6 +1,6 @@
 import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useToast } from '@/hooks/useToast';
-import { generateId, getFinalAmount } from '@/lib/utils';
+import { generateId } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
@@ -19,8 +19,8 @@ export const useTransactionForm = () => {
       state.budgets.filter((budget) => !budget.deletedAt && !budget.archivedAt),
     ),
   );
-  const { getRemainingBudget, upsertItemFromTransaction } = useBudgetStore();
-  const { addTransaction } = useTransactionsStore();
+  const { budgets: allBudgets, getRemainingBudget, upsertItemFromTransaction } = useBudgetStore();
+  const { addTransaction: addTransactionToStore } = useTransactionsStore();
   const { mutate } = useSyncMutation();
   const { toastError, toastSuccess } = useToast();
   const router = useRouter();
@@ -50,42 +50,115 @@ export const useTransactionForm = () => {
   const selectedFriend = friends.find((f) => f.id === friendId);
   const selectedBudget = budgets.find((budget) => budget.id === budgetId);
 
+  const addTransaction = async (params: {
+    friendId: string;
+    amount: number;
+    budgetId?: string | null;
+    sign: 1 | -1;
+    title?: string;
+    occurredAt?: string;
+  }): Promise<{ transactionId: string; budgetId?: string | null }> => {
+    const { friendId, amount, budgetId, sign, title, occurredAt } = params;
+
+    // Amount normalization rule:
+    // always start from an absolute magnitude so budget impact is deterministic.
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error('Invalid amount');
+    }
+
+    const absAmount = Math.abs(amount);
+    // Sign contract for transactions:
+    // sign = 1  -> "+"
+    // sign = -1 -> "-"
+    const signedAmount = sign === -1 ? -absAmount : absAmount;
+
+    const normalizedBudgetId = budgetId ?? null;
+
+    if (normalizedBudgetId) {
+      const budgetExists = allBudgets.some(
+        (budget) => budget.id === normalizedBudgetId && !budget.deletedAt && !budget.archivedAt,
+      );
+      if (!budgetExists) {
+        throw new Error('Budget not found');
+      }
+    }
+
+    const occurredTimestamp = occurredAt ? Date.parse(occurredAt) : Date.now();
+    const safeOccurredAt = Number.isFinite(occurredTimestamp) ? occurredTimestamp : Date.now();
+
+    const now = Date.now();
+    const transactionId = generateId();
+    const transactionTitle = title?.trim() || 'Transaction';
+
+    const newTransaction: Transaction = {
+      id: transactionId,
+      friendId,
+      budgetId: normalizedBudgetId || undefined,
+      title: transactionTitle,
+      amount: signedAmount,
+      sign,
+      date: safeOccurredAt,
+      note: '',
+      createdAt: now,
+      synced: false,
+    };
+
+    try {
+      addTransactionToStore(newTransaction);
+
+      // Sync order is intentional for offline safety:
+      // 1) transaction create, 2) budget_item upsert, 3) budget totals recompute.
+      await mutate('transaction', 'create', newTransaction);
+    } catch {
+      throw new Error('Failed to save transaction');
+    }
+
+    if (!normalizedBudgetId) {
+      return { transactionId, budgetId: null };
+    }
+
+    let budgetLinkError = false;
+    try {
+      const linkedItem = upsertItemFromTransaction(newTransaction, normalizedBudgetId);
+      if (!linkedItem) {
+        throw new Error('Failed to update budget');
+      }
+
+      await mutate('budget_item', 'create', linkedItem);
+      await mutate('budget', 'update', { id: normalizedBudgetId, source: 'transaction' });
+
+      return { transactionId, budgetId: normalizedBudgetId };
+    } catch {
+      budgetLinkError = true;
+      throw new Error('Failed to update budget');
+    } finally {
+      // Keep local transaction and mark pending sync on linkage failure.
+      if (budgetLinkError) {
+        await mutate('budget', 'update', { id: normalizedBudgetId, source: 'pending_retry' });
+      }
+    }
+  };
+
   const onSubmit = async (data: ITransactionFormData) => {
     const amountNum = parseFloat(data.amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      toastError('Please enter a valid amount');
-      return;
-    }
 
     setLoading(true);
     try {
-      const finalAmount = getFinalAmount(data.amount, data.isNegative);
-      const newTransaction: Transaction = {
-        id: generateId(),
+      await addTransaction({
         friendId: data.friendId,
-        budgetId: data.budgetId || undefined,
+        amount: amountNum,
+        budgetId: data.budgetId || null,
+        sign: data.isNegative ? -1 : 1,
         title: data.title,
-        amount: finalAmount,
-        sign: data.isNegative ? -1 : 1, // 1 = add debt (negative amount), -1 = reduce debt (positive amount)
-        date: data.date,
-        note: data.note,
-        createdAt: Date.now(),
-        synced: false,
-      };
-      addTransaction(newTransaction);
-      await mutate('transaction', 'create', newTransaction);
-
-      if (newTransaction.budgetId) {
-        const linkedItem = upsertItemFromTransaction(newTransaction, newTransaction.budgetId);
-        if (linkedItem) {
-          await mutate('budget_item', 'create', linkedItem);
-          await mutate('budget', 'update', { id: newTransaction.budgetId, source: 'transaction' });
-        }
-      }
+        occurredAt: new Date(data.date).toISOString(),
+      });
 
       toastSuccess('Transaction added successfully');
 
       router.push(`/(drawer)/friend/${data.friendId}`);
+    } catch (error: any) {
+      const message = error?.message || 'Failed to save transaction';
+      toastError(message);
     } finally {
       setLoading(false);
     }

@@ -309,10 +309,11 @@ $$;
 
 GRANT EXECUTE ON FUNCTION recompute_budget_totals(TEXT, TEXT) TO authenticated;
 
-CREATE OR REPLACE FUNCTION apply_transaction_to_budget(
-    p_budget_id TEXT,
+CREATE OR REPLACE FUNCTION apply_transaction_budget_link(
     p_transaction_id TEXT,
-    p_amount_signed NUMERIC,
+    p_budget_id TEXT,
+    p_amount NUMERIC,
+    p_sign SMALLINT,
     p_title TEXT,
     p_user_id TEXT,
     p_owner_id UUID,
@@ -333,13 +334,29 @@ AS $$
 DECLARE
     v_item_type TEXT;
     v_item_amount NUMERIC;
+    v_budget_exists BOOLEAN;
 BEGIN
     IF p_budget_id IS NULL OR p_transaction_id IS NULL THEN
-        RETURN;
+        RAISE EXCEPTION 'Budget not found';
     END IF;
 
-    v_item_type := CASE WHEN p_amount_signed < 0 THEN 'expense' ELSE 'income' END;
-    v_item_amount := ABS(COALESCE(p_amount_signed, 0));
+    IF p_sign NOT IN (1, -1) THEN
+        RAISE EXCEPTION 'Invalid sign';
+    END IF;
+
+    SELECT EXISTS(
+        SELECT 1
+        FROM budgets b
+        WHERE b.id = p_budget_id
+          AND b.user_id = p_user_id
+    ) INTO v_budget_exists;
+
+    IF NOT v_budget_exists THEN
+        RAISE EXCEPTION 'Budget not found';
+    END IF;
+
+    v_item_type := CASE WHEN p_sign = 1 THEN 'expense' ELSE 'income' END;
+    v_item_amount := ABS(COALESCE(p_amount, 0));
 
     INSERT INTO budget_items (
         id,
@@ -387,7 +404,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION apply_transaction_to_budget(TEXT, TEXT, NUMERIC, TEXT, TEXT, UUID, TIMESTAMPTZ) TO authenticated;
+GRANT EXECUTE ON FUNCTION apply_transaction_budget_link(TEXT, TEXT, NUMERIC, SMALLINT, TEXT, TEXT, UUID, TIMESTAMPTZ) TO authenticated;
 
 -- =====================================================
 -- SCHEMA SUMMARY

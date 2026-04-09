@@ -299,3 +299,9 @@ export interface PasswordInputProps {
   blurOnSubmit?: boolean;
   inputRef?: React.RefObject<TextInput | null>;
 }
+
+export interface SelectChipProps {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}

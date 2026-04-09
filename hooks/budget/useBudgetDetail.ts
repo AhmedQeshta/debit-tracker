@@ -6,6 +6,7 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useOperations } from '@/hooks/useOperations';
 import { useToast } from '@/hooks/useToast';
+import { clampNetSpentForDisplay } from '@/lib/budgetMath';
 import { calculateBudgetMetrics, safeId, validateAmount, validateTitle } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useSyncStore } from '@/store/syncStore';
@@ -62,7 +63,9 @@ export const useBudgetDetail = () => {
         isOverspent: false,
       };
 
-  const totalSpent = metrics.netSpent;
+  const rawNetSpent = metrics.netSpent;
+  // We preserve rawNetSpent for remaining/overspent logic, but clamp for display usage metrics.
+  const displayNetSpent = clampNetSpentForDisplay(rawNetSpent);
   const remaining = metrics.remaining;
 
   const handleAddItem = async (): Promise<void> => {
@@ -187,7 +190,8 @@ export const useBudgetDetail = () => {
     setItemAmountError,
     handleAddItem,
     handleDeleteItem,
-    totalSpent,
+    rawNetSpent,
+    displayNetSpent,
     remaining,
     handlePinToggle,
     handleDeleteBudget,

@@ -1,11 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { getBudgetItemType } from '@/lib/utils';
-import {
-  GetTokenFunction,
-  getFreshSupabaseJwt,
-  isJwtExpiredError,
-  retryOnceOnJwtExpired,
-} from '@/services/authSync';
+import
+  {
+    GetTokenFunction,
+    getFreshSupabaseJwt,
+    isJwtExpiredError,
+    retryOnceOnJwtExpired,
+  } from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -442,8 +443,8 @@ export const syncService = {
         friendId: t.friend_id,
         budgetId: t.budget_id || undefined,
         title: t.description || '',
-        amount: (t.sign || 1) * Math.abs(t.amount), // Apply sign to amount
-        sign: t.sign || (t.amount < 0 ? 1 : -1),
+        amount: (t.sign === -1 ? -1 : 1) * Math.abs(t.amount), // Local keeps signed amount
+        sign: t.sign === -1 ? -1 : 1,
         date: safeDateToTimestamp(t.created_at), // Use created_at as date
         note: '', // Not in new schema
         createdAt: safeDateToTimestamp(t.created_at),
@@ -667,8 +668,8 @@ export const syncService = {
           friendId: t.friend_id,
           budgetId: t.budget_id || undefined,
           title: t.description || '',
-          amount: (t.sign || 1) * Math.abs(t.amount),
-          sign: t.sign || (t.amount < 0 ? 1 : -1),
+          amount: (t.sign === -1 ? -1 : 1) * Math.abs(t.amount),
+          sign: t.sign === -1 ? -1 : 1,
           date: safeDateToTimestamp(t.created_at),
           note: '',
           createdAt: safeDateToTimestamp(t.created_at),
@@ -799,7 +800,7 @@ const mapTransactionToDb = (t: Transaction, cloudUserId: string, clerkUserId: st
   budget_id: t.budgetId || null,
   amount: Math.abs(t.amount), // Always positive, use sign for direction
   description: t.title || t.note || null, // Use title as description
-  sign: t.sign || (t.amount < 0 ? -1 : 1), // 1 = add debt, -1 = reduce debt
+  sign: t.sign === -1 ? -1 : 1,
   created_at: safeTimestampToISO(t.createdAt),
   updated_at: new Date().toISOString(),
 });

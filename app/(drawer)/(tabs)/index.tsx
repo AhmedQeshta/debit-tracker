@@ -146,6 +146,40 @@ export default function Home() {
         onCreateBudget={navigateToCreateBudget}
       />
 
+      <HomeSectionHeader
+        title="Budgets Overview"
+        seeAllLabel="See all"
+        onSeeAll={() => router.push('/budget')}
+      />
+      <View style={styles.sectionBody}>
+        {budgetsOverview.length === 0 ? (
+          <View style={styles.compactEmptyCard}>
+            <EmptySection
+              title="No Budgets"
+              description="Create your first budget to start tracking your spending"
+              icon="budgets"
+            />
+            <Button title="Create Budget" onPress={navigateToCreateBudget} />
+          </View>
+        ) : (
+          budgetsOverview.map(({ budget, spent, progress, warningLabel }) => (
+            <HomeBudgetOverviewCard
+              key={budget.id}
+              budget={budget}
+              spent={spent}
+              progress={progress}
+              warningLabel={warningLabel}
+              onOpen={(id) => router.push(`/(drawer)/budget/${id}`)}
+              onEdit={navigateToBudgetEdit}
+              onPinToggle={handleBudgetPinToggle}
+              onDelete={handleBudgetDelete}
+              onCopyRemaining={(remaining, currency) => handleCopyAmount(remaining, currency)}
+              onResetPeriod={handleBudgetResetPeriod}
+            />
+          ))
+        )}
+      </View>
+
       {isFreshState ? (
         <HomeGetStartedCard
           onAddFriend={navigateToCreateFriend}
@@ -236,40 +270,6 @@ export default function Home() {
               onEdit={navigateToTransactionEdit}
               onDelete={handleTransactionDelete}
               onCopyAmount={() => handleCopyAmount(transaction.amount, friend?.currency || '$')}
-            />
-          ))
-        )}
-      </View>
-
-      <HomeSectionHeader
-        title="Budgets Overview"
-        seeAllLabel="See all"
-        onSeeAll={() => router.push('/budget')}
-      />
-      <View style={styles.sectionBody}>
-        {budgetsOverview.length === 0 ? (
-          <View style={styles.compactEmptyCard}>
-            <EmptySection
-              title="No Budgets"
-              description="Create your first budget to start tracking your spending"
-              icon="budgets"
-            />
-            <Button title="Create Budget" onPress={navigateToCreateBudget} />
-          </View>
-        ) : (
-          budgetsOverview.map(({ budget, spent, progress, warningLabel }) => (
-            <HomeBudgetOverviewCard
-              key={budget.id}
-              budget={budget}
-              spent={spent}
-              progress={progress}
-              warningLabel={warningLabel}
-              onOpen={(id) => router.push(`/(drawer)/budget/${id}`)}
-              onEdit={navigateToBudgetEdit}
-              onPinToggle={handleBudgetPinToggle}
-              onDelete={handleBudgetDelete}
-              onCopyRemaining={(remaining, currency) => handleCopyAmount(remaining, currency)}
-              onResetPeriod={handleBudgetResetPeriod}
             />
           ))
         )}
