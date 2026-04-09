@@ -16,7 +16,7 @@ export const useEditTransaction = () => {
   const { budgets, getRemainingBudget, upsertItemFromTransaction, removeItemByTransactionId } =
     useBudgetStore();
   const { mutate } = useSyncMutation();
-  const { toastSuccess } = useToast();
+  const { toastError, toastSuccess } = useToast();
   const [loading, setLoading] = useState(false);
 
   const transaction = transactions.find((t) => t.id === transactionId);
@@ -52,13 +52,27 @@ export const useEditTransaction = () => {
     setLoading(true);
     try {
       const amountNum = parseFloat(data.amount);
+      if (!Number.isFinite(amountNum) || amountNum <= 0) {
+        throw new Error('Invalid amount');
+      }
+
       const finalAmount = data.isNegative ? -Math.abs(amountNum) : Math.abs(amountNum);
+      const nextBudgetId = data.budgetId || undefined;
+
+      if (nextBudgetId) {
+        const budgetExists = budgets.some(
+          (budget) => budget.id === nextBudgetId && !budget.deletedAt && !budget.archivedAt,
+        );
+        if (!budgetExists) {
+          throw new Error('Budget not found');
+        }
+      }
 
       const updatedTransaction = {
         ...transaction,
-        budgetId: data.budgetId || undefined,
+        budgetId: nextBudgetId,
         amount: finalAmount,
-        sign: data.isNegative ? 1 : -1,
+        sign: data.isNegative ? -1 : 1,
         title: data.description,
         synced: false,
         updatedAt: Date.now(),
@@ -68,28 +82,48 @@ export const useEditTransaction = () => {
       await mutate('transaction', 'update', updatedTransaction);
 
       const previousBudgetId = transaction.budgetId;
-      const nextBudgetId = updatedTransaction.budgetId;
+      const activeBudgetId = updatedTransaction.budgetId;
 
-      if (previousBudgetId && !nextBudgetId) {
+      if (previousBudgetId && !activeBudgetId) {
         const removedItem = removeItemByTransactionId(transaction.id);
         if (removedItem) {
           await mutate('budget_item', 'delete', removedItem);
           await mutate('budget', 'update', { id: previousBudgetId, source: 'transaction' });
         }
-      } else if (nextBudgetId) {
-        const linkedItem = upsertItemFromTransaction(updatedTransaction, nextBudgetId);
-        if (linkedItem) {
-          await mutate('budget_item', 'update', linkedItem);
-          await mutate('budget', 'update', { id: nextBudgetId, source: 'transaction' });
-          if (previousBudgetId && previousBudgetId !== nextBudgetId) {
+      } else if (activeBudgetId) {
+        const movedBetweenBudgets = previousBudgetId && previousBudgetId !== activeBudgetId;
+
+        if (movedBetweenBudgets) {
+          const removedItem = removeItemByTransactionId(transaction.id);
+          if (removedItem) {
+            await mutate('budget_item', 'delete', removedItem);
             await mutate('budget', 'update', { id: previousBudgetId, source: 'transaction_move' });
           }
         }
+
+        const linkedItem = upsertItemFromTransaction(updatedTransaction, activeBudgetId);
+        if (!linkedItem) {
+          throw new Error('Failed to update budget');
+        }
+
+        await mutate('budget_item', movedBetweenBudgets ? 'create' : 'update', linkedItem);
+        await mutate('budget', 'update', { id: activeBudgetId, source: 'transaction' });
       }
 
       toastSuccess('Transaction updated successfully');
 
       router.push(`/(drawer)/friend/${transaction.friendId}`);
+    } catch (error: any) {
+      const message = error?.message;
+      if (
+        message === 'Invalid amount' ||
+        message === 'Budget not found' ||
+        message === 'Failed to update budget'
+      ) {
+        toastError(message);
+      } else {
+        toastError('Failed to save transaction');
+      }
     } finally {
       setLoading(false);
     }

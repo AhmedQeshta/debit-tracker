@@ -37,7 +37,8 @@ export default function BudgetDetail() {
     setItemAmountError,
     handleAddItem,
     handleDeleteItem,
-    totalSpent,
+    rawNetSpent,
+    displayNetSpent,
     remaining,
     menuItems,
     menuVisible,
@@ -88,7 +89,8 @@ export default function BudgetDetail() {
     );
   }
 
-  const usageRatio = budget.totalBudget > 0 ? totalSpent / budget.totalBudget : 0;
+  // Display math clamps negative net spent to 0 so UI usage never appears negative.
+  const usageRatio = budget.totalBudget > 0 ? displayNetSpent / budget.totalBudget : 0;
   const usedPercentage = Math.max(0, Math.round(usageRatio * 100));
   const progressRatio = Math.max(0, Math.min(usageRatio, 1));
   const isOverspent = remaining < 0;
@@ -96,7 +98,7 @@ export default function BudgetDetail() {
   const progressColor = isOverspent ? Colors.error : isNearLimit ? WARNING_COLOR : Colors.primary;
   const spentColor = isOverspent ? Colors.error : Colors.text;
   const spendingCount = sortedItems.length;
-  const avgSpendPerItem = spendingCount > 0 ? totalSpent / spendingCount : 0;
+  const avgSpendPerItem = spendingCount > 0 ? rawNetSpent / spendingCount : 0;
   const lastUpdatedText =
     spendingCount > 0 ? getDayLabel(sortedItems[0].createdAt) : 'No spending yet';
   const getSignedAmountLabel = (amount: number, type?: 'expense' | 'income') => {
@@ -138,7 +140,7 @@ export default function BudgetDetail() {
             <Text style={styles.overviewMainLine}>
               <Text style={[styles.overviewMainValue, { color: spentColor }]}>Net spent </Text>
               <Text style={[styles.overviewMainValue, { color: spentColor }]}>
-                {formatCurrency(totalSpent, budget.currency)}
+                {formatCurrency(displayNetSpent, budget.currency)}
               </Text>
               <Text style={styles.overviewMainLineMuted}> of </Text>
               <Text style={styles.overviewMainValue}>

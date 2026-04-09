@@ -31,6 +31,9 @@ export default function EditTransaction() {
     );
   }
 
+  const activeBudget = budgets.find((budget) => budget.id === transaction.budgetId);
+  const activeBudgetRemaining = activeBudget ? getRemainingBudget(activeBudget.id) : null;
+
   return (
     <ScreenContainer>
       <Header
@@ -114,6 +117,15 @@ export default function EditTransaction() {
           </View>
         )}
       />
+
+      {activeBudget ? (
+        <View style={styles.linkedBudgetInfo}>
+          <Text style={styles.linkedBudgetTitle}>Linked budget: {activeBudget.title}</Text>
+          <Text style={styles.linkedBudgetRemaining}>
+            Remaining: {(activeBudget.currency || '$') + ' ' + activeBudgetRemaining?.toFixed(2)}
+          </Text>
+        </View>
+      ) : null}
 
       <Controller
         control={control}
@@ -212,5 +224,23 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 12,
     fontWeight: '600',
+  },
+  linkedBudgetInfo: {
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Spacing.borderRadius.md,
+    backgroundColor: Colors.surface,
+    padding: Spacing.sm,
+  },
+  linkedBudgetTitle: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  linkedBudgetRemaining: {
+    marginTop: 2,
+    color: Colors.textSecondary,
+    fontSize: 12,
   },
 });
