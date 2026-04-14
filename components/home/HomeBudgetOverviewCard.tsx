@@ -4,7 +4,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { HomeBudgetOverviewCardProps } from '@/types/budget';
 import { IMenuItem } from '@/types/common';
-import { CalendarDays, Copy, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
+import { CalendarDays, Copy, Download, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -17,6 +17,7 @@ export const HomeBudgetOverviewCard = ({
   onEdit,
   onPinToggle,
   onDelete,
+  onExportBudget,
   onCopyRemaining,
   onResetPeriod,
 }: HomeBudgetOverviewCardProps) => {
@@ -48,6 +49,11 @@ export const HomeBudgetOverviewCard = ({
         onPress: () => onResetPeriod(budget.id, budget.title),
       },
       {
+        icon: <Download size={18} color={Colors.text} />,
+        label: 'Export Budget',
+        onPress: () => onExportBudget?.(budget.id),
+      },
+      {
         icon: <Pencil size={18} color={Colors.text} />,
         label: 'Edit Budget',
         onPress: () => onEdit(budget.id),
@@ -59,7 +65,16 @@ export const HomeBudgetOverviewCard = ({
         danger: true,
       },
     ],
-    [budget, onResetPeriod, onCopyRemaining, onDelete, onEdit, onPinToggle, remaining],
+    [
+      budget,
+      onResetPeriod,
+      onExportBudget,
+      onCopyRemaining,
+      onDelete,
+      onEdit,
+      onPinToggle,
+      remaining,
+    ],
   );
 
   return (

@@ -7,10 +7,10 @@ import { useTransactionsStore } from '@/store/transactionsStore';
 import {
   BudgetExportRow,
   BudgetItemExportRow,
+  ExportAndSaveOptions,
   ExportDataBundle,
   ExportDetailLevel,
   ExportFileDescriptor,
-  ExportJsonPayload,
   ExportOptions,
   ExportResult,
   ExportScope,
@@ -19,11 +19,9 @@ import {
   FriendTransactionExportRow,
 } from '@/types/export';
 import { Budget } from '@/types/models';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
-import { toCsv, toJson } from './serializers';
-
-const EXPORT_DIRECTORY = `${FileSystem.cacheDirectory || FileSystem.documentDirectory || ''}exports/`;
+import { buildCsvExportFiles } from './formatters/csv';
+import { buildJsonExportFile } from './formatters/json';
+import { persistExportFiles, shareExportFiles } from './saveToDevice';
 
 const toIsoOrEmpty = (timestamp?: number): string => {
   if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) return '';
@@ -37,6 +35,8 @@ const getSyncStatus = (synced?: boolean): 'pending' | 'synced' => {
 const sanitizeScope = (scope: ExportScope): ExportScope => {
   const safeScope = {
     ...scope,
+    friends: !!scope.friends,
+    budgets: !!scope.budgets,
     includeBudgetItems: !!scope.includeBudgetItems,
     includeFriendTransactions: !!scope.includeFriendTransactions,
   };
@@ -63,10 +63,14 @@ const loadLocalDataBundle = (scope: ExportScope): ExportDataBundle => {
     : transactions;
 
   const friendIdSet = new Set(filteredFriends.map((friend) => friend.id));
-  const filteredBudgets =
+  let filteredBudgets =
     scope.friendId && scope.budgets
       ? budgets.filter((budget) => !budget.friendId || friendIdSet.has(budget.friendId))
       : budgets;
+
+  if (scope.budgetId) {
+    filteredBudgets = filteredBudgets.filter((budget) => budget.id === scope.budgetId);
+  }
 
   return {
     friends: filteredFriends,
@@ -96,10 +100,14 @@ const loadSupabaseDataBundle = async (
     : transactions;
 
   const friendIdSet = new Set(filteredFriends.map((friend) => friend.id));
-  const filteredBudgets =
+  let filteredBudgets =
     scope.friendId && scope.budgets
       ? budgets.filter((budget) => !budget.friendId || friendIdSet.has(budget.friendId))
       : budgets;
+
+  if (scope.budgetId) {
+    filteredBudgets = filteredBudgets.filter((budget) => budget.id === scope.budgetId);
+  }
 
   return {
     friends: filteredFriends,
@@ -304,146 +312,45 @@ export const fetchBudgetsForExport = (
   };
 };
 
-const ensureExportDirectory = async (): Promise<void> => {
-  if (!EXPORT_DIRECTORY) {
-    throw new Error('Export directory is not available on this device.');
-  }
-
-  const info = await FileSystem.getInfoAsync(EXPORT_DIRECTORY);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(EXPORT_DIRECTORY, { intermediates: true });
-  }
-};
-
-export const writeFile = async (
-  name: string,
-  content: string,
-  mimeType: string,
-): Promise<ExportFileDescriptor> => {
-  await ensureExportDirectory();
-  const uri = `${EXPORT_DIRECTORY}${name}`;
-
-  await FileSystem.writeAsStringAsync(uri, content, {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
-
-  return {
-    name,
-    uri,
-    mimeType,
-  };
-};
-
-export const writeFileAndShare = async (
-  files: ExportFileDescriptor[],
-): Promise<ExportFileDescriptor[]> => {
-  const sharingAvailable = await Sharing.isAvailableAsync();
-
-  if (!sharingAvailable) {
-    return files;
-  }
-
-  if (files.length === 1) {
-    await Sharing.shareAsync(files[0].uri, {
-      mimeType: files[0].mimeType,
-      dialogTitle: `Share ${files[0].name}`,
-      UTI: files[0].mimeType,
-    });
-    return files;
-  }
-
-  // Expo Sharing supports one URI at a time, so we share each file in sequence.
-  for (const file of files) {
-    await Sharing.shareAsync(file.uri, {
-      mimeType: file.mimeType,
-      dialogTitle: `Share ${file.name}`,
-      UTI: file.mimeType,
-    });
-  }
-
-  return files;
-};
-
-const buildJsonPayload = (
+const buildExportFiles = (
+  format: 'csv' | 'json',
   source: ExportSource,
-  friends: FriendExportRow[],
-  budgets: BudgetExportRow[],
-  friendTransactions: FriendTransactionExportRow[],
-  budgetItems: BudgetItemExportRow[],
   detailLevel: ExportDetailLevel,
-): ExportJsonPayload => {
-  const payload: ExportJsonPayload = {
-    exportedAt: new Date().toISOString(),
-    source,
-    friends,
-    budgets,
-  };
-
-  if (detailLevel === 'detailed' && friendTransactions.length > 0) {
-    payload.friendTransactions = friendTransactions;
-  }
-
-  if (detailLevel === 'detailed' && budgetItems.length > 0) {
-    payload.budgetItems = budgetItems;
-  }
-
-  return payload;
-};
-
-const buildCsvFiles = async (
   scope: ExportScope,
   friends: FriendExportRow[],
   budgets: BudgetExportRow[],
   friendTransactions: FriendTransactionExportRow[],
   budgetItems: BudgetItemExportRow[],
-): Promise<ExportFileDescriptor[]> => {
-  const files: ExportFileDescriptor[] = [];
-
-  if (scope.friends) {
-    files.push(await writeFile('friends.csv', toCsv(friends), 'text/csv'));
+  fileNamePrefix?: string,
+) => {
+  if (format === 'csv') {
+    return buildCsvExportFiles({
+      scope,
+      friends,
+      budgets,
+      friendTransactions,
+      budgetItems,
+    });
   }
 
-  if (scope.budgets) {
-    files.push(await writeFile('budgets.csv', toCsv(budgets), 'text/csv'));
-  }
-
-  if (scope.includeFriendTransactions && friendTransactions.length > 0) {
-    files.push(await writeFile('friend_transactions.csv', toCsv(friendTransactions), 'text/csv'));
-  }
-
-  if (scope.includeBudgetItems && budgetItems.length > 0) {
-    files.push(await writeFile('budget_items.csv', toCsv(budgetItems), 'text/csv'));
-  }
-
-  return files;
-};
-
-const buildJsonFile = async (
-  source: ExportSource,
-  detailLevel: ExportDetailLevel,
-  friends: FriendExportRow[],
-  budgets: BudgetExportRow[],
-  friendTransactions: FriendTransactionExportRow[],
-  budgetItems: BudgetItemExportRow[],
-): Promise<ExportFileDescriptor[]> => {
-  const payload = buildJsonPayload(
+  return buildJsonExportFile({
     source,
+    detailLevel,
     friends,
     budgets,
     friendTransactions,
     budgetItems,
-    detailLevel,
-  );
-
-  return [
-    await writeFile(`debit-tracker-export-${Date.now()}.json`, toJson(payload), 'application/json'),
-  ];
+    fileNamePrefix,
+  });
 };
 
-export const exportData = async (options: ExportOptions): Promise<ExportResult> => {
+export const exportAndSaveToDevice = async (
+  options: ExportAndSaveOptions,
+): Promise<ExportResult> => {
+  const detailLevel = options.detailLevel || 'summary';
   const scope = sanitizeScope(options.scope);
 
-  const includeDetailed = options.detailLevel === 'detailed';
+  const includeDetailed = detailLevel === 'detailed';
   const resolvedScope: ExportScope = {
     ...scope,
     includeBudgetItems: scope.budgets && includeDetailed && !!scope.includeBudgetItems,
@@ -464,36 +371,43 @@ export const exportData = async (options: ExportOptions): Promise<ExportResult> 
     !!resolvedScope.includeBudgetItems,
   );
 
-  let files: ExportFileDescriptor[] = [];
+  const preparedFiles = buildExportFiles(
+    options.format,
+    dataBundle.usedSource,
+    detailLevel,
+    resolvedScope,
+    friends,
+    budgets,
+    resolvedScope.includeFriendTransactions ? friendTransactions : [],
+    resolvedScope.includeBudgetItems ? budgetItems : [],
+    options.fileNamePrefix,
+  );
 
-  if (options.format === 'csv') {
-    files = await buildCsvFiles(
-      resolvedScope,
-      friends,
-      budgets,
-      resolvedScope.includeFriendTransactions ? friendTransactions : [],
-      resolvedScope.includeBudgetItems ? budgetItems : [],
-    );
-  } else {
-    files = await buildJsonFile(
-      dataBundle.usedSource,
-      options.detailLevel,
-      friends,
-      budgets,
-      resolvedScope.includeFriendTransactions ? friendTransactions : [],
-      resolvedScope.includeBudgetItems ? budgetItems : [],
-    );
-  }
-
-  if (files.length === 0) {
+  if (preparedFiles.length === 0) {
     throw new Error('No exportable data was found for your selection.');
   }
 
-  await writeFileAndShare(files);
+  const persistResult = await persistExportFiles(preparedFiles, {
+    deliveryMode: options.deliveryMode || 'save',
+  });
 
   return {
-    files,
-    warnings: dataBundle.warnings,
+    files: persistResult.files,
+    warnings: [...dataBundle.warnings, ...persistResult.warnings],
     usedSource: dataBundle.usedSource,
+    deliveryMode: persistResult.deliveryMode,
   };
+};
+
+export const exportData = async (options: ExportOptions): Promise<ExportResult> => {
+  return exportAndSaveToDevice({
+    ...options,
+    detailLevel: options.detailLevel,
+    deliveryMode: options.deliveryMode,
+    fileNamePrefix: options.fileNamePrefix,
+  });
+};
+
+export const shareSavedExportFiles = async (files: ExportFileDescriptor[]): Promise<void> => {
+  await shareExportFiles(files);
 };

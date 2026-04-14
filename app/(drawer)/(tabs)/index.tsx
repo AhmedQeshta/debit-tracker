@@ -1,4 +1,5 @@
 import { HomeBudgetOverviewCard } from '@/components/home/HomeBudgetOverviewCard';
+import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { HomeGetStartedCard } from '@/components/home/HomeGetStartedCard';
 import { HomeQuickActions } from '@/components/home/HomeQuickActions';
 import { HomeSectionHeader } from '@/components/home/HomeSectionHeader';
@@ -6,6 +7,7 @@ import { TransactionItem } from '@/components/transaction/TransactionItem';
 import { Button } from '@/components/ui/Button';
 import { EmptySection } from '@/components/ui/EmptySection';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useHome } from '@/hooks/useHome';
@@ -44,6 +46,21 @@ export default function Home() {
   } = useHome(summaryCurrency);
   const { openDrawer } = useDrawerContext();
   const { handleCopyAmount } = useCopyAmount();
+  const {
+    visible,
+    isExporting,
+    format,
+    setFormat,
+    includeBudgetItems,
+    setIncludeBudgetItems,
+    scopeMode,
+    setScopeMode,
+    canUseSelectedScope,
+    openBudgetExportModal,
+    closeBudgetExportModal,
+    exportBySaving,
+    exportBySharing,
+  } = useBudgetExport();
 
   const summaryStats = useMemo(() => {
     const activeFriends = allFriends.filter(
@@ -173,12 +190,28 @@ export default function Home() {
               onEdit={navigateToBudgetEdit}
               onPinToggle={handleBudgetPinToggle}
               onDelete={handleBudgetDelete}
+              onExportBudget={(id) => openBudgetExportModal({ budgetId: id })}
               onCopyRemaining={(remaining, currency) => handleCopyAmount(remaining, currency)}
               onResetPeriod={handleBudgetResetPeriod}
             />
           ))
         )}
       </View>
+
+      <BudgetExportModal
+        visible={visible}
+        loading={isExporting}
+        format={format}
+        onChangeFormat={setFormat}
+        includeBudgetItems={includeBudgetItems}
+        onChangeIncludeBudgetItems={setIncludeBudgetItems}
+        scopeMode={scopeMode}
+        onChangeScopeMode={setScopeMode}
+        canUseSelectedScope={canUseSelectedScope}
+        onClose={closeBudgetExportModal}
+        onSaveToDevice={exportBySaving}
+        onShare={exportBySharing}
+      />
 
       {isFreshState ? (
         <HomeGetStartedCard

@@ -5,7 +5,7 @@ import { Spacing } from '@/theme/spacing';
 import { IBudgetCardProps } from '@/types/budget';
 import { IMenuItem } from '@/types/common';
 import { useRouter } from 'expo-router';
-import { Copy, Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
+import { Copy, Download, Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -17,6 +17,7 @@ export const BudgetCard = ({
   getTotalSpent,
   getRemainingBudget,
   onCopyAmount,
+  onExportBudget,
 }: IBudgetCardProps) => {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -66,6 +67,11 @@ export const BudgetCard = ({
       icon: <RotateCcw size={18} color={Colors.text} />,
       label: 'Reset period',
       onPress: () => handleResetPeriod(item.id, item.title),
+    },
+    {
+      icon: <Download size={18} color={Colors.text} />,
+      label: 'Export budgets',
+      onPress: () => onExportBudget?.(item.id),
     },
     {
       icon: <Pencil size={18} color={Colors.text} />,

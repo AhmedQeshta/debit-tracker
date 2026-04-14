@@ -6,16 +6,25 @@ export type ExportDetailLevel = 'summary' | 'detailed';
 export type ExportSource = 'local' | 'supabase';
 
 export type ExportScope = {
-  friends: boolean;
-  budgets: boolean;
+  friends?: boolean;
+  budgets?: boolean;
   includeBudgetItems?: boolean;
   includeFriendTransactions?: boolean;
   friendId?: string;
+  budgetId?: string;
 };
+
+export type ExportDeliveryMode = 'save' | 'share';
 
 export type ExportFileDescriptor = {
   name: string;
   uri: string;
+  mimeType: string;
+};
+
+export type ExportFilePayload = {
+  name: string;
+  content: string;
   mimeType: string;
 };
 
@@ -26,12 +35,26 @@ export type ExportOptions = {
   source: ExportSource;
   cloudUserId?: string | null;
   getToken?: GetTokenFunction;
+  deliveryMode?: ExportDeliveryMode;
+  fileNamePrefix?: string;
+};
+
+export type ExportAndSaveOptions = {
+  format: ExportFormat;
+  scope: ExportScope;
+  source: ExportSource;
+  cloudUserId?: string | null;
+  getToken?: GetTokenFunction;
+  detailLevel?: ExportDetailLevel;
+  deliveryMode?: ExportDeliveryMode;
+  fileNamePrefix?: string;
 };
 
 export type ExportResult = {
   files: ExportFileDescriptor[];
   warnings: string[];
   usedSource: ExportSource;
+  deliveryMode: ExportDeliveryMode;
 };
 
 export type FriendExportRow = {
@@ -105,4 +128,53 @@ export type ExportDataBundle = {
   budgets: Budget[];
   warnings: string[];
   usedSource: ExportSource;
+};
+
+export type JsonBuildInput = {
+  source: ExportSource;
+  detailLevel: ExportDetailLevel;
+  friends: FriendExportRow[];
+  budgets: BudgetExportRow[];
+  friendTransactions: FriendTransactionExportRow[];
+  budgetItems: BudgetItemExportRow[];
+  fileNamePrefix?: string;
+};
+
+export type CsvBuildInput = {
+  scope: ExportScope;
+  friends: FriendExportRow[];
+  budgets: BudgetExportRow[];
+  friendTransactions: FriendTransactionExportRow[];
+  budgetItems: BudgetItemExportRow[];
+};
+
+export type PersistOptions = {
+  deliveryMode?: ExportDeliveryMode;
+};
+
+export type PersistResult = {
+  files: ExportFileDescriptor[];
+  warnings: string[];
+  deliveryMode: ExportDeliveryMode;
+};
+
+export type BudgetExportScopeMode = 'all' | 'selected';
+
+export type OpenBudgetExportModalOptions = {
+  budgetId?: string;
+};
+
+export type BudgetExportModalProps = {
+  visible: boolean;
+  format: ExportFormat;
+  onChangeFormat: (format: ExportFormat) => void;
+  includeBudgetItems: boolean;
+  onChangeIncludeBudgetItems: (value: boolean) => void;
+  scopeMode: 'all' | 'selected';
+  onChangeScopeMode: (scopeMode: 'all' | 'selected') => void;
+  canUseSelectedScope: boolean;
+  loading?: boolean;
+  onClose: () => void;
+  onSaveToDevice: () => void;
+  onShare: () => void;
 };

@@ -181,7 +181,7 @@ export default function Settings() {
           <SettingsRow
             icon={Download}
             title="Export data"
-            subtitle="Share friends and budgets as CSV or JSON"
+            subtitle="Save or share friends and budgets as CSV or JSON"
             onPress={() => router.push('/(drawer)/settings/export-data' as any)}
           />
           <SettingsRow icon={Info} title="Version" value={appVersion} showChevron={false} />

@@ -1,7 +1,9 @@
+import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { Actions } from '@/components/ui/Actions';
 import { Button } from '@/components/ui/Button';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
+import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
 import { formatCurrency, getDayLabel, getMonthLabel, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
@@ -12,6 +14,7 @@ import {
   ChevronUp,
   Circle,
   Copy,
+  Download,
   Pin,
   Trash2,
 } from 'lucide-react-native';
@@ -54,6 +57,22 @@ export default function BudgetDetail() {
     handleRetrySync,
   } = useBudgetDetail();
 
+  const {
+    visible,
+    isExporting,
+    format,
+    setFormat,
+    includeBudgetItems,
+    setIncludeBudgetItems,
+    scopeMode,
+    setScopeMode,
+    canUseSelectedScope,
+    openBudgetExportModal,
+    closeBudgetExportModal,
+    exportBySaving,
+    exportBySharing,
+  } = useBudgetExport();
+
   const displayedMenuItems = useMemo(() => {
     const items = [...menuItems];
     const destructiveIndex = items.findIndex((item) => item.danger);
@@ -67,16 +86,22 @@ export default function BudgetDetail() {
       label: 'Reset period',
       onPress: () => handleBudgetResetPeriod(budget!.id, budget!.title),
     };
+    const exportItem = {
+      icon: <Download size={18} color={Colors.text} />,
+      label: 'Export budgets',
+      onPress: () => openBudgetExportModal({ budgetId: budget!.id }),
+    };
 
     if (destructiveIndex >= 0) {
-      items.splice(destructiveIndex, 0, copyItem, periodItem);
+      items.splice(destructiveIndex, 0, copyItem, periodItem, exportItem);
       return items;
     }
 
     items.push(copyItem);
     items.push(periodItem);
+    items.push(exportItem);
     return items;
-  }, [budget, handleBudgetAmountCopy, handleBudgetResetPeriod, menuItems]);
+  }, [budget, handleBudgetAmountCopy, handleBudgetResetPeriod, menuItems, openBudgetExportModal]);
 
   if (!budget) {
     return (
@@ -443,6 +468,21 @@ export default function BudgetDetail() {
             </View>
           )}
         </View>
+
+        <BudgetExportModal
+          visible={visible}
+          loading={isExporting}
+          format={format}
+          onChangeFormat={setFormat}
+          includeBudgetItems={includeBudgetItems}
+          onChangeIncludeBudgetItems={setIncludeBudgetItems}
+          scopeMode={scopeMode}
+          onChangeScopeMode={setScopeMode}
+          canUseSelectedScope={canUseSelectedScope}
+          onClose={closeBudgetExportModal}
+          onSaveToDevice={exportBySaving}
+          onShare={exportBySharing}
+        />
       </ScreenContainer>
     </View>
   );

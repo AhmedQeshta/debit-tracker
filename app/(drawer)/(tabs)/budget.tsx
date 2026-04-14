@@ -1,7 +1,9 @@
 import { BudgetCard } from '@/components/budget/BudgetCard';
+import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { EmptySection } from '@/components/ui/EmptySection';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
 import { getNextSortKey, SORT_LABELS, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
@@ -35,6 +37,22 @@ export default function BudgetTab() {
     displayedBudgets,
     handleBudgetAmountCopy,
   } = useBudgetList();
+
+  const {
+    visible,
+    isExporting,
+    format,
+    setFormat,
+    includeBudgetItems,
+    setIncludeBudgetItems,
+    scopeMode,
+    setScopeMode,
+    canUseSelectedScope,
+    openBudgetExportModal,
+    closeBudgetExportModal,
+    exportBySaving,
+    exportBySharing,
+  } = useBudgetExport();
 
   return (
     <View style={styles.wrapper}>
@@ -125,6 +143,7 @@ export default function BudgetTab() {
                   getTotalSpent={getTotalSpent}
                   getRemainingBudget={getRemainingBudget}
                   onCopyAmount={handleBudgetAmountCopy}
+                  onExportBudget={(budgetId) => openBudgetExportModal({ budgetId })}
                 />
               );
             }}
@@ -148,6 +167,21 @@ export default function BudgetTab() {
         )}
 
         <NavigateTo navigatePath="/(drawer)/budget/new" />
+
+        <BudgetExportModal
+          visible={visible}
+          loading={isExporting}
+          format={format}
+          onChangeFormat={setFormat}
+          includeBudgetItems={includeBudgetItems}
+          onChangeIncludeBudgetItems={setIncludeBudgetItems}
+          scopeMode={scopeMode}
+          onChangeScopeMode={setScopeMode}
+          canUseSelectedScope={canUseSelectedScope}
+          onClose={closeBudgetExportModal}
+          onSaveToDevice={exportBySaving}
+          onShare={exportBySharing}
+        />
       </ScreenContainer>
     </View>
   );
