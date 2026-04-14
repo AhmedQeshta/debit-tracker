@@ -8,19 +8,23 @@ import { useSignOut } from '@/hooks/auth/useSignOut';
 import { useSettings } from '@/hooks/settings/useSettings';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import {
-  Cloud,
-  Download,
-  FileText,
-  Info,
-  LogOut,
-  Palette,
-  RefreshCw,
-  Shield,
-  Trash2,
-  User,
-} from 'lucide-react-native';
+import
+  {
+    Cloud,
+    Download,
+    FileText,
+    Info,
+    LogOut,
+    Palette,
+    RefreshCw,
+    Shield,
+    Trash2,
+    User,
+  } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+
+const SETTINGS_LOAD_TIMEOUT_MS = 10000;
 
 export default function Settings() {
   const {
@@ -43,29 +47,54 @@ export default function Settings() {
     router,
   } = useSettings();
 
-  const { handleAuthAction } = useSignOut();
+  const { handleAuthAction, isSigningOut } = useSignOut();
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
 
-  if (!isLoaded) {
-    return (
-      <View style={styles.wrapper}>
-        <ScreenContainer>
-          <Header openDrawer={openDrawer} title="Settings" subtitle="Account & app preferences" />
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Loading...</Text>
-          </View>
-        </ScreenContainer>
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (isLoaded) {
+      setLoadTimedOut(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setLoadTimedOut(true);
+    }, SETTINGS_LOAD_TIMEOUT_MS);
+
+    return () => clearTimeout(timeout);
+  }, [isLoaded]);
+
+  const showAuthSkeleton = !isLoaded && !loadTimedOut;
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
         <Header openDrawer={openDrawer} title="Settings" subtitle="Account & app preferences" />
 
+        {showAuthSkeleton ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={Colors.primary} />
+            <Text style={styles.loadingText}>Loading account...</Text>
+          </View>
+        ) : null}
+
+        {!isLoaded && loadTimedOut ? (
+          <View style={styles.warningContainer}>
+            <Text style={styles.warningText}>
+              Couldn&apos;t load account info. You can still use settings.
+            </Text>
+          </View>
+        ) : null}
+
         <SettingsSection title="Account">
-          {isSignedIn && user ? (
+          {showAuthSkeleton ? (
+            <View style={styles.placeholderRow}>
+              <View style={styles.placeholderAvatar} />
+              <View style={styles.placeholderTextWrap}>
+                <View style={styles.placeholderLineLarge} />
+                <View style={styles.placeholderLineSmall} />
+              </View>
+            </View>
+          ) : isSignedIn && user ? (
             <Pressable
               style={({ pressed }) => [styles.profileRow, pressed && styles.rowPressed]}
               onPress={() => router.push('/(drawer)/settings/account')}
@@ -121,8 +150,9 @@ export default function Settings() {
               <SettingsRow
                 icon={LogOut}
                 title="Sign out"
-                subtitle="Sign out from this device"
+                subtitle={isSigningOut ? 'Signing out...' : 'Sign out from this device'}
                 onPress={handleAuthAction}
+                disabled={isSigningOut}
                 destructive
                 showChevron={false}
                 showDivider={false}
@@ -234,15 +264,60 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingVertical: Spacing.xl * 2,
+    paddingVertical: Spacing.md,
   },
   loadingText: {
-    marginTop: Spacing.md,
-    fontSize: 16,
+    marginTop: Spacing.xs,
+    fontSize: 13,
     color: Colors.textSecondary,
+  },
+  warningContainer: {
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  warningText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  placeholderRow: {
+    minHeight: 64,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  placeholderAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: Spacing.borderRadius.round,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  placeholderTextWrap: {
+    flex: 1,
+    marginLeft: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  placeholderLineLarge: {
+    width: '65%',
+    height: 12,
+    borderRadius: Spacing.borderRadius.sm,
+    backgroundColor: Colors.surface,
+  },
+  placeholderLineSmall: {
+    width: '45%',
+    height: 10,
+    borderRadius: Spacing.borderRadius.sm,
+    backgroundColor: Colors.surface,
   },
   profileRow: {
     minHeight: 64,

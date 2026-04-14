@@ -11,13 +11,14 @@ export const SettingsRow: FC<SettingsRowProps> = ({
   subtitle,
   value,
   onPress,
+  disabled = false,
   destructive = false,
   showChevron,
   showDivider = true,
   rightSlot,
   accessibilityLabel,
 }) => {
-  const isPressable = Boolean(onPress);
+  const isPressable = Boolean(onPress) && !disabled;
 
   return (
     <Pressable
@@ -25,7 +26,11 @@ export const SettingsRow: FC<SettingsRowProps> = ({
       disabled={!isPressable}
       accessibilityRole={isPressable ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel || title}
-      style={({ pressed }) => [styles.row, pressed && isPressable && styles.rowPressed]}>
+      style={({ pressed }) => [
+        styles.row,
+        !isPressable && styles.rowDisabled,
+        pressed && isPressable && styles.rowPressed,
+      ]}>
       <View style={styles.leftGroup}>
         <View style={[styles.iconWrap, destructive && styles.iconWrapDestructive]}>
           <Icon size={18} color={destructive ? Colors.error : Colors.primary} />
@@ -58,6 +63,9 @@ const styles = StyleSheet.create({
   },
   rowPressed: {
     backgroundColor: Colors.surface,
+  },
+  rowDisabled: {
+    opacity: 0.55,
   },
   leftGroup: {
     flexDirection: 'row',

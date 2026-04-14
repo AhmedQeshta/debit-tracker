@@ -9,6 +9,7 @@ import { useAccount } from '@/hooks/settings/useAccount';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ArrowLeft, LogOut, Mail, Shield, Trash2, User as UserIcon } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import {
   ActivityIndicator,
@@ -19,6 +20,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+const ACCOUNT_LOAD_TIMEOUT_MS = 10000;
 
 export default function AccountManagement() {
   const {
@@ -49,12 +52,26 @@ export default function AccountManagement() {
     setVerificationCode,
     setEmailError,
   } = useAccount();
-  const { handleAuthAction } = useSignOut();
+  const { handleAuthAction, isSigningOut } = useSignOut();
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded) {
+      setLoadTimedOut(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setLoadTimedOut(true);
+    }, ACCOUNT_LOAD_TIMEOUT_MS);
+
+    return () => clearTimeout(timeout);
+  }, [isLoaded]);
 
   const accountMenuItems = [
     {
       icon: <LogOut size={18} color={Colors.text} />,
-      label: 'Sign out',
+      label: isSigningOut ? 'Signing out...' : 'Sign out',
       onPress: handleAuthAction,
     },
     {
@@ -65,12 +82,31 @@ export default function AccountManagement() {
     },
   ];
 
-  if (!isLoaded) {
+  if (!isLoaded && !loadTimedOut) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
+      <ScreenContainer>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading account...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (!isLoaded && loadTimedOut) {
+    return (
+      <ScreenContainer>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Couldn&apos;t load account info. Please check your connection and try again.
+          </Text>
+          <Button
+            title="Back to Settings"
+            onPress={() => router.push('/(drawer)/(tabs)/settings')}
+            variant="primary"
+          />
+        </View>
+      </ScreenContainer>
     );
   }
 
@@ -301,7 +337,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
   },
   loadingText: {
     marginTop: Spacing.md,

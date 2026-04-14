@@ -1,15 +1,58 @@
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { useBudgetStore } from '@/store/budgetStore';
+import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
+import { useTransactionsStore } from '@/store/transactionsStore';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
+
+const SIGN_OUT_TIMEOUT_MS = 10000;
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, message: string) => {
+  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
+  }
+};
 
 export const useSignOut = (closeDrawer?: () => void) => {
   const { isSignedIn, signOut } = useAuth();
   const { showConfirm } = useConfirmDialog();
-  const { toastError } = useToast();
+  const { toastError, toastSuccess } = useToast();
+  const isSigningOut = useSyncStore((state) => state.isSigningOut);
   const router = useRouter();
+
+  const clearLocalSessionData = () => {
+    const syncState = useSyncStore.getState();
+
+    // Stop sync work and clear in-memory user data to avoid stale state after logout.
+    syncState.setSyncEnabled(false);
+    syncState.setSyncing(false);
+    syncState.setIsSyncRunning(false);
+    syncState.setCloudUserId(null);
+    syncState.setSyncStatus(null);
+    syncState.clearQueue();
+
+    useFriendsStore.getState().setFriends([]);
+    useTransactionsStore.getState().setTransactions([]);
+    useBudgetStore.getState().setBudgets([]);
+  };
+
   const handleAuthAction = () => {
+    if (isSigningOut) {
+      return;
+    }
+
     if (!isSignedIn) {
       router.push('/(auth)/sign-in');
       return;
@@ -19,30 +62,29 @@ export const useSignOut = (closeDrawer?: () => void) => {
       'Sign Out',
       'Are you sure you want to sign out?',
       async () => {
+        const syncState = useSyncStore.getState();
+        if (syncState.isSigningOut) {
+          return;
+        }
+
+        syncState.setIsSigningOut(true);
+
         try {
-          const syncState = useSyncStore.getState();
-          syncState.setIsSigningOut(true);
+          await withTimeout(
+            signOut(),
+            SIGN_OUT_TIMEOUT_MS,
+            'Sign out timed out. Please try again.',
+          );
 
-          // Disable sync first to avoid race conditions during logout
-          syncState.setSyncEnabled(false);
-          syncState.setSyncing(false);
-          syncState.setIsSyncRunning(false);
-          syncState.setCloudUserId(null);
-          syncState.setSyncStatus(null);
+          clearLocalSessionData();
+          toastSuccess('Signed out');
 
-          // Sign out from Clerk
-          await signOut();
-
-          // Navigate to login - use replace to prevent going back
-          router.push('/(auth)/sign-in');
+          // Use replace to avoid returning to authed screens with back navigation.
+          router.replace('/(auth)/sign-in');
           closeDrawer && closeDrawer();
         } catch (error: any) {
           console.error('Sign out error:', error);
-          const errorMessage =
-            error?.errors?.[0]?.message ||
-            error?.message ||
-            'Failed to sign out. Please try again.';
-          toastError(errorMessage);
+          toastError('Sign out failed. Try again.');
         } finally {
           useSyncStore.getState().setIsSigningOut(false);
         }
@@ -53,5 +95,6 @@ export const useSignOut = (closeDrawer?: () => void) => {
 
   return {
     handleAuthAction,
+    isSigningOut,
   };
 };

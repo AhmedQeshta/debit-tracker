@@ -255,6 +255,7 @@ export interface SettingsRowProps {
   subtitle?: string;
   value?: string;
   onPress?: () => void;
+  disabled?: boolean;
   destructive?: boolean;
   showChevron?: boolean;
   showDivider?: boolean;
