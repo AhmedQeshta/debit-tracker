@@ -134,6 +134,54 @@ export const useCloudSync = () => {
     }
   }, [userId, isOnline, isLoaded, isSignedIn, getToken, setSyncing]);
 
+  const syncQueueNow = useCallback(
+    async (options?: {
+      onProgress?: (processed: number, total: number, itemId: string) => void;
+    }) => {
+      if (!useSyncStore.getState().syncEnabled) {
+        return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' as const };
+      }
+
+      const { isSyncRunning, isSyncing, cloudUserId } = useSyncStore.getState();
+      if (
+        isSyncRunning ||
+        isSyncing ||
+        !cloudUserId ||
+        !userId ||
+        !isOnline ||
+        !isLoaded ||
+        !isSignedIn
+      ) {
+        return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'offline' as const };
+      }
+
+      setSyncing(true);
+      useSyncStore.getState().setIsSyncRunning(true);
+      useSyncStore.getState().setSyncStatus('pushing');
+
+      try {
+        const summary = await syncService.syncQueueFlush(cloudUserId, userId, getToken, options);
+        if (summary.failedCount === 0 && !summary.blockedReason) {
+          useSyncStore.getState().setSyncStatus('success');
+          useSyncStore.getState().setLastError(null);
+        } else {
+          useSyncStore.getState().setSyncStatus('error');
+          useSyncStore.getState().setLastError({
+            message: summary.blockedReason
+              ? `Sync blocked: ${summary.blockedReason}`
+              : 'Some changes failed to sync',
+            at: Date.now(),
+          });
+        }
+        return summary;
+      } finally {
+        setSyncing(false);
+        useSyncStore.getState().setIsSyncRunning(false);
+      }
+    },
+    [getToken, isLoaded, isOnline, isSignedIn, setSyncing, userId],
+  );
+
   const hasPendingChanges = selectPendingCount() > 0;
 
   return {
@@ -147,5 +195,6 @@ export const useCloudSync = () => {
     isLoggedIn: !!isSignedIn,
     isNewDevice: isNewDevice(),
     pullAllDataForNewDevice,
+    syncQueueNow,
   };
 };

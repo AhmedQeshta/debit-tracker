@@ -33,6 +33,22 @@ export interface SyncQueueItem {
   id: string;
   type: 'friend' | 'transaction' | 'budget' | 'budget_item' | 'settle_friend';
   action: 'create' | 'update' | 'delete' | 'settle';
+  operation?:
+    | 'FRIEND_UPSERT'
+    | 'TX_UPSERT'
+    | 'TX_DELETE'
+    | 'BUDGET_UPSERT'
+    | 'BUDGET_ITEM_UPSERT'
+    | 'BUDGET_ITEM_DELETE'
+    | 'BUDGET_RECALC'
+    | 'SETTLE_FRIEND';
+  ownerId?: string | null;
+  userId?: string | null;
+  entityId?: string;
+  createdAt?: number;
+  attempts?: number;
+  lastError?: string;
+  status?: 'pending' | 'failed';
   payload: any;
 }
 

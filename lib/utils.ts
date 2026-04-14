@@ -209,6 +209,9 @@ export const getFriendName = (friends: Friend[], id: string) =>
 
 export const getProgressText = (pullProgress: string | any) => {
   if (!pullProgress) return 'Downloading your data...';
+  if (typeof pullProgress === 'string' && pullProgress.startsWith('syncing ')) {
+    return `Syncing ${pullProgress.replace('syncing ', '')}...`;
+  }
   switch (pullProgress) {
     case 'friends':
       return 'Downloading friends...';

@@ -151,7 +151,9 @@ export const SyncStatus = () => {
                 </View>
 
                 <View style={styles.details}>
-                  <Text style={styles.detailText}>Pending: {pendingCount}</Text>
+                  <Text style={styles.detailText}>
+                    {pendingCount === 0 ? 'All changes synced' : `${pendingCount} changes pending`}
+                  </Text>
                   {lastSync && (
                     <Text style={styles.detailText}>
                       Last Sync: {new Date(lastSync).toLocaleTimeString()}

@@ -13,6 +13,15 @@ import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { Budget, BudgetItem, Friend, Transaction } from '@/types/models';
 
+type QueueBlockedReason = 'offline' | 'auth' | 'unknown';
+
+export interface SyncQueueFlushSummary {
+  total: number;
+  successCount: number;
+  failedCount: number;
+  blockedReason?: QueueBlockedReason;
+}
+
 // Timeout wrapper for Supabase queries (15 seconds)
 const SYNC_TIMEOUT_MS = 15000;
 
@@ -35,6 +44,105 @@ const normalizeCurrency = (currency: unknown): string => {
 };
 
 export const syncService = {
+  syncQueueFlush: async (
+    cloudUserId: string,
+    clerkUserId: string,
+    getToken: GetTokenFunction,
+    options?: { onProgress?: (processed: number, total: number, itemId: string) => void },
+  ): Promise<SyncQueueFlushSummary> => {
+    const { syncEnabled, queue } = useSyncStore.getState();
+
+    if (!syncEnabled) {
+      return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' };
+    }
+
+    const sortedQueue = [...queue].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const total = sortedQueue.length;
+
+    if (total === 0) {
+      try {
+        await syncService.pushChanges(getToken, clerkUserId);
+        return { total: 0, successCount: 0, failedCount: 0 };
+      } catch {
+        return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' };
+      }
+    }
+
+    let successCount = 0;
+    let failedCount = 0;
+    let blockedReason: QueueBlockedReason | undefined;
+
+    for (let i = 0; i < sortedQueue.length; i++) {
+      const item = sortedQueue[i];
+      options?.onProgress?.(i + 1, total, item.id);
+
+      try {
+        if (item.operation === 'BUDGET_RECALC' && item.entityId) {
+          const rpcResult = await retryOnceOnJwtExpired(
+            async () =>
+              await supabase.rpc('recompute_budget_totals', {
+                p_budget_id: item.entityId,
+                p_user_id: clerkUserId,
+              }),
+            getToken,
+          );
+
+          if (rpcResult.error) {
+            throw rpcResult.error;
+          }
+        } else if (item.operation === 'SETTLE_FRIEND') {
+          const friendId = item.payload?.friendId;
+          if (!friendId) {
+            useSyncStore.getState().removeFromQueue(item.id);
+            continue;
+          }
+
+          const result = await retryOnceOnJwtExpired(
+            async () =>
+              await supabase
+                .from('transactions')
+                .delete()
+                .eq('owner_id', cloudUserId)
+                .eq('friend_id', friendId),
+            getToken,
+          );
+
+          if (result.error) {
+            throw result.error;
+          }
+        } else {
+          // Existing pushChanges already handles FK-safe ordering and local synced flags.
+          await syncService.pushChanges(getToken, clerkUserId);
+        }
+
+        useSyncStore.getState().removeFromQueue(item.id);
+        successCount += 1;
+      } catch (error: any) {
+        failedCount += 1;
+        const message = error?.message || 'Unknown queue sync error';
+
+        useSyncStore.getState().updateQueueItem(item.id, {
+          attempts: (item.attempts || 0) + 1,
+          lastError: message,
+          status: 'failed',
+        });
+
+        if (isJwtExpiredError(error)) {
+          useSyncStore.getState().setSyncStatus('needs_login');
+          blockedReason = 'auth';
+          break;
+        }
+
+        if (/network|offline|timeout/i.test(message)) {
+          blockedReason = 'offline';
+          break;
+        }
+      }
+    }
+
+    return { total, successCount, failedCount, blockedReason };
+  },
+
   pushChanges: async (getToken: GetTokenFunction, clerkUserId: string) => {
     // Sync gating: if sync is disabled, don't write to Supabase
     if (

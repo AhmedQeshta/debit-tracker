@@ -8,6 +8,21 @@ export const useSyncMutation = () => {
   const { syncEnabled, addToQueue } = useSyncStore();
   const { isSignedIn, getToken, userId } = useAuth();
 
+  const createQueueId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+  const mapOperation = (
+    type: SyncQueueItem['type'],
+    action: SyncQueueItem['action'],
+  ): SyncQueueItem['operation'] => {
+    if (type === 'friend') return 'FRIEND_UPSERT';
+    if (type === 'budget') return 'BUDGET_UPSERT';
+    if (type === 'settle_friend') return 'SETTLE_FRIEND';
+    if (type === 'budget_item') {
+      return action === 'delete' ? 'BUDGET_ITEM_DELETE' : 'BUDGET_ITEM_UPSERT';
+    }
+    return action === 'delete' ? 'TX_DELETE' : 'TX_UPSERT';
+  };
+
   const mutate = async (
     type: SyncQueueItem['type'],
     action: SyncQueueItem['action'],
@@ -16,8 +31,20 @@ export const useSyncMutation = () => {
     // If sync is disabled, do nothing (local changes already applied by caller)
     if (!syncEnabled) return;
 
-    // Add to queue first (persisted) - kept for backward compatibility
-    addToQueue({ id: payload.id, type, action, payload });
+    // Add to queue first (persisted) with metadata for crash recovery and retries.
+    addToQueue({
+      id: createQueueId(),
+      type,
+      action,
+      operation: mapOperation(type, action),
+      userId,
+      ownerId: useSyncStore.getState().cloudUserId,
+      entityId: payload?.id,
+      createdAt: Date.now(),
+      attempts: 0,
+      status: 'pending',
+      payload,
+    });
 
     // Check environment
     const state = await NetInfo.fetch();
@@ -37,11 +64,18 @@ export const useSyncMutation = () => {
     if (!syncEnabled) return;
 
     const createdAt = Date.now();
-    const queueId = `settle_${friendId}_${createdAt}`;
+    const queueId = `settle_${friendId}_${createdAt}_${Math.random().toString(36).slice(2, 8)}`;
     addToQueue({
       id: queueId,
       type: 'settle_friend',
       action: 'settle',
+      operation: 'SETTLE_FRIEND',
+      ownerId: useSyncStore.getState().cloudUserId,
+      userId,
+      entityId: friendId,
+      createdAt,
+      attempts: 0,
+      status: 'pending',
       payload: { friendId, createdAt },
     });
 
