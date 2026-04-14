@@ -21,13 +21,18 @@ import * as Clipboard from 'expo-clipboard';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
+const normalizeCurrency = (currency: unknown): string => {
+  if (typeof currency !== 'string') return '$';
+  const trimmed = currency.trim();
+  return trimmed.length > 0 ? trimmed : '$';
+};
+
 export const useFriendsList = () => {
   const [search, setSearch] = useState('');
   const [isGrid, setIsGrid] = useState(false);
   const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
   const [filterBy, setFilterBy] = useState<FriendsFilterBy>('all');
   const [showControls, setShowControls] = useState(true);
-  const [isLoading] = useState(false);
 
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
@@ -40,11 +45,26 @@ export const useFriendsList = () => {
   const { syncNow, isOnline } = useCloudSync();
   const { handleSettleUp } = useSettle();
   const { getToken } = useAuth();
+  const { syncEnabled, isSyncRunning, syncStatus, deviceSyncState } = useSyncStore(
+    useShallow((state) => ({
+      syncEnabled: state.syncEnabled,
+      isSyncRunning: state.isSyncRunning,
+      syncStatus: state.syncStatus,
+      deviceSyncState: state.deviceSyncState,
+    })),
+  );
 
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
   );
+
+  const isLoading =
+    friends.length === 0 &&
+    syncEnabled &&
+    isOnline &&
+    !deviceSyncState.hasHydratedFromCloud &&
+    (isSyncRunning || syncStatus === 'pulling' || syncStatus === null || syncStatus === 'checking');
 
   const getFriendBalance = useMemo(
     () => (friendId: string) => getBalance(friendId, transactions),
@@ -64,7 +84,7 @@ export const useFriendsList = () => {
         return {
           friend,
           balance,
-          amountText: `${friend.currency || '$'}${Math.abs(balance).toFixed(2)}`,
+          amountText: `${normalizeCurrency(friend.currency)}${Math.abs(balance).toFixed(2)}`,
           directionLabel,
           status,
           subtitle:
@@ -90,7 +110,9 @@ export const useFriendsList = () => {
   }, [friends, transactions, search, filterBy, sortBy]);
 
   const summary = useMemo(() => {
-    const activeFriends = friends.filter((friend) => (friend.currency || '$') === summaryCurrency);
+    const activeFriends = friends.filter(
+      (friend) => normalizeCurrency(friend.currency) === summaryCurrency,
+    );
     const balances = activeFriends.map((friend) => getBalance(friend.id, transactions));
 
     const youOweTotal = balances

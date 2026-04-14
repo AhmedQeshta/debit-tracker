@@ -5,6 +5,7 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useAuth } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 const SIGN_OUT_TIMEOUT_MS = 10000;
@@ -32,7 +33,7 @@ export const useSignOut = (closeDrawer?: () => void) => {
   const isSigningOut = useSyncStore((state) => state.isSigningOut);
   const router = useRouter();
 
-  const clearLocalSessionData = () => {
+  const clearLocalSessionData = async () => {
     const syncState = useSyncStore.getState();
 
     // Stop sync work and clear in-memory user data to avoid stale state after logout.
@@ -46,6 +47,9 @@ export const useSignOut = (closeDrawer?: () => void) => {
     useFriendsStore.getState().setFriends([]);
     useTransactionsStore.getState().setTransactions([]);
     useBudgetStore.getState().setBudgets([]);
+
+    // Ensure persisted friend cache is removed so next login hydrates fresh cloud values.
+    await AsyncStorage.removeItem('friends-storage');
   };
 
   const handleAuthAction = () => {
@@ -76,7 +80,7 @@ export const useSignOut = (closeDrawer?: () => void) => {
             'Sign out timed out. Please try again.',
           );
 
-          clearLocalSessionData();
+          await clearLocalSessionData();
           toastSuccess('Signed out');
 
           // Use replace to avoid returning to authed screens with back navigation.

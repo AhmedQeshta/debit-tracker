@@ -1,12 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { getBudgetItemType } from '@/lib/utils';
-import
-  {
-    GetTokenFunction,
-    getFreshSupabaseJwt,
-    isJwtExpiredError,
-    retryOnceOnJwtExpired,
-  } from '@/services/authSync';
+import {
+  GetTokenFunction,
+  getFreshSupabaseJwt,
+  isJwtExpiredError,
+  retryOnceOnJwtExpired,
+} from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -27,6 +26,12 @@ const withTimeout = <T>(promise: Promise<T>, ms: number = SYNC_TIMEOUT_MS): Prom
       ),
     ),
   ]);
+};
+
+const normalizeCurrency = (currency: unknown): string => {
+  if (typeof currency !== 'string') return '$';
+  const trimmed = currency.trim();
+  return trimmed.length > 0 ? trimmed : '$';
 };
 
 export const syncService = {
@@ -350,7 +355,11 @@ export const syncService = {
 
     // 1. Pull Friends (filtered by owner_id)
     const { data: friends, error: friendsError } = await executePull(
-      async () => await supabase.from('friends').select('*').eq('owner_id', cloudUserId),
+      async () =>
+        await supabase
+          .from('friends')
+          .select('id, owner_id, user_id, name, bio, currency, created_at, updated_at')
+          .eq('owner_id', cloudUserId),
     );
     if (friends && !friendsError) {
       // Map DB format to local format
@@ -360,12 +369,16 @@ export const syncService = {
         email: undefined, // Friends don't have email in new schema
         bio: f.bio || '',
         imageUri: null, // Not in new schema
-        currency: f.currency || '$', // Read from database, default to '$' if not present
+        currency: normalizeCurrency(f.currency),
         createdAt: safeDateToTimestamp(f.created_at),
         updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
         synced: true,
         pinned: false, // Not in new schema
       }));
+      console.warn(
+        '[Sync] Pulled friends with currency:',
+        mappedFriends.map((friend) => ({ id: friend.id, currency: friend.currency })),
+      );
       useFriendsStore.getState().mergeFriends(mappedFriends as Friend[]);
     } else if (friendsError) {
       console.error('[Sync] Error pulling friends:', friendsError);
@@ -614,7 +627,7 @@ export const syncService = {
         async () =>
           await supabase
             .from('friends')
-            .select('id, owner_id, user_id, name, bio, created_at, updated_at')
+            .select('id, owner_id, user_id, name, bio, currency, created_at, updated_at')
             .eq('owner_id', cloudUserId),
       );
 
@@ -633,12 +646,16 @@ export const syncService = {
           email: undefined,
           bio: f.bio || '',
           imageUri: null,
-          currency: '$',
+          currency: normalizeCurrency(f.currency),
           createdAt: safeDateToTimestamp(f.created_at),
           updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
           synced: true,
           pinned: false,
         }));
+        console.warn(
+          '[Sync] Pulled friends for hydration:',
+          result.friends.map((friend) => ({ id: friend.id, currency: friend.currency })),
+        );
         result.counts.friends = result.friends.length;
       }
 
@@ -786,7 +803,7 @@ const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) => {
     user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
     name: f.name,
     bio: f.bio || null,
-    currency: f.currency || '$',
+    currency: normalizeCurrency(f.currency),
     created_at: safeTimestampToISO(f.createdAt),
     updated_at: new Date().toISOString(),
   };
