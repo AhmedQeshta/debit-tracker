@@ -8,23 +8,19 @@ import { useSignOut } from '@/hooks/auth/useSignOut';
 import { useSettings } from '@/hooks/settings/useSettings';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import
-  {
-    Cloud,
-    Download,
-    FileText,
-    Info,
-    LogOut,
-    Palette,
-    RefreshCw,
-    Shield,
-    Trash2,
-    User,
-  } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import {
+  Cloud,
+  Download,
+  FileText,
+  Info,
+  LogOut,
+  Palette,
+  RefreshCw,
+  Shield,
+  Trash2,
+  User,
+} from 'lucide-react-native';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
-
-const SETTINGS_LOAD_TIMEOUT_MS = 10000;
 
 export default function Settings() {
   const {
@@ -45,25 +41,10 @@ export default function Settings() {
     lastError,
     handleSync,
     router,
+    loadTimedOut,
+    showAuthSkeleton,
   } = useSettings();
-
   const { handleAuthAction, isSigningOut } = useSignOut();
-  const [loadTimedOut, setLoadTimedOut] = useState(false);
-
-  useEffect(() => {
-    if (isLoaded) {
-      setLoadTimedOut(false);
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      setLoadTimedOut(true);
-    }, SETTINGS_LOAD_TIMEOUT_MS);
-
-    return () => clearTimeout(timeout);
-  }, [isLoaded]);
-
-  const showAuthSkeleton = !isLoaded && !loadTimedOut;
 
   return (
     <View style={styles.wrapper}>

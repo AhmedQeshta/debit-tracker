@@ -1,5 +1,5 @@
-import { HomeBudgetOverviewCard } from '@/components/home/HomeBudgetOverviewCard';
 import { BudgetExportModal } from '@/components/export/BudgetExportModal';
+import { HomeBudgetOverviewCard } from '@/components/home/HomeBudgetOverviewCard';
 import { HomeGetStartedCard } from '@/components/home/HomeGetStartedCard';
 import { HomeQuickActions } from '@/components/home/HomeQuickActions';
 import { HomeSectionHeader } from '@/components/home/HomeSectionHeader';
@@ -12,7 +12,7 @@ import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useHome } from '@/hooks/useHome';
 import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
-import { formatAbsoluteCurrency, formatCurrency, getBalance } from '@/lib/utils';
+import { formatAbsoluteCurrency, formatCurrency } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
@@ -25,8 +25,6 @@ export default function Home() {
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
   const {
-    allFriends,
-    allTransactions,
     settleUpPeople,
     recentTransactions,
     budgetsOverview,
@@ -43,6 +41,7 @@ export default function Home() {
     handleSettleUp,
     isSettlingFriend,
     canSettleFriend,
+    summaryStats,
   } = useHome(summaryCurrency);
   const { openDrawer } = useDrawerContext();
   const { handleCopyAmount } = useCopyAmount();
@@ -61,32 +60,6 @@ export default function Home() {
     exportBySaving,
     exportBySharing,
   } = useBudgetExport();
-
-  const summaryStats = useMemo(() => {
-    const activeFriends = allFriends.filter(
-      (friend) => (friend.currency || '$') === summaryCurrency,
-    );
-    const balances = activeFriends.map((friend) => getBalance(friend.id, allTransactions));
-
-    const youOweTotal = balances
-      .filter((value) => value < 0)
-      .reduce((total, value) => total + Math.abs(value), 0);
-
-    const owedToYouTotal = balances
-      .filter((value) => value > 0)
-      .reduce((total, value) => total + value, 0);
-
-    const settledCount = balances.filter((value) => value === 0).length;
-    const netBalance = balances.reduce((total, value) => total + value, 0);
-
-    return {
-      totalFriends: activeFriends.length,
-      youOweTotal,
-      owedToYouTotal,
-      settledCount,
-      netBalance,
-    };
-  }, [allFriends, allTransactions, summaryCurrency]);
 
   const netTone = useMemo(() => {
     if (summaryStats.netBalance > 0) return styles.positive;

@@ -1,6 +1,6 @@
 import { Budget, Friend } from '@/types/models';
 import { LucideIcon } from 'lucide-react-native';
-import { ReactNode } from 'react';
+import { ReactNode, RefObject } from 'react';
 import { NativeSyntheticEvent, TextInput, TextInputSubmitEditingEventData } from 'react-native';
 
 export interface IActionCardProps {
@@ -30,7 +30,10 @@ export interface IInputProps {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   secureTextEntry?: boolean;
   onBlur?: () => void;
+  onFocus?: () => void;
   maxLength?: number;
+  rightAccessory?: ReactNode;
+  inputRef?: RefObject<TextInput | null>;
 }
 
 export interface IScreenContainerProps {
@@ -306,3 +309,13 @@ export interface SelectChipProps {
   active: boolean;
   onPress: () => void;
 }
+
+export interface CalculatorModalProps {
+  visible: boolean;
+  initialValue?: string;
+  onClose: () => void;
+  onConfirm: (result: number) => void;
+}
+
+export type CalcSuccess = { ok: true; value: number };
+export type CalcFailure = { ok: false; error: string };

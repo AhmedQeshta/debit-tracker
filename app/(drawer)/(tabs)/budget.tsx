@@ -1,4 +1,5 @@
 import { BudgetCard } from '@/components/budget/BudgetCard';
+import { RenderBudgetSkeleton } from '@/components/budget/RenderBudgetSkeleton';
 import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { EmptySection } from '@/components/ui/EmptySection';
 import NavigateTo from '@/components/ui/NavigateTo';
@@ -10,14 +11,6 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Menu, SlidersHorizontal } from 'lucide-react-native';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const renderBudgetSkeleton = () => (
-  <View style={styles.skeletonList}>
-    {Array.from({ length: 6 }).map((_, index) => (
-      <View key={`budget-skeleton-${index}`} style={styles.skeletonRow} />
-    ))}
-  </View>
-);
 
 export default function BudgetTab() {
   const {
@@ -128,7 +121,7 @@ export default function BudgetTab() {
         </View>
 
         {!hydrated ? (
-          renderBudgetSkeleton()
+          <RenderBudgetSkeleton />
         ) : (
           <FlatList
             data={displayedBudgets}

@@ -2,7 +2,6 @@ import { FilteredFriends } from '@/components/friend/FilteredFriends';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useFriendsList } from '@/hooks/useFriendsList';
 import { FILTER_OPTIONS, formatCurrency, SORT_OPTIONS } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
@@ -43,8 +42,9 @@ export default function FriendsList() {
     showControls,
     setShowControls,
     listData,
+    handleFriendAmountCopy,
   } = useFriendsList();
-  const { handleCopyAmount } = useCopyAmount();
+
   const { openDrawer } = useDrawerContext();
 
   const router = useRouter();
@@ -54,16 +54,6 @@ export default function FriendsList() {
     if (summary.netBalance < 0) return styles.negative;
     return styles.neutral;
   }, [summary.netBalance]);
-
-  const handleFriendAmountCopy = async (friendId: string) => {
-    const row = friendRows.find((friendRow) => friendRow.friend.id === friendId);
-    if (!row) return;
-
-    await handleCopyAmount(Math.abs(row.balance), row.friend.currency || '$', {
-      successMessage: `Copied ${row.amountText} to clipboard`,
-      errorMessage: 'Failed to copy amount',
-    });
-  };
 
   return (
     <View style={styles.wrapper}>

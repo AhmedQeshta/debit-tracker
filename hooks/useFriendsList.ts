@@ -1,6 +1,7 @@
 import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { useToast } from '@/hooks/useToast';
@@ -17,7 +18,6 @@ import {
   IFriendListRow,
 } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
-import * as Clipboard from 'expo-clipboard';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -41,7 +41,7 @@ export const useFriendsList = () => {
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
   const { showConfirm } = useConfirmDialog();
-  const { toastSuccess, toastError } = useToast();
+  const { toastSuccess } = useToast();
   const { syncNow, isOnline } = useCloudSync();
   const { handleSettleUp } = useSettle();
   const { getToken } = useAuth();
@@ -53,6 +53,8 @@ export const useFriendsList = () => {
       deviceSyncState: state.deviceSyncState,
     })),
   );
+
+  const { handleCopyAmount } = useCopyAmount();
 
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
@@ -233,19 +235,14 @@ export const useFriendsList = () => {
     return friendRows as FriendsListItem[];
   }, [isLoading, isGrid, friendRows]);
 
-  const handleCopyAmount = async (friendId: string) => {
-    const friend = friendRows.find((row) => row.friend.id === friendId);
-    if (!friend) return;
+  const handleFriendAmountCopy = async (friendId: string) => {
+    const row = friendRows.find((friendRow) => friendRow.friend.id === friendId);
+    if (!row) return;
 
-    const amount = friend.amountText;
-
-    try {
-      await Clipboard.setStringAsync(amount);
-      toastSuccess(`Copied ${amount} to clipboard`);
-    } catch (error) {
-      console.error('Failed to copy amount: ', error);
-      toastError('Failed to copy amount');
-    }
+    await handleCopyAmount(Math.abs(row.balance), row.friend.currency || '$', {
+      successMessage: `Copied ${row.amountText} to clipboard`,
+      errorMessage: 'Failed to copy amount',
+    });
   };
 
   return {
@@ -264,7 +261,7 @@ export const useFriendsList = () => {
     handleFriendEdit,
     handleFriendDelete,
     getFriendBalance,
-    handleCopyAmount,
+    handleFriendAmountCopy,
     handleSettle: (friendId: string) => handleSettleUp(friendId),
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,

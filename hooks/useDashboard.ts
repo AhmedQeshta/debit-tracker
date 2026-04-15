@@ -1,10 +1,9 @@
 import { selectDashboardStats, selectPendingCount } from '@/lib/dashboardSelectors';
-import { getBalance } from '@/lib/utils';
+import { getBalance, RANGE_OPTIONS } from '@/lib/utils';
 import { subscribeToNetwork } from '@/services/net';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { Budget, Friend } from '@/types/models';
-import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type DashboardRange = 'week' | 'month' | 'all';
@@ -24,7 +23,6 @@ type BudgetSnapshot = {
 export const useDashboard = (summaryCurrency: string) => {
   const [isOnline, setIsOnline] = useState(true);
   const [selectedRange, setSelectedRange] = useState<DashboardRange>('month');
-  const router = useRouter();
 
   // Use selectors for all stats - single source of truth
   const stats = selectDashboardStats();
@@ -184,9 +182,26 @@ export const useDashboard = (summaryCurrency: string) => {
     unpinBudget(budgetId);
   };
 
+  const insightItems: { label: string; value: string; emphasize?: boolean }[] = [
+    { label: 'Total friends', value: String(stats.friends.length) },
+    { label: 'Pending syncs', value: String(pendingCount), emphasize: pendingCount > 0 },
+  ];
+
+  const handleRangeChipPress = () => {
+    const currentIndex = RANGE_OPTIONS.findIndex((range) => range.key === selectedRange);
+    const nextIndex = currentIndex === RANGE_OPTIONS.length - 1 ? 0 : currentIndex + 1;
+    setSelectedRange(RANGE_OPTIONS[nextIndex].key);
+  };
+
+  if (activeBudgets.length > 0) {
+    insightItems.push({
+      label: 'Budgets near limit',
+      value: String(budgetsNearLimit),
+      emphasize: budgetsNearLimit > 0,
+    });
+  }
+
   return {
-    friends: stats.friends,
-    queueSize: pendingCount,
     isOnline,
     globalDebit: stats.totalDebit,
     totalPaidBack: stats.totalPaidBack,
@@ -200,7 +215,6 @@ export const useDashboard = (summaryCurrency: string) => {
     rangeLabel,
     peopleYouOwe,
     peopleWhoOweYou,
-    budgetsNearLimit,
     budgetSnapshot,
     activeBudgetCount: activeBudgets.length,
     isFreshState,
@@ -213,6 +227,7 @@ export const useDashboard = (summaryCurrency: string) => {
     getBudgetRemaining,
     handleUnpin,
     handleUnpinBudget,
-    router,
+    handleRangeChipPress,
+    insightItems,
   };
 };

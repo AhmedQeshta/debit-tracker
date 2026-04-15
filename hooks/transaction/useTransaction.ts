@@ -219,6 +219,8 @@ export const useTransaction = () => {
     );
   };
 
+  const hasData = groupedSections.length > 0;
+
   return {
     openDrawer,
     deleteTransaction,
@@ -245,5 +247,6 @@ export const useTransaction = () => {
     summaryCurrency,
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,
+    hasData,
   };
 };

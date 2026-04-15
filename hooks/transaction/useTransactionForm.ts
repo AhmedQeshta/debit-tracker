@@ -7,11 +7,17 @@ import { useTransactionsStore } from '@/store/transactionsStore';
 import { Transaction } from '@/types/models';
 import { ITransactionFormData } from '@/types/transaction';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { TextInput } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useTransactionForm = () => {
+  const [loading, setLoading] = useState(false);
+  const amountInputRef = useRef<TextInput>(null);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calculatorInitialValue, setCalculatorInitialValue] = useState('');
+
   const { friendId: initialFriendId } = useLocalSearchParams<{ friendId: string }>();
   const friends = useFriendsStore(useShallow((state) => state.friends));
   const budgets = useBudgetStore(
@@ -24,7 +30,6 @@ export const useTransactionForm = () => {
   const { mutate } = useSyncMutation();
   const { toastError, toastSuccess } = useToast();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -181,5 +186,10 @@ export const useTransactionForm = () => {
     selectedFriend,
     setValue,
     loading,
+    amountInputRef,
+    showCalculator,
+    setShowCalculator,
+    calculatorInitialValue,
+    setCalculatorInitialValue,
   };
 };
