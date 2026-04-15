@@ -16,37 +16,48 @@ export const Input = ({
   autoCapitalize,
   secureTextEntry,
   onBlur,
+  onFocus,
   maxLength,
+  rightAccessory,
+  inputRef,
 }: IInputProps) => {
   const [isFocused, setIsFocused] = React.useState(false);
 
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TextInput
+      <View
         style={[
-          styles.input,
+          styles.inputWrap,
           isFocused ? styles.inputFocused : {},
           error ? styles.inputError : {},
           multiline ? styles.multilineInput : {},
-        ]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={Colors.textSecondary}
-        keyboardType={keyboardType}
-        multiline={!!multiline}
-        autoCapitalize={autoCapitalize}
-        secureTextEntry={secureTextEntry}
-        onBlur={() => {
-          setIsFocused(false);
-          onBlur?.();
-        }}
-        onFocus={() => setIsFocused(true)}
-        editable={true}
-        selectTextOnFocus={false}
-        maxLength={maxLength}
-      />
+        ]}>
+        <TextInput
+          ref={inputRef}
+          style={[styles.input, multiline ? styles.multilineInputInner : {}]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={Colors.textSecondary}
+          keyboardType={keyboardType}
+          multiline={!!multiline}
+          autoCapitalize={autoCapitalize}
+          secureTextEntry={secureTextEntry}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
+          onFocus={() => {
+            setIsFocused(true);
+            onFocus?.();
+          }}
+          editable={true}
+          selectTextOnFocus={false}
+          maxLength={maxLength}
+        />
+        {rightAccessory ? <View style={styles.rightAccessory}>{rightAccessory}</View> : null}
+      </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {!error && helperText ? <Text style={styles.helperText}>{helperText}</Text> : null}
     </View>
@@ -63,26 +74,38 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  input: {
+  inputWrap: {
     backgroundColor: Colors.input,
-    color: Colors.text,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 14,
     borderRadius: Spacing.borderRadius.lg,
-    fontSize: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  input: {
+    color: Colors.text,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 14,
+    fontSize: 16,
+    flex: 1,
   },
   inputFocused: {
     borderColor: Colors.primary,
   },
   multilineInput: {
     minHeight: 100,
+    alignItems: 'flex-start',
+  },
+  multilineInputInner: {
     textAlignVertical: 'top',
   },
   inputError: {
     borderColor: Colors.error,
+  },
+  rightAccessory: {
+    paddingRight: Spacing.sm,
+    paddingLeft: Spacing.xs,
   },
   errorText: {
     color: Colors.error,

@@ -1,4 +1,5 @@
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { getTotalUnsyncedCount, getUnsyncedCounts } from '@/lib/dashboardSelectors';
 import { setSupabaseAccessTokenGetter } from '@/lib/supabase';
 import { getFreshSupabaseJwt } from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
@@ -7,7 +8,17 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useAuth, useUser } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
+import { Alert } from 'react-native';
+
+const USER_DATA_STORAGE_KEYS = [
+  'friends-storage',
+  'transactions-storage',
+  'budget-storage',
+  'sync-storage',
+];
 
 /**
  * Singleton component that handles all global sync side effects.
@@ -17,10 +28,18 @@ import { useCallback, useEffect, useRef } from 'react';
  * - Triggers auto-sync when conditions are met
  */
 export const SyncInitializer = () => {
-  const { syncEnabled, setSyncEnabled, syncNow, pullAllDataForNewDevice, isNewDevice, isOnline } =
-    useCloudSync();
+  const {
+    syncEnabled,
+    setSyncEnabled,
+    syncNow,
+    syncQueueNow,
+    pullAllDataForNewDevice,
+    isNewDevice,
+    isOnline,
+  } = useCloudSync();
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
+  const router = useRouter();
   const cloudUserId = useSyncStore((state) => state.cloudUserId);
   const isSigningOut = useSyncStore((state) => state.isSigningOut);
 
@@ -33,15 +52,25 @@ export const SyncInitializer = () => {
   const syncAutoEnabledRef = useRef(false);
   const wasOnlineRef = useRef(false);
   const deferredPullPendingRef = useRef(false);
+  const recoveryPromptShownRef = useRef(false);
+  const recoveryAutoSyncRef = useRef(false);
 
   // Helper to clear all local data
   const clearAllLocalData = useCallback(() => {
     useFriendsStore.getState().setFriends([]);
     useTransactionsStore.getState().setTransactions([]);
     useBudgetStore.getState().setBudgets([]);
+    useSyncStore.getState().clearQueue();
+    useSyncStore.getState().setLastError(null);
+    useSyncStore.getState().setSyncStatus(null);
     useSyncStore.getState().setHasHydratedFromCloud(false);
     useSyncStore.getState().setLastPullAt(null);
   }, []);
+
+  const discardLocalUnsyncedData = useCallback(async () => {
+    clearAllLocalData();
+    await AsyncStorage.multiRemove(USER_DATA_STORAGE_KEYS);
+  }, [clearAllLocalData]);
 
   // Detect user switching and clear local data
   useEffect(() => {
@@ -64,7 +93,11 @@ export const SyncInitializer = () => {
     if (previousUserId !== null && currentUserId === null) {
       useSyncStore.getState().setCloudUserId(null);
       useSyncStore.getState().setSyncStatus(null);
-      clearAllLocalData();
+      const unsynced = getTotalUnsyncedCount(getUnsyncedCounts());
+      // Preserve unsynced data for crash/logout recovery when needed.
+      if (unsynced === 0) {
+        clearAllLocalData();
+      }
       lastAutoSyncRef.current = { userId: null, syncEnabled: false };
       syncAutoEnabledRef.current = false;
       deferredPullPendingRef.current = false;
@@ -72,6 +105,73 @@ export const SyncInitializer = () => {
 
     previousUserIdRef.current = currentUserId;
   }, [isLoaded, userId, clearAllLocalData]);
+
+  // Recovery UX for pending unsynced data when session is missing.
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const totalUnsynced = getTotalUnsyncedCount(getUnsyncedCounts());
+
+    if (isSignedIn) {
+      recoveryPromptShownRef.current = false;
+      return;
+    }
+
+    if (totalUnsynced <= 0 || recoveryPromptShownRef.current) {
+      return;
+    }
+
+    recoveryPromptShownRef.current = true;
+
+    Alert.alert(
+      'Unsynced changes found',
+      `We found ${totalUnsynced} changes not saved to the cloud. Sign in to sync them.`,
+      [
+        {
+          text: 'Discard changes',
+          style: 'destructive',
+          onPress: () => {
+            void discardLocalUnsyncedData();
+          },
+        },
+        {
+          text: 'Sign in & Sync',
+          onPress: () => {
+            router.push('/(auth)/sign-in');
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  }, [discardLocalUnsyncedData, isLoaded, isSignedIn, router]);
+
+  // Auto recover queued changes for valid sessions.
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !syncEnabled || !isOnline || !cloudUserId || isSigningOut) {
+      recoveryAutoSyncRef.current = false;
+      return;
+    }
+
+    const totalUnsynced = getTotalUnsyncedCount(getUnsyncedCounts());
+    if (totalUnsynced <= 0 || recoveryAutoSyncRef.current) {
+      return;
+    }
+
+    recoveryAutoSyncRef.current = true;
+    useSyncStore.getState().setSyncStatus('pulling');
+    useSyncStore.getState().setPullProgress('syncing 0 of 0');
+
+    void syncQueueNow({
+      onProgress: (processed, total) => {
+        useSyncStore.getState().setPullProgress(`syncing ${processed} of ${total}`);
+      },
+    }).finally(() => {
+      useSyncStore.getState().setPullProgress(undefined);
+      if (useSyncStore.getState().syncStatus === 'pulling') {
+        useSyncStore.getState().setSyncStatus(null);
+      }
+    });
+  }, [cloudUserId, isLoaded, isOnline, isSignedIn, isSigningOut, syncEnabled, syncQueueNow]);
 
   // Enable sync by default when online + logged in
   useEffect(() => {

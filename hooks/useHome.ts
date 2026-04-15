@@ -270,9 +270,33 @@ export const useHome = (summaryCurrency: string) => {
     );
   };
 
+  const summaryStats = useMemo(() => {
+    const activeFriends = allFriends.filter(
+      (friend) => (friend.currency || '$') === summaryCurrency,
+    );
+    const balances = activeFriends.map((friend) => getBalance(friend.id, allTransactions));
+
+    const youOweTotal = balances
+      .filter((value) => value < 0)
+      .reduce((total, value) => total + Math.abs(value), 0);
+
+    const owedToYouTotal = balances
+      .filter((value) => value > 0)
+      .reduce((total, value) => total + value, 0);
+
+    const settledCount = balances.filter((value) => value === 0).length;
+    const netBalance = balances.reduce((total, value) => total + value, 0);
+
+    return {
+      totalFriends: activeFriends.length,
+      youOweTotal,
+      owedToYouTotal,
+      settledCount,
+      netBalance,
+    };
+  }, [allFriends, allTransactions, summaryCurrency]);
+
   return {
-    allFriends: activeFriends,
-    allTransactions,
     allBudgets: activeBudgets,
     summary,
     settleUpPeople,
@@ -299,5 +323,6 @@ export const useHome = (summaryCurrency: string) => {
     handleSettleUp,
     isSettlingFriend,
     canSettleFriend,
+    summaryStats,
   };
 };

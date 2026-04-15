@@ -25,6 +25,7 @@ export const useEditTransaction = () => {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<IEditTransactionFormData>({
     defaultValues: {
@@ -138,5 +139,6 @@ export const useEditTransaction = () => {
     budgets: budgets.filter((budget) => !budget.archivedAt && !budget.deletedAt),
     getRemainingBudget,
     router,
+    setValue,
   };
 };

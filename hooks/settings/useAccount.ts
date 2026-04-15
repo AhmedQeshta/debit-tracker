@@ -4,12 +4,29 @@ import { useSyncStore } from '@/store/syncStore';
 import { AccountFormData } from '@/types/common';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 type EmailStep = 'email' | 'verify';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ASYNC_TIMEOUT_MS = 10000;
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, message: string) => {
+  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
+  }
+};
 
 export const useAccount = () => {
   const { user, isLoaded } = useUser();
@@ -27,6 +44,13 @@ export const useAccount = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [emailError, setEmailError] = useState('');
   const [pendingEmailId, setPendingEmailId] = useState('');
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const {
     control,
@@ -45,6 +69,8 @@ export const useAccount = () => {
 
   useEffect(() => {
     if (!user || !isLoaded) return;
+    if (!isMountedRef.current) return;
+
     reset({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -73,10 +99,16 @@ export const useAccount = () => {
 
     setLoading(true);
     try {
-      await user.update({
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-      });
+      await withTimeout(
+        user.update({
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+        }),
+        ASYNC_TIMEOUT_MS,
+        'Saving profile timed out. Please try again.',
+      );
+
+      if (!isMountedRef.current) return;
 
       reset({
         firstName: data.firstName.trim(),
@@ -87,9 +119,17 @@ export const useAccount = () => {
       toastSuccess('Saved');
     } catch (error: any) {
       console.error('Failed to update name:', error);
-      toastError(error?.errors?.[0]?.message || 'Failed to update name. Please try again.');
+      if (isMountedRef.current) {
+        toastError(
+          error?.errors?.[0]?.message ||
+            error?.message ||
+            'Failed to update name. Please try again.',
+        );
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -103,7 +143,6 @@ export const useAccount = () => {
   };
 
   const closeEmailModal = () => {
-    if (emailLoading) return;
     setShowEmailModal(false);
     setEmailStep('email');
     setVerificationCode('');
@@ -137,17 +176,33 @@ export const useAccount = () => {
     setEmailError('');
 
     try {
-      const createdEmail = await user.createEmailAddress({ email: candidateEmail });
-      await createdEmail.prepareVerification({ strategy: 'email_code' });
+      const createdEmail = await withTimeout(
+        user.createEmailAddress({ email: candidateEmail }),
+        ASYNC_TIMEOUT_MS,
+        'Creating email verification timed out. Please try again.',
+      );
+      await withTimeout(
+        createdEmail.prepareVerification({ strategy: 'email_code' }),
+        ASYNC_TIMEOUT_MS,
+        'Sending verification code timed out. Please try again.',
+      );
+
+      if (!isMountedRef.current) return;
 
       setPendingEmailId(createdEmail.id);
       setEmailStep('verify');
       toastInfo("We'll send a code to confirm your email.");
     } catch (error: any) {
       console.error('Failed to create new email:', error);
-      setEmailError(error?.errors?.[0]?.message || 'Failed to send verification code.');
+      if (isMountedRef.current) {
+        setEmailError(
+          error?.errors?.[0]?.message || error?.message || 'Failed to send verification code.',
+        );
+      }
     } finally {
-      setEmailLoading(false);
+      if (isMountedRef.current) {
+        setEmailLoading(false);
+      }
     }
   };
 
@@ -176,13 +231,28 @@ export const useAccount = () => {
         throw new Error('Could not find pending email address. Please try again.');
       }
 
-      await pendingAddress.attemptVerification({ code });
+      await withTimeout(
+        pendingAddress.attemptVerification({ code }),
+        ASYNC_TIMEOUT_MS,
+        'Email verification timed out. Please try again.',
+      );
 
       if (typeof (pendingAddress as any).setAsPrimary === 'function') {
-        await (pendingAddress as any).setAsPrimary();
+        await withTimeout(
+          (pendingAddress as any).setAsPrimary(),
+          ASYNC_TIMEOUT_MS,
+          'Setting primary email timed out. Please try again.',
+        );
       }
 
-      await user.reload();
+      await withTimeout(
+        user.reload(),
+        ASYNC_TIMEOUT_MS,
+        'Refreshing account timed out. Please try again.',
+      );
+
+      if (!isMountedRef.current) return;
+
       reset({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -193,9 +263,13 @@ export const useAccount = () => {
       closeEmailModal();
     } catch (error: any) {
       console.error('Failed to verify email:', error);
-      setEmailError(error?.errors?.[0]?.message || error?.message || 'Invalid or expired code.');
+      if (isMountedRef.current) {
+        setEmailError(error?.errors?.[0]?.message || error?.message || 'Invalid or expired code.');
+      }
     } finally {
-      setEmailLoading(false);
+      if (isMountedRef.current) {
+        setEmailLoading(false);
+      }
     }
   };
 
@@ -216,13 +290,24 @@ export const useAccount = () => {
         throw new Error('Could not find pending email address.');
       }
 
-      await pendingAddress.prepareVerification({ strategy: 'email_code' });
+      await withTimeout(
+        pendingAddress.prepareVerification({ strategy: 'email_code' }),
+        ASYNC_TIMEOUT_MS,
+        'Resending verification code timed out. Please try again.',
+      );
+
+      if (!isMountedRef.current) return;
+
       toastInfo('A new verification code has been sent.');
     } catch (error: any) {
       console.error('Failed to resend verification code:', error);
-      setEmailError(error?.errors?.[0]?.message || error?.message || 'Failed to resend code.');
+      if (isMountedRef.current) {
+        setEmailError(error?.errors?.[0]?.message || error?.message || 'Failed to resend code.');
+      }
     } finally {
-      setEmailLoading(false);
+      if (isMountedRef.current) {
+        setEmailLoading(false);
+      }
     }
   };
 
@@ -233,6 +318,8 @@ export const useAccount = () => {
       'Delete account',
       'This will permanently delete your account and all associated data. This action cannot be undone.',
       async () => {
+        if (!isMountedRef.current) return;
+
         setDeleteLoading(true);
         try {
           const syncState = useSyncStore.getState();
@@ -243,16 +330,30 @@ export const useAccount = () => {
           syncState.setCloudUserId(null);
           syncState.setSyncStatus(null);
 
-          await user.delete();
-          await signOut();
+          await withTimeout(
+            user.delete(),
+            ASYNC_TIMEOUT_MS,
+            'Delete account timed out. Please try again.',
+          );
+          await withTimeout(signOut(), ASYNC_TIMEOUT_MS, 'Sign out timed out. Please try again.');
+
+          if (!isMountedRef.current) return;
 
           toastSuccess('Account deleted');
-          router.push('/(auth)/sign-in');
+          router.replace('/(auth)/sign-in');
         } catch (error: any) {
           console.error('Delete account failed:', error);
-          toastError(error?.errors?.[0]?.message || 'Failed to delete account. Please try again.');
+          if (isMountedRef.current) {
+            toastError(
+              error?.errors?.[0]?.message ||
+                error?.message ||
+                'Failed to delete account. Please try again.',
+            );
+          }
         } finally {
-          setDeleteLoading(false);
+          if (isMountedRef.current) {
+            setDeleteLoading(false);
+          }
           useSyncStore.getState().setIsSigningOut(false);
         }
       },

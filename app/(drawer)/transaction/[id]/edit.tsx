@@ -1,13 +1,17 @@
+import { CalculatorModal } from '@/components/calculator/CalculatorModal';
 import { Button } from '@/components/ui/Button';
 import { EmptySection } from '@/components/ui/EmptySection';
 import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useEditTransaction } from '@/hooks/transaction/useEditTransaction';
+import { formatResult } from '@/lib/calc';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { Calculator } from 'lucide-react-native';
+import { useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditTransaction() {
   const {
@@ -19,7 +23,11 @@ export default function EditTransaction() {
     router,
     budgets,
     getRemainingBudget,
+    setValue,
   } = useEditTransaction();
+  const amountInputRef = useRef<TextInput>(null);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calculatorInitialValue, setCalculatorInitialValue] = useState('');
 
   if (!transaction) {
     return (
@@ -74,9 +82,32 @@ export default function EditTransaction() {
             onChangeText={onChange}
             keyboardType="numeric"
             error={errors.amount?.message}
+            inputRef={amountInputRef}
+            rightAccessory={
+              <TouchableOpacity
+                onPress={() => {
+                  setCalculatorInitialValue(value || '');
+                  setShowCalculator(true);
+                }}
+                style={styles.calcButton}
+                accessibilityRole="button"
+                accessibilityLabel="Open calculator">
+                <Calculator size={18} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            }
           />
         )}
         name="amount"
+      />
+
+      <CalculatorModal
+        visible={showCalculator}
+        initialValue={calculatorInitialValue}
+        onClose={() => setShowCalculator(false)}
+        onConfirm={(result) => {
+          setValue('amount', formatResult(result), { shouldValidate: true });
+          requestAnimationFrame(() => amountInputRef.current?.focus());
+        }}
       />
 
       <Text style={styles.label}>Budget (Optional)</Text>
@@ -242,5 +273,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
     color: Colors.textSecondary,
     fontSize: 12,
+  },
+  calcButton: {
+    width: 36,
+    height: 36,
+    borderRadius: Spacing.borderRadius.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
   },
 });

@@ -11,7 +11,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) => {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const { handleAuthAction } = useSignOut(closeDrawer);
+  const { handleAuthAction, isSigningOut } = useSignOut(closeDrawer);
 
   return (
     <View style={[styles.drawerContent, { paddingTop: insets.top }]}>
@@ -50,7 +50,11 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
                 {user?.emailAddresses[0].emailAddress}
               </Text>
             </View>
-            <TouchableOpacity onPress={handleAuthAction} style={styles.logoutButton}>
+            <TouchableOpacity
+              onPress={handleAuthAction}
+              style={styles.logoutButton}
+              disabled={isSigningOut}
+              activeOpacity={isSigningOut ? 1 : 0.7}>
               <LogOut size={20} color={Colors.error} />
             </TouchableOpacity>
           </View>

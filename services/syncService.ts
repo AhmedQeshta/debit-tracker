@@ -1,18 +1,26 @@
 import { supabase } from '@/lib/supabase';
 import { getBudgetItemType } from '@/lib/utils';
-import
-  {
-    GetTokenFunction,
-    getFreshSupabaseJwt,
-    isJwtExpiredError,
-    retryOnceOnJwtExpired,
-  } from '@/services/authSync';
+import {
+  GetTokenFunction,
+  getFreshSupabaseJwt,
+  isJwtExpiredError,
+  retryOnceOnJwtExpired,
+} from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { Budget, BudgetItem, Friend, Transaction } from '@/types/models';
+
+type QueueBlockedReason = 'offline' | 'auth' | 'unknown';
+
+export interface SyncQueueFlushSummary {
+  total: number;
+  successCount: number;
+  failedCount: number;
+  blockedReason?: QueueBlockedReason;
+}
 
 // Timeout wrapper for Supabase queries (15 seconds)
 const SYNC_TIMEOUT_MS = 15000;
@@ -29,7 +37,112 @@ const withTimeout = <T>(promise: Promise<T>, ms: number = SYNC_TIMEOUT_MS): Prom
   ]);
 };
 
+const normalizeCurrency = (currency: unknown): string => {
+  if (typeof currency !== 'string') return '$';
+  const trimmed = currency.trim();
+  return trimmed.length > 0 ? trimmed : '$';
+};
+
 export const syncService = {
+  syncQueueFlush: async (
+    cloudUserId: string,
+    clerkUserId: string,
+    getToken: GetTokenFunction,
+    options?: { onProgress?: (processed: number, total: number, itemId: string) => void },
+  ): Promise<SyncQueueFlushSummary> => {
+    const { syncEnabled, queue } = useSyncStore.getState();
+
+    if (!syncEnabled) {
+      return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' };
+    }
+
+    const sortedQueue = [...queue].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const total = sortedQueue.length;
+
+    if (total === 0) {
+      try {
+        await syncService.pushChanges(getToken, clerkUserId);
+        return { total: 0, successCount: 0, failedCount: 0 };
+      } catch {
+        return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' };
+      }
+    }
+
+    let successCount = 0;
+    let failedCount = 0;
+    let blockedReason: QueueBlockedReason | undefined;
+
+    for (let i = 0; i < sortedQueue.length; i++) {
+      const item = sortedQueue[i];
+      options?.onProgress?.(i + 1, total, item.id);
+
+      try {
+        if (item.operation === 'BUDGET_RECALC' && item.entityId) {
+          const rpcResult = await retryOnceOnJwtExpired(
+            async () =>
+              await supabase.rpc('recompute_budget_totals', {
+                p_budget_id: item.entityId,
+                p_user_id: clerkUserId,
+              }),
+            getToken,
+          );
+
+          if (rpcResult.error) {
+            throw rpcResult.error;
+          }
+        } else if (item.operation === 'SETTLE_FRIEND') {
+          const friendId = item.payload?.friendId;
+          if (!friendId) {
+            useSyncStore.getState().removeFromQueue(item.id);
+            continue;
+          }
+
+          const result = await retryOnceOnJwtExpired(
+            async () =>
+              await supabase
+                .from('transactions')
+                .delete()
+                .eq('owner_id', cloudUserId)
+                .eq('friend_id', friendId),
+            getToken,
+          );
+
+          if (result.error) {
+            throw result.error;
+          }
+        } else {
+          // Existing pushChanges already handles FK-safe ordering and local synced flags.
+          await syncService.pushChanges(getToken, clerkUserId);
+        }
+
+        useSyncStore.getState().removeFromQueue(item.id);
+        successCount += 1;
+      } catch (error: any) {
+        failedCount += 1;
+        const message = error?.message || 'Unknown queue sync error';
+
+        useSyncStore.getState().updateQueueItem(item.id, {
+          attempts: (item.attempts || 0) + 1,
+          lastError: message,
+          status: 'failed',
+        });
+
+        if (isJwtExpiredError(error)) {
+          useSyncStore.getState().setSyncStatus('needs_login');
+          blockedReason = 'auth';
+          break;
+        }
+
+        if (/network|offline|timeout/i.test(message)) {
+          blockedReason = 'offline';
+          break;
+        }
+      }
+    }
+
+    return { total, successCount, failedCount, blockedReason };
+  },
+
   pushChanges: async (getToken: GetTokenFunction, clerkUserId: string) => {
     // Sync gating: if sync is disabled, don't write to Supabase
     if (
@@ -350,7 +463,11 @@ export const syncService = {
 
     // 1. Pull Friends (filtered by owner_id)
     const { data: friends, error: friendsError } = await executePull(
-      async () => await supabase.from('friends').select('*').eq('owner_id', cloudUserId),
+      async () =>
+        await supabase
+          .from('friends')
+          .select('id, owner_id, user_id, name, bio, currency, created_at, updated_at')
+          .eq('owner_id', cloudUserId),
     );
     if (friends && !friendsError) {
       // Map DB format to local format
@@ -360,12 +477,16 @@ export const syncService = {
         email: undefined, // Friends don't have email in new schema
         bio: f.bio || '',
         imageUri: null, // Not in new schema
-        currency: f.currency || '$', // Read from database, default to '$' if not present
+        currency: normalizeCurrency(f.currency),
         createdAt: safeDateToTimestamp(f.created_at),
         updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
         synced: true,
         pinned: false, // Not in new schema
       }));
+      console.warn(
+        '[Sync] Pulled friends with currency:',
+        mappedFriends.map((friend) => ({ id: friend.id, currency: friend.currency })),
+      );
       useFriendsStore.getState().mergeFriends(mappedFriends as Friend[]);
     } else if (friendsError) {
       console.error('[Sync] Error pulling friends:', friendsError);
@@ -614,7 +735,7 @@ export const syncService = {
         async () =>
           await supabase
             .from('friends')
-            .select('id, owner_id, user_id, name, bio, created_at, updated_at')
+            .select('id, owner_id, user_id, name, bio, currency, created_at, updated_at')
             .eq('owner_id', cloudUserId),
       );
 
@@ -633,12 +754,16 @@ export const syncService = {
           email: undefined,
           bio: f.bio || '',
           imageUri: null,
-          currency: '$',
+          currency: normalizeCurrency(f.currency),
           createdAt: safeDateToTimestamp(f.created_at),
           updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
           synced: true,
           pinned: false,
         }));
+        console.warn(
+          '[Sync] Pulled friends for hydration:',
+          result.friends.map((friend) => ({ id: friend.id, currency: friend.currency })),
+        );
         result.counts.friends = result.friends.length;
       }
 
@@ -786,7 +911,7 @@ const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) => {
     user_id: clerkUserId, // TEXT (Clerk user ID for RLS)
     name: f.name,
     bio: f.bio || null,
-    currency: f.currency || '$',
+    currency: normalizeCurrency(f.currency),
     created_at: safeTimestampToISO(f.createdAt),
     updated_at: new Date().toISOString(),
   };

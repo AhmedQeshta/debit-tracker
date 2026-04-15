@@ -1,3 +1,4 @@
+import { RenderSkeleton } from '@/components/transaction/RenderSkeleton';
 import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
@@ -40,19 +41,10 @@ export default function TransactionsScreen() {
     summaryCurrency,
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,
+    hasData,
   } = useTransaction();
   const router = useRouter();
   const searchInputRef = useRef<TextInput>(null);
-
-  const hasData = groupedSections.length > 0;
-
-  const renderSkeleton = () => (
-    <View style={styles.skeletonList}>
-      {Array.from({ length: 8 }).map((_, index) => (
-        <View key={`tx-skeleton-${index}`} style={styles.skeletonRow} />
-      ))}
-    </View>
-  );
 
   return (
     <ScreenContainer scrollable={false}>
@@ -132,7 +124,7 @@ export default function TransactionsScreen() {
       <Text style={styles.statusLegend}>Status: Pending sync • Failed</Text>
 
       {isLoading ? (
-        renderSkeleton()
+        <RenderSkeleton />
       ) : (
         <SectionList
           sections={groupedSections}

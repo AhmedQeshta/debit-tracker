@@ -23,7 +23,11 @@ export const useBudgetDetail = () => {
   const [itemType, setItemType] = useState<BudgetItemType>('expense');
   const [itemTitleError, setItemTitleError] = useState('');
   const [itemAmountError, setItemAmountError] = useState('');
+
+  const [showCalculator, setShowCalculator] = useState(false);
+
   const titleInputRef = useRef<TextInput>(null);
+  const amountInputRef = useRef<TextInput>(null);
 
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -203,11 +207,14 @@ export const useBudgetDetail = () => {
     showMoreFields,
     setShowMoreFields,
     titleInputRef,
+    amountInputRef,
     sortedItems,
     daysUntilReset,
     handleBudgetResetPeriod,
     handleBudgetAmountCopy,
     syncStatus,
     handleRetrySync,
+    showCalculator,
+    setShowCalculator,
   };
 };

@@ -4,6 +4,39 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+const mapLegacyOperation = (item: SyncQueueItem): SyncQueueItem['operation'] => {
+  if (item.operation) return item.operation;
+
+  if (item.type === 'friend') return 'FRIEND_UPSERT';
+  if (item.type === 'budget') return 'BUDGET_UPSERT';
+  if (item.type === 'settle_friend') return 'SETTLE_FRIEND';
+
+  if (item.type === 'budget_item') {
+    return item.action === 'delete' ? 'BUDGET_ITEM_DELETE' : 'BUDGET_ITEM_UPSERT';
+  }
+
+  if (item.type === 'transaction') {
+    return item.action === 'delete' ? 'TX_DELETE' : 'TX_UPSERT';
+  }
+
+  return 'TX_UPSERT';
+};
+
+const normalizeQueueItem = (item: SyncQueueItem): SyncQueueItem => {
+  return {
+    ...item,
+    operation: mapLegacyOperation(item),
+    createdAt: item.createdAt ?? Date.now(),
+    attempts: item.attempts ?? 0,
+    status: item.status ?? 'pending',
+    entityId: item.entityId ?? item.payload?.id,
+  };
+};
+
+const normalizeQueue = (queue: SyncQueueItem[]): SyncQueueItem[] => {
+  return queue.map((item) => normalizeQueueItem(item));
+};
+
 export const useSyncStore = create<ISyncState>()(
   persist(
     (set) => ({
@@ -30,7 +63,14 @@ export const useSyncStore = create<ISyncState>()(
 
       addToQueue: (item: SyncQueueItem) =>
         set((state) => ({
-          queue: [...state.queue, item],
+          queue: [...state.queue, normalizeQueueItem(item)],
+        })),
+
+      updateQueueItem: (id: string, patch: Partial<SyncQueueItem>) =>
+        set((state) => ({
+          queue: state.queue.map((item) =>
+            item.id === id ? normalizeQueueItem({ ...item, ...patch }) : item,
+          ),
         })),
 
       removeFromQueue: (id: string) =>
@@ -109,7 +149,10 @@ export const useSyncStore = create<ISyncState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => {
         const { isSigningOut, ...persistedState } = state;
-        return persistedState;
+        return {
+          ...persistedState,
+          queue: normalizeQueue(persistedState.queue),
+        };
       },
     },
   ),

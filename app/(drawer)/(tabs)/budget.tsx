@@ -1,21 +1,16 @@
 import { BudgetCard } from '@/components/budget/BudgetCard';
+import { RenderBudgetSkeleton } from '@/components/budget/RenderBudgetSkeleton';
+import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { EmptySection } from '@/components/ui/EmptySection';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
 import { getNextSortKey, SORT_LABELS, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Menu, SlidersHorizontal } from 'lucide-react-native';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const renderBudgetSkeleton = () => (
-  <View style={styles.skeletonList}>
-    {Array.from({ length: 6 }).map((_, index) => (
-      <View key={`budget-skeleton-${index}`} style={styles.skeletonRow} />
-    ))}
-  </View>
-);
 
 export default function BudgetTab() {
   const {
@@ -35,6 +30,22 @@ export default function BudgetTab() {
     displayedBudgets,
     handleBudgetAmountCopy,
   } = useBudgetList();
+
+  const {
+    visible,
+    isExporting,
+    format,
+    setFormat,
+    includeBudgetItems,
+    setIncludeBudgetItems,
+    scopeMode,
+    setScopeMode,
+    canUseSelectedScope,
+    openBudgetExportModal,
+    closeBudgetExportModal,
+    exportBySaving,
+    exportBySharing,
+  } = useBudgetExport();
 
   return (
     <View style={styles.wrapper}>
@@ -110,7 +121,7 @@ export default function BudgetTab() {
         </View>
 
         {!hydrated ? (
-          renderBudgetSkeleton()
+          <RenderBudgetSkeleton />
         ) : (
           <FlatList
             data={displayedBudgets}
@@ -125,6 +136,7 @@ export default function BudgetTab() {
                   getTotalSpent={getTotalSpent}
                   getRemainingBudget={getRemainingBudget}
                   onCopyAmount={handleBudgetAmountCopy}
+                  onExportBudget={(budgetId) => openBudgetExportModal({ budgetId })}
                 />
               );
             }}
@@ -148,6 +160,21 @@ export default function BudgetTab() {
         )}
 
         <NavigateTo navigatePath="/(drawer)/budget/new" />
+
+        <BudgetExportModal
+          visible={visible}
+          loading={isExporting}
+          format={format}
+          onChangeFormat={setFormat}
+          includeBudgetItems={includeBudgetItems}
+          onChangeIncludeBudgetItems={setIncludeBudgetItems}
+          scopeMode={scopeMode}
+          onChangeScopeMode={setScopeMode}
+          canUseSelectedScope={canUseSelectedScope}
+          onClose={closeBudgetExportModal}
+          onSaveToDevice={exportBySaving}
+          onShare={exportBySharing}
+        />
       </ScreenContainer>
     </View>
   );

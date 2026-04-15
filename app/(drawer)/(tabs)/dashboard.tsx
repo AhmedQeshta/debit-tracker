@@ -14,8 +14,6 @@ export default function Dashboard() {
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
   const {
-    friends,
-    queueSize,
     isOnline,
     summaryStats,
     selectedRange,
@@ -23,32 +21,14 @@ export default function Dashboard() {
     rangeLabel,
     peopleYouOwe,
     peopleWhoOweYou,
-    budgetsNearLimit,
     budgetSnapshot,
     activeBudgetCount,
     isFreshState,
+    insightItems,
+    handleRangeChipPress,
   } = useDashboard(summaryCurrency);
   const { openDrawer } = useDrawerContext();
   const router = useRouter();
-
-  const insightItems: { label: string; value: string; emphasize?: boolean }[] = [
-    { label: 'Total friends', value: String(friends.length) },
-    { label: 'Pending syncs', value: String(queueSize), emphasize: queueSize > 0 },
-  ];
-
-  const handleRangeChipPress = () => {
-    const currentIndex = RANGE_OPTIONS.findIndex((range) => range.key === selectedRange);
-    const nextIndex = currentIndex === RANGE_OPTIONS.length - 1 ? 0 : currentIndex + 1;
-    setSelectedRange(RANGE_OPTIONS[nextIndex].key);
-  };
-
-  if (activeBudgetCount > 0) {
-    insightItems.push({
-      label: 'Budgets near limit',
-      value: String(budgetsNearLimit),
-      emphasize: budgetsNearLimit > 0,
-    });
-  }
 
   const netTone =
     summaryStats.netBalance > 0

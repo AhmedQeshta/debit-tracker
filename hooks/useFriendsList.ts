@@ -1,6 +1,7 @@
 import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { useToast } from '@/hooks/useToast';
@@ -17,9 +18,14 @@ import {
   IFriendListRow,
 } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
-import * as Clipboard from 'expo-clipboard';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+
+const normalizeCurrency = (currency: unknown): string => {
+  if (typeof currency !== 'string') return '$';
+  const trimmed = currency.trim();
+  return trimmed.length > 0 ? trimmed : '$';
+};
 
 export const useFriendsList = () => {
   const [search, setSearch] = useState('');
@@ -27,7 +33,6 @@ export const useFriendsList = () => {
   const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
   const [filterBy, setFilterBy] = useState<FriendsFilterBy>('all');
   const [showControls, setShowControls] = useState(true);
-  const [isLoading] = useState(false);
 
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
@@ -36,15 +41,32 @@ export const useFriendsList = () => {
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
   const { showConfirm } = useConfirmDialog();
-  const { toastSuccess, toastError } = useToast();
+  const { toastSuccess } = useToast();
   const { syncNow, isOnline } = useCloudSync();
   const { handleSettleUp } = useSettle();
   const { getToken } = useAuth();
+  const { syncEnabled, isSyncRunning, syncStatus, deviceSyncState } = useSyncStore(
+    useShallow((state) => ({
+      syncEnabled: state.syncEnabled,
+      isSyncRunning: state.isSyncRunning,
+      syncStatus: state.syncStatus,
+      deviceSyncState: state.deviceSyncState,
+    })),
+  );
+
+  const { handleCopyAmount } = useCopyAmount();
 
   const friends = useFriendsStore(useShallow((state) => state.friends.filter((f) => !f.deletedAt)));
   const transactions = useTransactionsStore(
     useShallow((state) => state.transactions.filter((t) => !t.deletedAt)),
   );
+
+  const isLoading =
+    friends.length === 0 &&
+    syncEnabled &&
+    isOnline &&
+    !deviceSyncState.hasHydratedFromCloud &&
+    (isSyncRunning || syncStatus === 'pulling' || syncStatus === null || syncStatus === 'checking');
 
   const getFriendBalance = useMemo(
     () => (friendId: string) => getBalance(friendId, transactions),
@@ -64,7 +86,7 @@ export const useFriendsList = () => {
         return {
           friend,
           balance,
-          amountText: `${friend.currency || '$'}${Math.abs(balance).toFixed(2)}`,
+          amountText: `${normalizeCurrency(friend.currency)}${Math.abs(balance).toFixed(2)}`,
           directionLabel,
           status,
           subtitle:
@@ -90,7 +112,9 @@ export const useFriendsList = () => {
   }, [friends, transactions, search, filterBy, sortBy]);
 
   const summary = useMemo(() => {
-    const activeFriends = friends.filter((friend) => (friend.currency || '$') === summaryCurrency);
+    const activeFriends = friends.filter(
+      (friend) => normalizeCurrency(friend.currency) === summaryCurrency,
+    );
     const balances = activeFriends.map((friend) => getBalance(friend.id, transactions));
 
     const youOweTotal = balances
@@ -211,19 +235,14 @@ export const useFriendsList = () => {
     return friendRows as FriendsListItem[];
   }, [isLoading, isGrid, friendRows]);
 
-  const handleCopyAmount = async (friendId: string) => {
-    const friend = friendRows.find((row) => row.friend.id === friendId);
-    if (!friend) return;
+  const handleFriendAmountCopy = async (friendId: string) => {
+    const row = friendRows.find((friendRow) => friendRow.friend.id === friendId);
+    if (!row) return;
 
-    const amount = friend.amountText;
-
-    try {
-      await Clipboard.setStringAsync(amount);
-      toastSuccess(`Copied ${amount} to clipboard`);
-    } catch (error) {
-      console.error('Failed to copy amount: ', error);
-      toastError('Failed to copy amount');
-    }
+    await handleCopyAmount(Math.abs(row.balance), row.friend.currency || '$', {
+      successMessage: `Copied ${row.amountText} to clipboard`,
+      errorMessage: 'Failed to copy amount',
+    });
   };
 
   return {
@@ -242,7 +261,7 @@ export const useFriendsList = () => {
     handleFriendEdit,
     handleFriendDelete,
     getFriendBalance,
-    handleCopyAmount,
+    handleFriendAmountCopy,
     handleSettle: (friendId: string) => handleSettleUp(friendId),
     summaryCurrencyLabel,
     handleSummaryCurrencyToggle,

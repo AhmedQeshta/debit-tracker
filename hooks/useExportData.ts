@@ -1,10 +1,37 @@
 import { useToast } from '@/hooks/useToast';
-import { exportData } from '@/services/export/exportService';
+import { exportAndSaveToDevice, shareSavedExportFiles } from '@/services/export/exportService';
 import { useSyncStore } from '@/store/syncStore';
-import { ExportDetailLevel, ExportFormat, ExportScope, ExportSource } from '@/types/export';
+import {
+  ExportDeliveryMode,
+  ExportDetailLevel,
+  ExportFormat,
+  ExportScope,
+  ExportSource,
+} from '@/types/export';
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { Alert } from 'react-native';
+
+const chooseDeliveryMode = (): Promise<ExportDeliveryMode | 'cancel'> => {
+  return new Promise((resolve) => {
+    Alert.alert('Export', 'How do you want to continue?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+        onPress: () => resolve('cancel'),
+      },
+      {
+        text: 'Save to device',
+        onPress: () => resolve('save'),
+      },
+      {
+        text: 'Share',
+        onPress: () => resolve('share'),
+      },
+    ]);
+  });
+};
 
 export const useExportData = () => {
   const { getToken } = useAuth();
@@ -46,23 +73,50 @@ export const useExportData = () => {
       setIsExporting(true);
       toastInfo('Preparing export...');
 
-      const result = await exportData({
+      const deliveryMode = await chooseDeliveryMode();
+      if (deliveryMode === 'cancel') {
+        return;
+      }
+
+      const result = await exportAndSaveToDevice({
         format,
         detailLevel,
         scope,
         source,
         cloudUserId,
         getToken,
+        deliveryMode,
+        fileNamePrefix: 'export',
       });
 
       result.warnings.forEach((warning) => toastInfo(warning));
 
       const fileCountText = result.files.length === 1 ? '1 file' : `${result.files.length} files`;
-      toastSuccess(`Export complete: ${fileCountText} ready to share.`);
+      if (deliveryMode === 'save') {
+        const savedPath = result.files[0]?.uri || 'unknown path';
+        toastSuccess('Export saved');
+        Alert.alert('Export saved', `Saved ${fileCountText}\n${savedPath}`, [
+          {
+            text: 'Share file(s)',
+            onPress: () => {
+              shareSavedExportFiles(result.files).catch((error) => {
+                console.error('[ExportScreen] Share after save failed:', error);
+                toastError(`Couldn't export. ${error?.message || 'Unable to share files.'}`);
+              });
+            },
+          },
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+        ]);
+      } else {
+        toastSuccess(`Export complete: ${fileCountText} shared.`);
+      }
     } catch (error: any) {
       const message = error?.message || 'Unknown error';
       console.error('[ExportScreen] Export failed:', error);
-      toastError(`Export failed: ${message}`);
+      toastError(`Couldn't export. ${message}`);
     } finally {
       setIsExporting(false);
     }

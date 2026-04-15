@@ -1,8 +1,18 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { IFriendsState } from '@/types/store';
 import { Friend } from '@/types/models';
+import { IFriendsState } from '@/types/store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+const normalizeCurrency = (currency: unknown): string => {
+  if (typeof currency !== 'string') return '$';
+  const trimmed = currency.trim();
+  return trimmed.length > 0 ? trimmed : '$';
+};
+
+const hasRemoteCurrency = (currency: unknown): currency is string => {
+  return typeof currency === 'string' && currency.trim().length > 0;
+};
 
 export const useFriendsStore = create<IFriendsState>()(
   persist(
@@ -10,10 +20,7 @@ export const useFriendsStore = create<IFriendsState>()(
       friends: [],
       addFriend: (friend) =>
         set((state) => ({
-          friends: [
-            { ...friend, synced: false, updatedAt: Date.now() },
-            ...state.friends,
-          ],
+          friends: [{ ...friend, synced: false, updatedAt: Date.now() }, ...state.friends],
         })),
       updateFriend: (updatedFriend) =>
         set((state) => ({
@@ -29,17 +36,14 @@ export const useFriendsStore = create<IFriendsState>()(
             f.id === id ? { ...f, deletedAt: Date.now(), synced: false } : f,
           ),
         })),
-      getDirtyFriends: (): Friend[] =>
-      {
-        return get().friends.filter((f) =>
-        {
+      getDirtyFriends: (): Friend[] => {
+        return get().friends.filter((f) => {
           // Include items that are not synced AND not deleted
           // Deleted items are handled separately by getDeletedFriends()
           return !f.synced && f.deletedAt === undefined;
         });
       },
-      getDeletedFriends: (): Friend[] =>
-      {
+      getDeletedFriends: (): Friend[] => {
         return get().friends.filter((f) => f.deletedAt !== undefined);
       },
       removeDeletedFriend: (id) =>
@@ -48,33 +52,43 @@ export const useFriendsStore = create<IFriendsState>()(
         })),
       setFriends: (friends) => set({ friends }),
       mergeFriends: (remoteFriends) =>
-        set((state) =>
-        {
+        set((state) => {
           // Use conflict resolution: merge with deletions support
           const localMap = new Map(state.friends.map((f) => [f.id, f]));
           const remoteIds = new Set(remoteFriends.map((f) => f.id));
 
           // Process remote items with conflict resolution
-          remoteFriends.forEach((remote) =>
-          {
+          remoteFriends.forEach((remote) => {
             const local = localMap.get(remote.id);
-            if (!local)
-            {
+            if (!local) {
               // Remote item doesn't exist locally -> add it
-              localMap.set(remote.id, { ...remote, synced: true });
-            } else
-            {
+              localMap.set(remote.id, {
+                ...remote,
+                currency: normalizeCurrency(remote.currency),
+                synced: true,
+              });
+            } else {
               // Conflict resolution: use the one with newer updatedAt
               const remoteUpdatedAt = remote.updatedAt || 0;
               const localUpdatedAt = local.updatedAt || 0;
-              if (remoteUpdatedAt > localUpdatedAt)
-              {
+              const remoteCurrency = hasRemoteCurrency(remote.currency)
+                ? normalizeCurrency(remote.currency)
+                : null;
+              const localCurrency = normalizeCurrency(local.currency);
+              if (remoteUpdatedAt > localUpdatedAt) {
                 // Remote is newer -> use remote (clear any local deletion)
-                localMap.set(remote.id, { ...remote, synced: true });
-              } else
-              {
-                // Local is newer or equal -> keep local (but mark as synced if remote exists)
-                localMap.set(remote.id, { ...local, synced: local.synced || true });
+                localMap.set(remote.id, {
+                  ...remote,
+                  currency: remoteCurrency ?? localCurrency,
+                  synced: true,
+                });
+              } else {
+                // Local is newer or equal -> keep local, but keep remote currency if it exists.
+                localMap.set(remote.id, {
+                  ...local,
+                  currency: remoteCurrency ?? localCurrency,
+                  synced: true,
+                });
               }
             }
           });
@@ -82,15 +96,12 @@ export const useFriendsStore = create<IFriendsState>()(
           // Handle local items not in remote:
           // - If local has deletedAt → remove it (already deleted remotely, sync confirmed)
           // - If local doesn't have deletedAt → keep it (might be new, not yet synced)
-          const merged = Array.from(localMap.values()).filter((item) =>
-          {
-            if (remoteIds.has(item.id))
-            {
+          const merged = Array.from(localMap.values()).filter((item) => {
+            if (remoteIds.has(item.id)) {
               return true; // Item exists in remote, keep it
             }
             // Item not in remote
-            if (item.deletedAt !== undefined)
-            {
+            if (item.deletedAt !== undefined) {
               return false; // Was marked for deletion, now confirmed deleted remotely
             }
             // Item not in remote but not marked for deletion - might be new, keep it

@@ -34,6 +34,7 @@ export interface IBudgetCardProps {
   getTotalSpent: (id: string) => number;
   getRemainingBudget: (id: string) => number;
   onCopyAmount: (budgetId: string) => void;
+  onExportBudget?: (budgetId: string) => void;
 }
 
 export interface IBudgetFormData {
@@ -53,6 +54,7 @@ export interface HomeBudgetOverviewCardProps {
   onEdit: (id: string) => void;
   onPinToggle: (id: string) => void;
   onDelete: (id: string, title: string) => void;
+  onExportBudget?: (id: string) => void;
   onCopyRemaining: (remaining: number, currency: string) => void;
   onResetPeriod: (id: string, title: string) => void;
 }

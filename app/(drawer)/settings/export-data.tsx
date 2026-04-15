@@ -33,7 +33,7 @@ export default function ExportDataScreen() {
       <Header
         openDrawer={() => router.push('/(drawer)/(tabs)/settings')}
         title="Export Data"
-        subtitle="Share friends and budgets as CSV or JSON"
+        subtitle="Save or share friends and budgets as CSV or JSON"
         isGoBack
       />
 

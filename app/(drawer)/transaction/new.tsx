@@ -1,11 +1,14 @@
+import { CalculatorModal } from '@/components/calculator/CalculatorModal';
 import { Button } from '@/components/ui/Button';
 import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useTransactionForm } from '@/hooks/transaction/useTransactionForm';
+import { formatResult } from '@/lib/calc';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
+import { Calculator } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -24,6 +27,12 @@ export default function AddTransaction() {
     handleSubmit,
     errors,
     loading,
+    setValue,
+    amountInputRef,
+    showCalculator,
+    setShowCalculator,
+    calculatorInitialValue,
+    setCalculatorInitialValue,
   } = useTransactionForm();
   const router = useRouter();
 
@@ -119,9 +128,32 @@ export default function AddTransaction() {
                 placeholder="0.00"
                 keyboardType="numeric"
                 error={errors.amount ? 'Amount is required' : undefined}
+                inputRef={amountInputRef}
+                rightAccessory={
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCalculatorInitialValue(value || '');
+                      setShowCalculator(true);
+                    }}
+                    style={styles.calcButton}
+                    accessibilityRole="button"
+                    accessibilityLabel="Open calculator">
+                    <Calculator size={18} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                }
               />
             )}
             name="amount"
+          />
+
+          <CalculatorModal
+            visible={showCalculator}
+            initialValue={calculatorInitialValue}
+            onClose={() => setShowCalculator(false)}
+            onConfirm={(result) => {
+              setValue('amount', formatResult(result), { shouldValidate: true });
+              requestAnimationFrame(() => amountInputRef.current?.focus());
+            }}
           />
 
           {selectedBudget ? (
@@ -284,6 +316,14 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 12,
     fontWeight: '600',
+  },
+  calcButton: {
+    width: 36,
+    height: 36,
+    borderRadius: Spacing.borderRadius.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
   },
   backButton: {
     flexDirection: 'row',

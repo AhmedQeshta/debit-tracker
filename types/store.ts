@@ -52,6 +52,7 @@ export interface ISyncState {
   isSyncRunning: boolean;
   pullProgress?: string; // Current step during pull: "friends", "transactions", "budgets", etc.
   addToQueue: (item: SyncQueueItem) => void;
+  updateQueueItem: (id: string, patch: Partial<SyncQueueItem>) => void;
   removeFromQueue: (id: string) => void;
   clearQueueForFriend: (friendId: string, transactionIds?: string[]) => void;
   setSyncing: (status: boolean) => void;

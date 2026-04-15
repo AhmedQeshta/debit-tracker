@@ -9,8 +9,13 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+
+const SETTINGS_LOAD_TIMEOUT_MS = 10000;
 
 export const useSettings = () => {
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+
   const { openDrawer } = useDrawerContext();
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -84,6 +89,21 @@ export const useSettings = () => {
     return 'Idle';
   };
 
+  useEffect(() => {
+    if (isLoaded) {
+      setLoadTimedOut(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setLoadTimedOut(true);
+    }, SETTINGS_LOAD_TIMEOUT_MS);
+
+    return () => clearTimeout(timeout);
+  }, [isLoaded]);
+
+  const showAuthSkeleton = !isLoaded && !loadTimedOut;
+
   return {
     handleClearLocalData,
     handleSignIn,
@@ -104,5 +124,7 @@ export const useSettings = () => {
     lastError,
     handleSync,
     openDrawer,
+    loadTimedOut,
+    showAuthSkeleton,
   };
 };

@@ -1,17 +1,23 @@
+import { CalculatorModal } from '@/components/calculator/CalculatorModal';
+import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { Actions } from '@/components/ui/Actions';
 import { Button } from '@/components/ui/Button';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useBudgetDetail } from '@/hooks/budget/useBudgetDetail';
+import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
+import { formatResult } from '@/lib/calc';
 import { formatCurrency, getDayLabel, getMonthLabel, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import {
   ArrowLeft,
+  Calculator,
   CalendarDays,
   ChevronDown,
   ChevronUp,
   Circle,
   Copy,
+  Download,
   Pin,
   Trash2,
 } from 'lucide-react-native';
@@ -46,13 +52,32 @@ export default function BudgetDetail() {
     showMoreFields,
     setShowMoreFields,
     titleInputRef,
+    amountInputRef,
     sortedItems,
     daysUntilReset,
     handleBudgetResetPeriod,
     handleBudgetAmountCopy,
     syncStatus,
     handleRetrySync,
+    showCalculator,
+    setShowCalculator,
   } = useBudgetDetail();
+
+  const {
+    visible,
+    isExporting,
+    format,
+    setFormat,
+    includeBudgetItems,
+    setIncludeBudgetItems,
+    scopeMode,
+    setScopeMode,
+    canUseSelectedScope,
+    openBudgetExportModal,
+    closeBudgetExportModal,
+    exportBySaving,
+    exportBySharing,
+  } = useBudgetExport();
 
   const displayedMenuItems = useMemo(() => {
     const items = [...menuItems];
@@ -67,16 +92,22 @@ export default function BudgetDetail() {
       label: 'Reset period',
       onPress: () => handleBudgetResetPeriod(budget!.id, budget!.title),
     };
+    const exportItem = {
+      icon: <Download size={18} color={Colors.text} />,
+      label: 'Export budgets',
+      onPress: () => openBudgetExportModal({ budgetId: budget!.id }),
+    };
 
     if (destructiveIndex >= 0) {
-      items.splice(destructiveIndex, 0, copyItem, periodItem);
+      items.splice(destructiveIndex, 0, copyItem, periodItem, exportItem);
       return items;
     }
 
     items.push(copyItem);
     items.push(periodItem);
+    items.push(exportItem);
     return items;
-  }, [budget, handleBudgetAmountCopy, handleBudgetResetPeriod, menuItems]);
+  }, [budget, handleBudgetAmountCopy, handleBudgetResetPeriod, menuItems, openBudgetExportModal]);
 
   if (!budget) {
     return (
@@ -297,22 +328,33 @@ export default function BudgetDetail() {
               accessibilityLabel="Spending item title"
             />
 
-            <TextInput
-              style={[
-                styles.quickInput,
-                styles.quickAmountInput,
-                itemAmountError ? styles.quickInputError : null,
-              ]}
-              value={itemAmount}
-              onChangeText={(text) => {
-                setItemAmount(text);
-                setItemAmountError('');
-              }}
-              placeholder={`${budget.currency} 0.00`}
-              placeholderTextColor={Colors.textSecondary}
-              keyboardType="decimal-pad"
-              accessibilityLabel="Spending amount"
-            />
+            <View style={styles.amountInputRow}>
+              <TextInput
+                ref={amountInputRef}
+                style={[
+                  styles.quickInput,
+                  styles.quickAmountInput,
+                  itemAmountError ? styles.quickInputError : null,
+                ]}
+                value={itemAmount}
+                onChangeText={(text) => {
+                  setItemAmount(text);
+                  setItemAmountError('');
+                }}
+                placeholder={`${budget.currency} 0.00`}
+                placeholderTextColor={Colors.textSecondary}
+                keyboardType="decimal-pad"
+                accessibilityLabel="Spending amount"
+              />
+
+              <TouchableOpacity
+                style={styles.calcButton}
+                onPress={() => setShowCalculator(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Open calculator">
+                <Calculator size={18} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={styles.addButton}
@@ -443,6 +485,32 @@ export default function BudgetDetail() {
             </View>
           )}
         </View>
+
+        <BudgetExportModal
+          visible={visible}
+          loading={isExporting}
+          format={format}
+          onChangeFormat={setFormat}
+          includeBudgetItems={includeBudgetItems}
+          onChangeIncludeBudgetItems={setIncludeBudgetItems}
+          scopeMode={scopeMode}
+          onChangeScopeMode={setScopeMode}
+          canUseSelectedScope={canUseSelectedScope}
+          onClose={closeBudgetExportModal}
+          onSaveToDevice={exportBySaving}
+          onShare={exportBySharing}
+        />
+
+        <CalculatorModal
+          visible={showCalculator}
+          initialValue={itemAmount}
+          onClose={() => setShowCalculator(false)}
+          onConfirm={(result) => {
+            setItemAmount(formatResult(result));
+            setItemAmountError('');
+            requestAnimationFrame(() => amountInputRef.current?.focus());
+          }}
+        />
       </ScreenContainer>
     </View>
   );
@@ -681,6 +749,21 @@ const styles = StyleSheet.create({
   },
   quickAmountInput: {
     width: 108,
+  },
+  amountInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  calcButton: {
+    width: 42,
+    height: 42,
+    borderRadius: Spacing.borderRadius.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
   },
   quickInputError: {
     borderColor: Colors.error,
