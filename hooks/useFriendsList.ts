@@ -1,5 +1,6 @@
 import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useNavigation } from '@/hooks/useNavigation';
@@ -43,6 +44,7 @@ export const useFriendsList = () => {
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow, isOnline } = useCloudSync();
+  const { mutate } = useSyncMutation();
   const { handleSettleUp } = useSettle();
   const { getToken } = useAuth();
   const { syncEnabled, isSyncRunning, syncStatus, deviceSyncState } = useSyncStore(
@@ -137,11 +139,19 @@ export const useFriendsList = () => {
     };
   }, [friends, transactions, summaryCurrency]);
 
-  const handlePinToggle = (friendId: string): void => {
+  const handlePinToggle = async (friendId: string): Promise<void> => {
     const friend = friendRows.find((f) => f.friend.id === friendId)?.friend;
     if (friend) {
+      const nextPinned = !friend.pinned;
       if (friend.pinned) unpinFriend(friendId);
       else pinFriend(friendId);
+
+      await mutate('friend_pin', 'update', {
+        id: friendId,
+        friendId,
+        pinned: nextPinned,
+        updatedAt: Date.now(),
+      });
     }
   };
 

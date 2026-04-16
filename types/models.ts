@@ -31,13 +31,22 @@ export interface Transaction {
 
 export interface SyncQueueItem {
   id: string;
-  type: 'friend' | 'transaction' | 'budget' | 'budget_item' | 'settle_friend';
+  type:
+    | 'friend'
+    | 'transaction'
+    | 'budget'
+    | 'budget_item'
+    | 'settle_friend'
+    | 'friend_pin'
+    | 'budget_pin';
   action: 'create' | 'update' | 'delete' | 'settle';
   operation?:
     | 'FRIEND_UPSERT'
+    | 'FRIEND_PIN_TOGGLE'
     | 'TX_UPSERT'
     | 'TX_DELETE'
     | 'BUDGET_UPSERT'
+    | 'BUDGET_PIN_TOGGLE'
     | 'BUDGET_ITEM_UPSERT'
     | 'BUDGET_ITEM_DELETE'
     | 'BUDGET_RECALC'

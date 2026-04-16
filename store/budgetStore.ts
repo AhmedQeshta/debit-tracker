@@ -209,11 +209,15 @@ export const useBudgetStore = create<IBudgetState>()(
         })),
       pinBudget: (id: string) =>
         set((state) => ({
-          budgets: state.budgets.map((b) => (b.id === id ? { ...b, pinned: true } : b)),
+          budgets: state.budgets.map((b) =>
+            b.id === id ? { ...b, pinned: true, synced: false, updatedAt: Date.now() } : b,
+          ),
         })),
       unpinBudget: (id: string) =>
         set((state) => ({
-          budgets: state.budgets.map((b) => (b.id === id ? { ...b, pinned: false } : b)),
+          budgets: state.budgets.map((b) =>
+            b.id === id ? { ...b, pinned: false, synced: false, updatedAt: Date.now() } : b,
+          ),
         })),
       setCurrency: (id: string, currency: string) =>
         set((state) => ({

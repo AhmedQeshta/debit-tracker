@@ -1,6 +1,7 @@
 import { useBudgetAmount } from '@/hooks/budget/useBudgetAmount';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency, getMonthLabel, sortBudgets } from '@/lib/utils';
@@ -23,15 +24,24 @@ export const useBudgetList = () => {
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess, toastError } = useToast();
   const { syncNow } = useCloudSync();
+  const { mutate } = useSyncMutation();
   const sortedBudgets = sortBudgets(budgets);
-  const handlePinToggle = (budgetId: string): void => {
+  const handlePinToggle = async (budgetId: string): Promise<void> => {
     const budget = budgets.find((b) => b.id === budgetId);
     if (budget) {
+      const nextPinned = !budget.pinned;
       if (budget.pinned) {
         unpinBudget(budgetId);
       } else {
         pinBudget(budgetId);
       }
+
+      await mutate('budget_pin', 'update', {
+        id: budgetId,
+        budgetId,
+        pinned: nextPinned,
+        updatedAt: Date.now(),
+      });
     }
   };
 

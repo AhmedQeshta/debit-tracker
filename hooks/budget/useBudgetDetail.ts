@@ -2,6 +2,7 @@ import { createMenuItems } from '@/components/ui/CreateMenuItems';
 import { useBudgetAmount } from '@/hooks/budget/useBudgetAmount';
 import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useOperations } from '@/hooks/useOperations';
@@ -53,6 +54,7 @@ export const useBudgetDetail = () => {
   const { toastSuccess } = useToast();
   const { handleBudgetAmountCopy } = useBudgetAmount();
   const { syncNow } = useCloudSync();
+  const { mutate } = useSyncMutation();
   const syncStatus = useSyncStore((state) => state.syncStatus);
   const { handleBudgetResetPeriod } = useBudgetPeriod();
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
@@ -128,9 +130,15 @@ export const useBudgetDetail = () => {
       console.error('[Sync] Retry failed:', error);
     }
   };
-  const handlePinToggle = (): void => {
+  const handlePinToggle = async (): Promise<void> => {
     if (!budget) return;
     togglePin(budget);
+    await mutate('budget_pin', 'update', {
+      id: budget.id,
+      budgetId: budget.id,
+      pinned: !budget.pinned,
+      updatedAt: Date.now(),
+    });
   };
 
   const handleDeleteBudget = (): void => {

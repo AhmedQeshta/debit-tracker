@@ -15,7 +15,9 @@ export const useSyncMutation = () => {
     action: SyncQueueItem['action'],
   ): SyncQueueItem['operation'] => {
     if (type === 'friend') return 'FRIEND_UPSERT';
+    if (type === 'friend_pin') return 'FRIEND_PIN_TOGGLE';
     if (type === 'budget') return 'BUDGET_UPSERT';
+    if (type === 'budget_pin') return 'BUDGET_PIN_TOGGLE';
     if (type === 'settle_friend') return 'SETTLE_FRIEND';
     if (type === 'budget_item') {
       return action === 'delete' ? 'BUDGET_ITEM_DELETE' : 'BUDGET_ITEM_UPSERT';
@@ -39,7 +41,7 @@ export const useSyncMutation = () => {
       operation: mapOperation(type, action),
       userId,
       ownerId: useSyncStore.getState().cloudUserId,
-      entityId: payload?.id,
+      entityId: payload?.id ?? payload?.friendId ?? payload?.budgetId,
       createdAt: Date.now(),
       attempts: 0,
       status: 'pending',

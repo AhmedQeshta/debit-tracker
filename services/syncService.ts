@@ -90,6 +90,12 @@ export const syncService = {
           if (rpcResult.error) {
             throw rpcResult.error;
           }
+        } else if (
+          item.operation === 'FRIEND_PIN_TOGGLE' ||
+          item.operation === 'BUDGET_PIN_TOGGLE'
+        ) {
+          // Pin toggles are persisted by pushChanges via dirty entities.
+          await syncService.pushChanges(getToken, clerkUserId);
         } else if (item.operation === 'SETTLE_FRIEND') {
           const friendId = item.payload?.friendId;
           if (!friendId) {
@@ -466,7 +472,7 @@ export const syncService = {
       async () =>
         await supabase
           .from('friends')
-          .select('id, owner_id, user_id, name, bio, currency, created_at, updated_at')
+          .select('id, owner_id, user_id, name, bio, currency, pinned, created_at, updated_at')
           .eq('owner_id', cloudUserId),
     );
     if (friends && !friendsError) {
@@ -481,7 +487,7 @@ export const syncService = {
         createdAt: safeDateToTimestamp(f.created_at),
         updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
         synced: true,
-        pinned: false, // Not in new schema
+        pinned: Boolean(f.pinned),
       }));
       console.warn(
         '[Sync] Pulled friends with currency:',
@@ -735,7 +741,7 @@ export const syncService = {
         async () =>
           await supabase
             .from('friends')
-            .select('id, owner_id, user_id, name, bio, currency, created_at, updated_at')
+            .select('id, owner_id, user_id, name, bio, currency, pinned, created_at, updated_at')
             .eq('owner_id', cloudUserId),
       );
 
@@ -758,7 +764,7 @@ export const syncService = {
           createdAt: safeDateToTimestamp(f.created_at),
           updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
           synced: true,
-          pinned: false,
+          pinned: Boolean(f.pinned),
         }));
         console.warn(
           '[Sync] Pulled friends for hydration:',
@@ -912,6 +918,7 @@ const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) => {
     name: f.name,
     bio: f.bio || null,
     currency: normalizeCurrency(f.currency),
+    pinned: f.pinned,
     created_at: safeTimestampToISO(f.createdAt),
     updated_at: new Date().toISOString(),
   };

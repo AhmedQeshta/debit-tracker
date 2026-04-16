@@ -132,9 +132,15 @@ export const useFriendDetail = () => {
     router.push(`/(drawer)/transaction/${transactionId}/edit`);
   };
 
-  const handlePinToggle = (): void => {
+  const handlePinToggle = async (): Promise<void> => {
     if (!friend) return;
     togglePin(friend);
+    await mutate('friend_pin', 'update', {
+      id: friend.id,
+      friendId: friend.id,
+      pinned: !friend.pinned,
+      updatedAt: Date.now(),
+    });
   };
 
   const handleSettleUp = (): void => {

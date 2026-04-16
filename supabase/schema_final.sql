@@ -35,12 +35,14 @@ CREATE TABLE IF NOT EXISTS friends (
     name TEXT NOT NULL,
     bio TEXT,
     currency TEXT NOT NULL DEFAULT '$',
+    pinned BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_friends_owner_id ON friends(owner_id);
 CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id);
+CREATE INDEX IF NOT EXISTS idx_friends_pinned ON friends(pinned) WHERE pinned = TRUE;
 
 -- =====================================================
 -- TRANSACTIONS TABLE
