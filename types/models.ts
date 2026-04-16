@@ -46,6 +46,7 @@ export interface SyncQueueItem {
     | 'TX_UPSERT'
     | 'TX_DELETE'
     | 'BUDGET_UPSERT'
+    | 'BUDGET_UPDATE_TOTAL'
     | 'BUDGET_PIN_TOGGLE'
     | 'BUDGET_ITEM_UPSERT'
     | 'BUDGET_ITEM_DELETE'

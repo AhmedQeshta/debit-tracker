@@ -25,10 +25,16 @@ export const useSyncMutation = () => {
     return action === 'delete' ? 'TX_DELETE' : 'TX_UPSERT';
   };
 
+  type MutateOptions = {
+    operation?: SyncQueueItem['operation'];
+    entityId?: string;
+  };
+
   const mutate = async (
     type: SyncQueueItem['type'],
     action: SyncQueueItem['action'],
     payload: any,
+    options?: MutateOptions,
   ) => {
     // If sync is disabled, do nothing (local changes already applied by caller)
     if (!syncEnabled) return;
@@ -38,10 +44,10 @@ export const useSyncMutation = () => {
       id: createQueueId(),
       type,
       action,
-      operation: mapOperation(type, action),
+      operation: options?.operation ?? mapOperation(type, action),
       userId,
       ownerId: useSyncStore.getState().cloudUserId,
-      entityId: payload?.id ?? payload?.friendId ?? payload?.budgetId,
+      entityId: options?.entityId ?? payload?.id ?? payload?.friendId ?? payload?.budgetId,
       createdAt: Date.now(),
       attempts: 0,
       status: 'pending',

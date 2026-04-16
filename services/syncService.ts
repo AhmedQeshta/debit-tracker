@@ -91,10 +91,11 @@ export const syncService = {
             throw rpcResult.error;
           }
         } else if (
+          item.operation === 'BUDGET_UPDATE_TOTAL' ||
           item.operation === 'FRIEND_PIN_TOGGLE' ||
           item.operation === 'BUDGET_PIN_TOGGLE'
         ) {
-          // Pin toggles are persisted by pushChanges via dirty entities.
+          // Explicit budget total/pin toggles are persisted by pushChanges via dirty entities.
           await syncService.pushChanges(getToken, clerkUserId);
         } else if (item.operation === 'SETTLE_FRIEND') {
           const friendId = item.payload?.friendId;
@@ -280,9 +281,33 @@ export const syncService = {
 
       // C) Push Budgets
       if (dirtyBudgets.length > 0) {
+        const affectedBudgetIds = Array.from(new Set(dirtyBudgets.map((budget) => budget.id)));
         const budgetsData = dirtyBudgets.map((b) => mapBudgetToDb(b, cloudUserId, clerkUserId));
         const result = await executeUpsert('budgets', budgetsData);
         if (result.success) {
+          for (const budgetId of affectedBudgetIds) {
+            const rpcResult = await retryOnceOnJwtExpired(
+              async () =>
+                await supabase.rpc('recompute_budget_totals', {
+                  p_budget_id: budgetId,
+                  p_user_id: clerkUserId,
+                }),
+              getToken,
+            );
+
+            if (rpcResult.error) {
+              if (isJwtExpiredError(rpcResult.error)) {
+                useSyncStore.getState().setSyncStatus('needs_login');
+                throw rpcResult.error;
+              }
+              console.error(
+                '[Sync] Failed to recompute budget totals after budget update:',
+                rpcResult.error,
+              );
+              throw rpcResult.error;
+            }
+          }
+
           dirtyBudgets.forEach((b) => useBudgetStore.getState().markAsSynced(b.id));
         } else {
           console.error(`[Sync] Failed to push budgets:`, result.error);
