@@ -16,7 +16,7 @@ import { formatAbsoluteCurrency, formatCurrency } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
-import { Menu, Settings } from 'lucide-react-native';
+import { Menu, Pin, Settings } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -225,9 +225,14 @@ export default function Home() {
                 </View>
 
                 <View style={styles.settleMain}>
-                  <Text style={styles.settleName} numberOfLines={1}>
-                    {item.friend.name}
-                  </Text>
+                  <View style={styles.settleNameRow}>
+                    {item.friend.pinned ? (
+                      <Pin size={12} color={Colors.primary} fill={Colors.primary} />
+                    ) : null}
+                    <Text style={styles.settleName} numberOfLines={1}>
+                      {item.friend.name}
+                    </Text>
+                  </View>
                   <Text style={[styles.settleBadge, isYouOwe ? styles.badgeOwe : styles.badgeOwed]}>
                     {badgeText}
                   </Text>
@@ -438,10 +443,16 @@ const styles = StyleSheet.create({
   settleMain: {
     flex: 1,
   },
+  settleNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
   settleName: {
     color: Colors.text,
     fontSize: 15,
     fontWeight: '700',
+    flexShrink: 1,
   },
   settleBadge: {
     marginTop: 4,

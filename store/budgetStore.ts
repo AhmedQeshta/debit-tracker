@@ -117,15 +117,22 @@ export const useBudgetStore = create<IBudgetState>()(
               // Remote budget doesn't exist locally -> add it
               localMap.set(remote.id, { ...remote, synced: true });
             } else {
-              // Conflict resolution: use the one with newer updatedAt
+              const localPending = local.synced !== true && local.deletedAt === undefined;
+
+              // Keep pending local deletion until sync confirms it remotely.
+              if (local.deletedAt !== undefined && local.synced !== true) {
+                return;
+              }
+
+              // Conflict resolution: pending local changes win over pull data.
               const remoteUpdatedAt = remote.updatedAt || 0;
               const localUpdatedAt = local.updatedAt || 0;
-              if (remoteUpdatedAt > localUpdatedAt) {
+              if (!localPending && remoteUpdatedAt > localUpdatedAt) {
                 // Remote is newer -> use remote (including its items, clear any local deletion)
                 localMap.set(remote.id, { ...remote, synced: true });
               } else {
-                // Local is newer or equal -> keep local (but mark as synced if remote exists)
-                // Also merge budget items with conflict resolution
+                // Local is newer/equal OR local has pending changes -> keep local fields.
+                // Merge items while preserving local pending item changes.
                 const localItemsMap = new Map(local.items.map((item) => [item.id, item]));
                 const remoteItemsIds = new Set((remote.items || []).map((item) => item.id));
 
@@ -135,15 +142,17 @@ export const useBudgetStore = create<IBudgetState>()(
                   if (!localItem) {
                     localItemsMap.set(remoteItem.id, { ...remoteItem, synced: true });
                   } else {
+                    const localItemPending =
+                      localItem.synced !== true && localItem.deletedAt === undefined;
                     const remoteItemUpdatedAt = remoteItem.updatedAt || 0;
                     const localItemUpdatedAt = localItem.updatedAt || 0;
-                    if (remoteItemUpdatedAt > localItemUpdatedAt) {
+                    if (!localItemPending && remoteItemUpdatedAt > localItemUpdatedAt) {
                       // Remote item is newer -> use remote (clear any local deletion)
                       localItemsMap.set(remoteItem.id, { ...remoteItem, synced: true });
                     } else {
                       localItemsMap.set(remoteItem.id, {
                         ...localItem,
-                        synced: localItem.synced || true,
+                        synced: localItemPending ? false : true,
                       });
                     }
                   }
@@ -167,7 +176,7 @@ export const useBudgetStore = create<IBudgetState>()(
                 localMap.set(remote.id, {
                   ...local,
                   items: mergedItems,
-                  synced: local.synced || true,
+                  synced: localPending ? false : true,
                 });
               }
             }
@@ -209,11 +218,15 @@ export const useBudgetStore = create<IBudgetState>()(
         })),
       pinBudget: (id: string) =>
         set((state) => ({
-          budgets: state.budgets.map((b) => (b.id === id ? { ...b, pinned: true } : b)),
+          budgets: state.budgets.map((b) =>
+            b.id === id ? { ...b, pinned: true, synced: false, updatedAt: Date.now() } : b,
+          ),
         })),
       unpinBudget: (id: string) =>
         set((state) => ({
-          budgets: state.budgets.map((b) => (b.id === id ? { ...b, pinned: false } : b)),
+          budgets: state.budgets.map((b) =>
+            b.id === id ? { ...b, pinned: false, synced: false, updatedAt: Date.now() } : b,
+          ),
         })),
       setCurrency: (id: string, currency: string) =>
         set((state) => ({

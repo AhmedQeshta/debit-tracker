@@ -1,6 +1,7 @@
 import { useBudgetPeriod } from '@/hooks/budget/useBudgetPeriod';
 import { useSettle } from '@/hooks/friend/useSettle';
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { useSyncMutation } from '@/hooks/sync/useSyncMutation';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { calculateLatestTransactions, getBalance } from '@/lib/utils';
@@ -19,6 +20,7 @@ export const useHome = (summaryCurrency: string) => {
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { syncNow } = useCloudSync();
+  const { mutate } = useSyncMutation();
   const { handleBudgetResetPeriod } = useBudgetPeriod();
   const { handleSettleUp, isSettling: isSettlingFriend, canSettle: canSettleFriend } = useSettle();
 
@@ -63,19 +65,33 @@ export const useHome = (summaryCurrency: string) => {
     [allTransactions],
   );
 
-  const handlePinToggle = (friendId: string) => {
+  const handlePinToggle = async (friendId: string): Promise<void> => {
     const friend = latestFriends.find((f) => f.id === friendId);
     if (friend) {
+      const nextPinned = !friend.pinned;
       if (friend.pinned) unpinFriend(friendId);
       else pinFriend(friendId);
+
+      await mutate('friend_pin', 'update', {
+        id: friendId,
+        friendId,
+        pinned: nextPinned,
+        updatedAt: Date.now(),
+      });
     }
   };
 
   const allBudgets = useBudgetStore(
     useShallow((state) => state.budgets.filter((b) => !b.deletedAt)),
   );
-  const { getTotalSpent, getRemainingBudget, pinBudget, unpinBudget, deleteBudget } =
-    useBudgetStore();
+  const {
+    getTotalSpent,
+    getRemainingBudget,
+    getBudgetMetrics,
+    pinBudget,
+    unpinBudget,
+    deleteBudget,
+  } = useBudgetStore();
   const activeBudgets = useMemo(
     () => allBudgets.filter((budget) => !budget.deletedAt && !budget.archivedAt),
     [allBudgets],
@@ -130,13 +146,39 @@ export const useHome = (summaryCurrency: string) => {
   }, [activeFriends, allTransactions, summaryCurrency]);
 
   const settleUpPeople = useMemo<HomeSettlePerson[]>(() => {
+    const lastTransactionByFriend = new Map<string, number>();
+    allTransactions.forEach((transaction) => {
+      const currentLast = lastTransactionByFriend.get(transaction.friendId) || 0;
+      const transactionDate = transaction.date || transaction.createdAt || 0;
+      if (transactionDate > currentLast) {
+        lastTransactionByFriend.set(transaction.friendId, transactionDate);
+      }
+    });
+
     return activeFriends
       .map((friend) => {
         const balance = getBalance(friend.id, allTransactions);
-        return { friend, balance };
+        const lastTransactionDate = lastTransactionByFriend.get(friend.id) || 0;
+        return { friend, balance, lastTransactionDate };
       })
       .filter((item) => item.balance !== 0)
-      .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+      .sort((a, b) => {
+        const aPinned = Boolean(a.friend.pinned);
+        const bPinned = Boolean(b.friend.pinned);
+
+        if (aPinned !== bPinned) {
+          return aPinned ? -1 : 1;
+        }
+
+        const actionDelta = Math.abs(b.balance) - Math.abs(a.balance);
+        if (actionDelta !== 0) return actionDelta;
+
+        const activityDelta = b.lastTransactionDate - a.lastTransactionDate;
+        if (activityDelta !== 0) return activityDelta;
+
+        return a.friend.name.localeCompare(b.friend.name);
+      })
+      .map(({ friend, balance }) => ({ friend, balance }))
       .slice(0, 3);
   }, [activeFriends, allTransactions]);
 
@@ -149,7 +191,31 @@ export const useHome = (summaryCurrency: string) => {
   }, [activeFriends, latestTransactions]);
 
   const budgetsOverview = useMemo<HomeBudgetPreview[]>(() => {
-    return activeBudgets.slice(0, 5).map((budget) => {
+    const sortedBudgets = [...activeBudgets].sort((a, b) => {
+      if (a.pinned !== b.pinned) {
+        return a.pinned ? -1 : 1;
+      }
+
+      const aMetrics = getBudgetMetrics(a.id);
+      const bMetrics = getBudgetMetrics(b.id);
+
+      if (aMetrics.isOverspent !== bMetrics.isOverspent) {
+        return aMetrics.isOverspent ? -1 : 1;
+      }
+
+      const aProgress = a.totalBudget > 0 ? aMetrics.netSpent / a.totalBudget : 0;
+      const bProgress = b.totalBudget > 0 ? bMetrics.netSpent / b.totalBudget : 0;
+      if (aProgress !== bProgress) {
+        return bProgress - aProgress;
+      }
+
+      const updatedAtDelta = (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt);
+      if (updatedAtDelta !== 0) return updatedAtDelta;
+
+      return a.title.localeCompare(b.title);
+    });
+
+    return sortedBudgets.slice(0, 5).map((budget) => {
       const spent = getTotalSpent(budget.id);
       const progressRatio = budget.totalBudget > 0 ? spent / budget.totalBudget : 0;
       const progress = Math.max(0, Math.min(1, progressRatio));
@@ -165,16 +231,24 @@ export const useHome = (summaryCurrency: string) => {
         warningLabel,
       };
     });
-  }, [activeBudgets, getTotalSpent]);
+  }, [activeBudgets, getBudgetMetrics, getTotalSpent]);
 
   const isFreshState =
     activeFriends.length === 0 && allTransactions.length === 0 && activeBudgets.length === 0;
 
-  const handleBudgetPinToggle = (budgetId: string) => {
+  const handleBudgetPinToggle = async (budgetId: string): Promise<void> => {
     const budget = allBudgets.find((b) => b.id === budgetId);
     if (budget) {
+      const nextPinned = !budget.pinned;
       if (budget.pinned) unpinBudget(budgetId);
       else pinBudget(budgetId);
+
+      await mutate('budget_pin', 'update', {
+        id: budgetId,
+        budgetId,
+        pinned: nextPinned,
+        updatedAt: Date.now(),
+      });
     }
   };
 

@@ -8,7 +8,9 @@ const mapLegacyOperation = (item: SyncQueueItem): SyncQueueItem['operation'] => 
   if (item.operation) return item.operation;
 
   if (item.type === 'friend') return 'FRIEND_UPSERT';
+  if (item.type === 'friend_pin') return 'FRIEND_PIN_TOGGLE';
   if (item.type === 'budget') return 'BUDGET_UPSERT';
+  if (item.type === 'budget_pin') return 'BUDGET_PIN_TOGGLE';
   if (item.type === 'settle_friend') return 'SETTLE_FRIEND';
 
   if (item.type === 'budget_item') {

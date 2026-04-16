@@ -116,11 +116,15 @@ export const useFriendsStore = create<IFriendsState>()(
         })),
       pinFriend: (id) =>
         set((state) => ({
-          friends: state.friends.map((f) => (f.id === id ? { ...f, pinned: true } : f)),
+          friends: state.friends.map((f) =>
+            f.id === id ? { ...f, pinned: true, synced: false, updatedAt: Date.now() } : f,
+          ),
         })),
       unpinFriend: (id) =>
         set((state) => ({
-          friends: state.friends.map((f) => (f.id === id ? { ...f, pinned: false } : f)),
+          friends: state.friends.map((f) =>
+            f.id === id ? { ...f, pinned: false, synced: false, updatedAt: Date.now() } : f,
+          ),
         })),
     }),
     {
