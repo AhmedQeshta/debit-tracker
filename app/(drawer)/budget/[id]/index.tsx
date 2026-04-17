@@ -11,6 +11,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import {
   ArrowLeft,
+  ArrowRight,
   Calculator,
   CalendarDays,
   ChevronDown,
@@ -23,7 +24,15 @@ import {
 } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  I18nManager,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 const NEAR_LIMIT_THRESHOLD = 0.8;
@@ -159,7 +168,11 @@ export default function BudgetDetail() {
             activeOpacity={0.75}
             accessibilityRole="button"
             accessibilityLabel={t('budgetDetail.accessibility.goBack')}>
-            <ArrowLeft size={22} color={Colors.text} />
+            {I18nManager.isRTL ? (
+              <ArrowRight size={22} color={Colors.text} />
+            ) : (
+              <ArrowLeft size={22} color={Colors.text} />
+            )}
           </TouchableOpacity>
 
           <View style={styles.appBarTitleWrap}>

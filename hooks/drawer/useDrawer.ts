@@ -1,12 +1,13 @@
+import i18n from '@/i18n';
 import { useRouter, useSegments } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, I18nManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const DRAWER_WIDTH = 280;
 
 export const useDrawer = () => {
-  const isRTL = I18nManager.isRTL;
+  const isRTL = i18n.dir(i18n.language) === 'rtl' || I18nManager.isRTL;
   const closedDrawerTranslateX = isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
@@ -14,6 +15,10 @@ export const useDrawer = () => {
   const insets = useSafeAreaInsets();
   const slideAnim = useState(new Animated.Value(closedDrawerTranslateX))[0];
   const overlayAnim = useState(new Animated.Value(0))[0];
+
+  useEffect(() => {
+    slideAnim.setValue(drawerOpen ? 0 : closedDrawerTranslateX);
+  }, [closedDrawerTranslateX, drawerOpen, slideAnim]);
 
   const toggleDrawer = () => {
     if (drawerOpen) {

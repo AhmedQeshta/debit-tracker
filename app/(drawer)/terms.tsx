@@ -1,22 +1,23 @@
 import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function Terms() {
   const { t } = useTranslation();
-  const { openDrawer } = useDrawerContext();
+  const router = useRouter();
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
         <Header
-          openDrawer={openDrawer}
+          openDrawer={() => router.push('/(drawer)/(tabs)/settings')}
           title={t('legal.terms.title')}
           subtitle={t('legal.terms.subtitle')}
+          isGoBack
         />
 
         <View style={styles.card}>

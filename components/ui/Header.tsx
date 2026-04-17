@@ -1,21 +1,19 @@
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { ArrowLeft, Menu } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-interface HeaderProps {
-  openDrawer?: () => void;
-  title: string;
-  subtitle?: string;
-  isGoBack?: boolean;
-}
+import { HeaderProps } from '@/types/common';
+import { ArrowLeft, ArrowRight, Menu } from 'lucide-react-native';
+import { I18nManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Header({ openDrawer, title, subtitle, isGoBack = false }: HeaderProps) {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={openDrawer} style={styles.menuButton} activeOpacity={0.7}>
         {isGoBack ? (
-          <ArrowLeft size={25} color={Colors.text} />
+          I18nManager.isRTL ? (
+            <ArrowRight size={25} color={Colors.text} />
+          ) : (
+            <ArrowLeft size={25} color={Colors.text} />
+          )
         ) : (
           <Menu size={24} color={Colors.text} />
         )}

@@ -350,3 +350,10 @@ export interface SyncQueueFlushSummary {
   failedCount: number;
   blockedReason?: QueueBlockedReason;
 }
+
+export interface HeaderProps {
+  openDrawer?: () => void;
+  title: string;
+  subtitle?: string;
+  isGoBack?: boolean;
+}

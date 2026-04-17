@@ -1,16 +1,16 @@
+import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useToast } from '@/hooks/useToast';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
-import { Github, Globe, Linkedin, Mail, MapPin, Menu, Phone } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Github, Globe, Linkedin, Mail, MapPin, Phone } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function About() {
   const { t } = useTranslation();
-  const { openDrawer } = useDrawerContext();
   const { toastError } = useToast();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
@@ -28,16 +28,15 @@ export default function About() {
       toastError(t('about.errors.openLinkFailed'));
     });
   };
-
+  const router = useRouter();
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={openDrawer} style={styles.menuButton} activeOpacity={0.7}>
-            <Menu size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.title}>{t('about.title')}</Text>
-        </View>
+        <Header
+          openDrawer={() => router.push('/(drawer)/(tabs)/settings')}
+          title={t('about.title')}
+          isGoBack
+        />
 
         {/* App Logo, Name and Version */}
         <View style={styles.appHeader}>
