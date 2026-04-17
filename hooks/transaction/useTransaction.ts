@@ -18,9 +18,11 @@ import { useTransactionsStore } from '@/store/transactionsStore';
 import { ITransactionRow, ITransactionSection } from '@/types/transaction';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useTransaction = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -58,7 +60,9 @@ export const useTransaction = () => {
       const amountDirectionLabel: ITransactionRow['amountDirectionLabel'] =
         transaction.amount > 0 ? 'Received' : 'Paid';
       const title = transaction.title;
-      const subtitle = transaction.note ? transaction.note : `with ${friendName}`;
+      const subtitle = transaction.note
+        ? transaction.note
+        : t('transactionHooks.row.withFriend', { name: friendName });
       const linkedBudget = budgets.find((budget) => budget.id === transaction.budgetId);
       const budgetRemainingText = linkedBudget
         ? formatAbsoluteCurrency(
@@ -100,7 +104,7 @@ export const useTransaction = () => {
     return searchedRows.sort((a, b) => {
       return b.transaction.date - a.transaction.date;
     });
-  }, [transactions, friends, budgets, lastSyncError, isOnline, searchQuery]);
+  }, [transactions, friends, budgets, lastSyncError, isOnline, searchQuery, t]);
 
   const groupedSections = useMemo<ITransactionSection[]>(() => {
     const buckets = rows.reduce<Record<string, typeof rows>>((accumulator, row) => {
@@ -161,15 +165,15 @@ export const useTransaction = () => {
 
   const handleDelete = (id: string, title: string) => {
     showConfirm(
-      'Delete Transaction',
-      `Are you sure you want to delete "${title}"?`,
+      t('friendHooks.detail.deleteTransaction.confirmTitle'),
+      t('friendHooks.detail.deleteTransaction.confirmMessage', { title }),
       async () => {
         const transaction = transactions.find((item) => item.id === id);
         const removedItem = removeItemByTransactionId(id);
 
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(id);
-        toastSuccess('Transaction deleted successfully');
+        toastSuccess(t('friendHooks.detail.deleteTransaction.success'));
 
         if (transaction) {
           await mutate('transaction', 'delete', transaction);
@@ -186,7 +190,7 @@ export const useTransaction = () => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -210,12 +214,15 @@ export const useTransaction = () => {
     }
 
     showConfirm(
-      'Add a friend first',
-      'You need at least one friend before adding a transaction.',
+      t('transactions.empty.addFriendFirst'),
+      t('transactionHooks.empty.addFriendRequiredMessage'),
       () => {
         router.push('/(drawer)/friend/new');
       },
-      { confirmText: 'Add Friend', cancelText: 'Later' },
+      {
+        confirmText: t('transactions.actions.addFriend'),
+        cancelText: t('transactionHooks.actions.later'),
+      },
     );
   };
 

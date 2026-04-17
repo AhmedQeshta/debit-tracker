@@ -1,14 +1,18 @@
 import { MenuItemDrawer } from '@/components/drawer/MenuItemDrawer';
 import { SyncStatus } from '@/components/sync/SyncStatus';
 import { useSignOut } from '@/hooks/auth/useSignOut';
-import { MAIN_MENU_ITEMS } from '@/lib/menu';
+import { getMainMenuItems } from '@/lib/menu';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Info, LogIn, LogOut, X } from 'lucide-react-native';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) => {
+  const { t } = useTranslation();
+  const menuItems = useMemo(() => getMainMenuItems(t), [t]);
   const { isSignedIn } = useAuth();
   const { user } = useUser();
   const { handleAuthAction, isSigningOut } = useSignOut(closeDrawer);
@@ -16,7 +20,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
   return (
     <View style={[styles.drawerContent, { paddingTop: insets.top }]}>
       <View style={styles.drawerHeader}>
-        <Text style={styles.drawerTitle}>Menu</Text>
+        <Text style={styles.drawerTitle}>{t('navigation.drawer.menu')}</Text>
         <TouchableOpacity onPress={closeDrawer} style={styles.closeButton}>
           <X size={24} color={Colors.text} />
         </TouchableOpacity>
@@ -26,14 +30,14 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
         style={styles.drawerMenu}
         contentContainerStyle={{ paddingBottom: Spacing.xl }}
         showsVerticalScrollIndicator={false}>
-        {MAIN_MENU_ITEMS.map((item) => (
+        {menuItems.map((item) => (
           <MenuItemDrawer key={item.path} item={item} isActive={isActive} navigateTo={navigateTo} />
         ))}
 
         <SyncStatus />
 
         <MenuItemDrawer
-          item={{ label: 'About Me', path: '/(drawer)/about', icon: Info }}
+          item={{ label: t('navigation.drawer.about'), path: '/(drawer)/about', icon: Info }}
           isActive={isActive}
           navigateTo={navigateTo}
         />
@@ -61,7 +65,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
         ) : (
           <TouchableOpacity onPress={handleAuthAction} style={styles.loginButton}>
             <LogIn size={20} color={Colors.primary} />
-            <Text style={styles.loginButtonText}>Sign In</Text>
+            <Text style={styles.loginButtonText}>{t('settings.rows.signIn')}</Text>
           </TouchableOpacity>
         )}
       </View>

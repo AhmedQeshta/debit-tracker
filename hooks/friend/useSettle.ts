@@ -6,9 +6,11 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useSettle = () => {
+  const { t } = useTranslation();
   const [settlingFriendId, setSettlingFriendId] = useState<string | null>(null);
   const { settleTransactionsByFriendId } = useTransactionsStore();
 
@@ -28,11 +30,11 @@ export const useSettle = () => {
 
     const friend = friends.find((item) => item.id === friendId);
     if (!friend && !friendName) return;
-    const displayName = friendName || friend?.name || 'this friend';
+    const displayName = friendName || friend?.name || t('friendHooks.settle.defaultFriendName');
 
     showConfirm(
-      `Settle up with ${displayName}?`,
-      `This will clear all transactions with ${displayName} and reset the balance to ₪0.00. You can't undo this.`,
+      t('friendHooks.settle.confirmTitle', { name: displayName }),
+      t('friendHooks.settle.confirmMessage', { name: displayName }),
       async () => {
         if (settlingFriendId === friendId) return;
 
@@ -45,7 +47,7 @@ export const useSettle = () => {
             );
 
           if (activeFriendTransactions.length === 0) {
-            toastSuccess('Settled. Balance is now ₪0.00');
+            toastSuccess(t('friendHooks.settle.success'));
             return;
           }
 
@@ -59,15 +61,18 @@ export const useSettle = () => {
             await syncNow();
           }
 
-          toastSuccess('Settled. Balance is now ₪0.00');
+          toastSuccess(t('friendHooks.settle.success'));
         } catch (error) {
           console.error('[Settle] Failed to settle up:', error);
-          toastError("Couldn't settle right now. Try again.");
+          toastError(t('friendHooks.settle.error'));
         } finally {
           setSettlingFriendId(null);
         }
       },
-      { confirmText: 'Settle up', cancelText: 'Cancel' },
+      {
+        confirmText: t('friendHooks.settle.confirmAction'),
+        cancelText: t('common.actions.cancel'),
+      },
     );
   };
 

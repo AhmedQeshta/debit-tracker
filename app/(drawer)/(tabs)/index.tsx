@@ -18,9 +18,11 @@ import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Pin, Settings } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Home() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
@@ -74,7 +76,7 @@ export default function Home() {
           <Pressable onPress={openDrawer} style={styles.iconButton} hitSlop={8}>
             <Menu size={20} color={Colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>Home</Text>
+          <Text style={styles.headerTitle}>{t('home.title')}</Text>
         </View>
 
         <View style={styles.headerActions}>
@@ -89,39 +91,41 @@ export default function Home() {
 
       <View style={styles.summaryRow}>
         <View style={styles.summaryHeader}>
-          <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+          <Text style={styles.summaryHeaderText}>
+            {t('home.summary.title', { currencyLabel: summaryCurrencyLabel })}
+          </Text>
           <Pressable
             style={styles.currencyButton}
             onPress={handleSummaryCurrencyToggle}
             accessibilityRole="button"
-            accessibilityLabel="Change summary currency"
-            accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+            accessibilityLabel={t('home.summary.accessibility.changeCurrencyLabel')}
+            accessibilityHint={t('home.summary.accessibility.changeCurrencyHint')}>
             <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
           </Pressable>
         </View>
         <View style={styles.summaryStatsWrap}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Friends</Text>
+            <Text style={styles.summaryLabel}>{t('home.summary.labels.friends')}</Text>
             <Text style={styles.summaryValue}>{summaryStats.totalFriends}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>You owe</Text>
+            <Text style={styles.summaryLabel}>{t('money.labels.youOwe')}</Text>
             <Text style={[styles.summaryValue, styles.negative]}>
               {formatCurrency(summaryStats.youOweTotal, summaryCurrency)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Owed to you</Text>
+            <Text style={styles.summaryLabel}>{t('money.labels.owedToYou')}</Text>
             <Text style={[styles.summaryValue, styles.positive]}>
               {formatCurrency(summaryStats.owedToYouTotal, summaryCurrency)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Settled</Text>
+            <Text style={styles.summaryLabel}>{t('home.summary.labels.settled')}</Text>
             <Text style={styles.summaryValue}>{summaryStats.settledCount}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Net</Text>
+            <Text style={styles.summaryLabel}>{t('home.summary.labels.net')}</Text>
             <Text style={[styles.summaryValue, netTone]}>
               {formatCurrency(summaryStats.netBalance, summaryCurrency)}
             </Text>
@@ -129,7 +133,7 @@ export default function Home() {
         </View>
       </View>
 
-      <HomeSectionHeader title="Quick Actions" />
+      <HomeSectionHeader title={t('home.sections.quickActions')} />
       <HomeQuickActions
         onAddTransaction={handleAddTransactionPress}
         onAddFriend={navigateToCreateFriend}
@@ -137,19 +141,19 @@ export default function Home() {
       />
 
       <HomeSectionHeader
-        title="Budgets Overview"
-        seeAllLabel="See all"
+        title={t('home.sections.budgetsOverview')}
+        seeAllLabel={t('home.actions.seeAll')}
         onSeeAll={() => router.push('/budget')}
       />
       <View style={styles.sectionBody}>
         {budgetsOverview.length === 0 ? (
           <View style={styles.compactEmptyCard}>
             <EmptySection
-              title="No Budgets"
-              description="Create your first budget to start tracking your spending"
+              title={t('home.emptyStates.budgets.title')}
+              description={t('home.emptyStates.budgets.description')}
               icon="budgets"
             />
-            <Button title="Create Budget" onPress={navigateToCreateBudget} />
+            <Button title={t('home.actions.createBudget')} onPress={navigateToCreateBudget} />
           </View>
         ) : (
           budgetsOverview.map(({ budget, spent, progress, warningLabel }) => (
@@ -195,21 +199,23 @@ export default function Home() {
       ) : null}
 
       <HomeSectionHeader
-        title="Settle Up"
-        seeAllLabel="See all"
+        title={t('home.sections.settleUp')}
+        seeAllLabel={t('home.actions.seeAll')}
         onSeeAll={() => router.push('/friends')}
       />
       <View style={styles.sectionBody}>
         {settleUpPeople.length === 0 ? (
           <View style={styles.compactEmptyCard}>
-            <Text style={styles.compactEmptyTitle}>No balances to settle</Text>
-            <Text style={styles.compactEmptyText}>Add a friend to get started.</Text>
-            <Button title="Add Friend" onPress={navigateToCreateFriend} />
+            <Text style={styles.compactEmptyTitle}>{t('home.emptyStates.settle.title')}</Text>
+            <Text style={styles.compactEmptyText}>{t('home.emptyStates.settle.description')}</Text>
+            <Button title={t('home.actions.addFriend')} onPress={navigateToCreateFriend} />
           </View>
         ) : (
           settleUpPeople.map((item) => {
             const isYouOwe = item.balance < 0;
-            const badgeText = isYouOwe ? 'You owe' : 'They owe you';
+            const badgeText = isYouOwe
+              ? t('money.labels.youOwe')
+              : t('home.settle.badges.theyOweYou');
             const isSettling = isSettlingFriend(item.friend.id);
             const canSettle = canSettleFriend(item.friend.id);
 
@@ -244,7 +250,7 @@ export default function Home() {
                     {formatAbsoluteCurrency(item.balance, item.friend.currency || '$')}
                   </Text>
                   <Button
-                    title={canSettle ? 'Settle up' : 'Settled'}
+                    title={canSettle ? t('home.actions.settleUp') : t('home.actions.settled')}
                     variant="outline"
                     onPress={() => handleSettleUp(item.friend.id, item.friend.name)}
                     loading={isSettling}
@@ -258,19 +264,19 @@ export default function Home() {
       </View>
 
       <HomeSectionHeader
-        title="Recent Transactions"
-        seeAllLabel="See all"
+        title={t('home.sections.recentTransactions')}
+        seeAllLabel={t('home.actions.seeAll')}
         onSeeAll={() => router.push('/transactions')}
       />
       <View style={styles.sectionBody}>
         {recentTransactions.length === 0 ? (
           <View style={styles.compactEmptyCard}>
             <EmptySection
-              title={'No Transactions Yet'}
-              description={'Add your first transaction to start tracking debts'}
+              title={t('home.emptyStates.transactions.title')}
+              description={t('home.emptyStates.transactions.description')}
               icon={'transactions'}
             />
-            <Button title="Add Transaction" onPress={handleAddTransactionPress} />
+            <Button title={t('home.actions.addTransaction')} onPress={handleAddTransactionPress} />
           </View>
         ) : (
           recentTransactions.map(({ transaction, friend }) => (

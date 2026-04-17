@@ -3,6 +3,7 @@ import SelectChip from '@/components/ui/SelectChip';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { BudgetExportModalProps } from '@/types/export';
+import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const BudgetExportModal = ({
@@ -19,23 +20,25 @@ export const BudgetExportModal = ({
   onSaveToDevice,
   onShare,
 }: BudgetExportModalProps) => {
+  const { t } = useTranslation();
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.card} onPress={(event) => event.stopPropagation()}>
-          <Text style={styles.title}>Export budgets</Text>
-          <Text style={styles.subtitle}>Choose format and what to include.</Text>
+          <Text style={styles.title}>{t('budgetExportModal.title')}</Text>
+          <Text style={styles.subtitle}>{t('budgetExportModal.subtitle')}</Text>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Scope</Text>
+            <Text style={styles.sectionTitle}>{t('budgetExportModal.sections.scope')}</Text>
             <View style={styles.row}>
               <SelectChip
-                label="All budgets"
+                label={t('budgetExportModal.scope.all')}
                 active={scopeMode === 'all'}
                 onPress={() => onChangeScopeMode('all')}
               />
               <SelectChip
-                label="Selected budget"
+                label={t('budgetExportModal.scope.selected')}
                 active={scopeMode === 'selected'}
                 onPress={() => {
                   if (canUseSelectedScope) {
@@ -45,22 +48,20 @@ export const BudgetExportModal = ({
               />
             </View>
             {!canUseSelectedScope ? (
-              <Text style={styles.hintText}>
-                Selected budget is available from budget-specific menus.
-              </Text>
+              <Text style={styles.hintText}>{t('budgetExportModal.scope.selectedHint')}</Text>
             ) : null}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Format</Text>
+            <Text style={styles.sectionTitle}>{t('budgetExportModal.sections.format')}</Text>
             <View style={styles.row}>
               <SelectChip
-                label="CSV"
+                label={t('budgetExportModal.format.csv')}
                 active={format === 'csv'}
                 onPress={() => onChangeFormat('csv')}
               />
               <SelectChip
-                label="JSON"
+                label={t('budgetExportModal.format.json')}
                 active={format === 'json'}
                 onPress={() => onChangeFormat('json')}
               />
@@ -68,15 +69,15 @@ export const BudgetExportModal = ({
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Include budget items</Text>
+            <Text style={styles.sectionTitle}>{t('budgetExportModal.sections.includeItems')}</Text>
             <View style={styles.row}>
               <SelectChip
-                label="Yes"
+                label={t('common.words.yes')}
                 active={includeBudgetItems}
                 onPress={() => onChangeIncludeBudgetItems(true)}
               />
               <SelectChip
-                label="No"
+                label={t('common.words.no')}
                 active={!includeBudgetItems}
                 onPress={() => onChangeIncludeBudgetItems(false)}
               />
@@ -85,13 +86,27 @@ export const BudgetExportModal = ({
 
           <View style={styles.actions}>
             <Button
-              title={loading ? 'Exporting...' : 'Save to device'}
+              title={
+                loading
+                  ? t('budgetExportModal.actions.exporting')
+                  : t('budgetExportModal.actions.saveToDevice')
+              }
               onPress={onSaveToDevice}
               loading={loading}
               disabled={loading}
             />
-            <Button title="Share" onPress={onShare} variant="outline" disabled={loading} />
-            <Button title="Cancel" onPress={onClose} variant="outline" disabled={loading} />
+            <Button
+              title={t('budgetExportModal.actions.share')}
+              onPress={onShare}
+              variant="outline"
+              disabled={loading}
+            />
+            <Button
+              title={t('common.actions.cancel')}
+              onPress={onClose}
+              variant="outline"
+              disabled={loading}
+            />
           </View>
         </Pressable>
       </Pressable>

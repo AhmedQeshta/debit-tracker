@@ -5,9 +5,11 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
 import { Github, Globe, Linkedin, Mail, MapPin, Menu, Phone } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function About() {
+  const { t } = useTranslation();
   const { openDrawer } = useDrawerContext();
   const { toastError } = useToast();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
@@ -23,7 +25,7 @@ export default function About() {
 
   const handleLinkPress = (url: string) => {
     Linking.openURL(url).catch(() => {
-      toastError('Could not open the link');
+      toastError(t('about.errors.openLinkFailed'));
     });
   };
 
@@ -34,48 +36,53 @@ export default function About() {
           <TouchableOpacity onPress={openDrawer} style={styles.menuButton} activeOpacity={0.7}>
             <Menu size={24} color={Colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>About</Text>
+          <Text style={styles.title}>{t('about.title')}</Text>
         </View>
 
         {/* App Logo, Name and Version */}
         <View style={styles.appHeader}>
           <Image source={require('@/assets/icon.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.appName}>{appName}</Text>
-          <Text style={styles.appVersion}>Version {appVersion}</Text>
+          <Text style={styles.appVersion}>{t('about.version', { version: appVersion })}</Text>
         </View>
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>
-            DebitTracker is a premium, offline-first mobile application designed to help you manage
-            personal finances with ease. Track debts, transactions, and balances seamlessly, even
-            without an internet connection. Built with modern technologies for a fast, reliable, and
-            intuitive user experience.
-          </Text>
+          <Text style={styles.sectionTitle}>{t('about.sections.description.title')}</Text>
+          <Text style={styles.description}>{t('about.sections.description.body')}</Text>
         </View>
 
         {/* Features */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Features</Text>
+          <Text style={styles.sectionTitle}>{t('about.sections.features.title')}</Text>
           <View style={styles.featureList}>
-            <Text style={styles.featureItem}>• Offline-First Architecture</Text>
-            <Text style={styles.featureItem}>• Premium Dark Mode Interface</Text>
-            <Text style={styles.featureItem}>• Friend Management & Profiles</Text>
-            <Text style={styles.featureItem}>• Transaction Tracking & History</Text>
-            <Text style={styles.featureItem}>• Budget Calculator & Management</Text>
-            <Text style={styles.featureItem}>• Dashboard & Analytics</Text>
-            <Text style={styles.featureItem}>• Persistent State Management</Text>
+            <Text style={styles.featureItem}>
+              • {t('about.sections.features.items.offlineFirst')}
+            </Text>
+            <Text style={styles.featureItem}>• {t('about.sections.features.items.darkMode')}</Text>
+            <Text style={styles.featureItem}>
+              • {t('about.sections.features.items.friendManagement')}
+            </Text>
+            <Text style={styles.featureItem}>
+              • {t('about.sections.features.items.transactionTracking')}
+            </Text>
+            <Text style={styles.featureItem}>
+              • {t('about.sections.features.items.budgetManagement')}
+            </Text>
+            <Text style={styles.featureItem}>• {t('about.sections.features.items.dashboard')}</Text>
+            <Text style={styles.featureItem}>
+              • {t('about.sections.features.items.stateManagement')}
+            </Text>
           </View>
         </View>
 
         {/* Developer Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Developer</Text>
+          <Text style={styles.sectionTitle}>{t('about.sections.developer.title')}</Text>
 
           <View style={styles.developerCard}>
             <Text style={styles.developerName}>Ahmed Qeshta</Text>
-            <Text style={styles.developerTitle}>Computer Engineer - Full Stack Engineer</Text>
+            <Text style={styles.developerTitle}>{t('about.sections.developer.role')}</Text>
 
             <View style={styles.contactInfo}>
               <TouchableOpacity
@@ -106,7 +113,9 @@ export default function About() {
                 onPress={() => handleLinkPress('https://www.linkedin.com/in/ahmed-qeshta')}
                 activeOpacity={0.7}>
                 <Linkedin size={16} color={Colors.primary} />
-                <Text style={styles.socialText}>LinkedIn</Text>
+                <Text style={styles.socialText}>
+                  {t('about.sections.developer.social.linkedin')}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -114,7 +123,7 @@ export default function About() {
                 onPress={() => handleLinkPress('https://github.com/ahmed-qeshta')}
                 activeOpacity={0.7}>
                 <Github size={16} color={Colors.primary} />
-                <Text style={styles.socialText}>GitHub</Text>
+                <Text style={styles.socialText}>{t('about.sections.developer.social.github')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -122,31 +131,32 @@ export default function About() {
                 onPress={() => handleLinkPress('https://ahmed.qeshta.dev')}
                 activeOpacity={0.7}>
                 <Globe size={16} color={Colors.primary} />
-                <Text style={styles.socialText}>Website</Text>
+                <Text style={styles.socialText}>
+                  {t('about.sections.developer.social.website')}
+                </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.developerInfo}>
-              <Text style={styles.developerSubtitle}>Professional Summary</Text>
+              <Text style={styles.developerSubtitle}>
+                {t('about.sections.developer.summaryTitle')}
+              </Text>
               <Text style={styles.developerDescription}>
-                Experienced Full Stack Engineer with a strong focus on React, Next.js, and modern
-                web technologies. Specialized in building production-ready applications with
-                emphasis on component architecture, state management, and performance optimization.
-                Comfortable working across the full stack, from frontend UI/UX to backend APIs and
-                database design.
+                {t('about.sections.developer.summaryBody')}
               </Text>
 
-              <Text style={styles.developerSubtitle}>Education</Text>
+              <Text style={styles.developerSubtitle}>
+                {t('about.sections.developer.educationTitle')}
+              </Text>
               <Text style={styles.developerDescription}>
-                {
-                  "Bachelor's degree in Computer Engineering from The Islamic University of Gaza (April 2016 - June 2021)"
-                }
+                {t('about.sections.developer.educationBody')}
               </Text>
 
-              <Text style={styles.developerSubtitle}>Key Skills</Text>
+              <Text style={styles.developerSubtitle}>
+                {t('about.sections.developer.skillsTitle')}
+              </Text>
               <Text style={styles.developerDescription}>
-                React.js, Next.js, React Native, Node.js, TypeScript, JavaScript, PHP/Laravel, REST
-                APIs, GraphQL, PostgreSQL, MongoDB, AWS, Docker, Git, and modern development tools.
+                {t('about.sections.developer.skillsBody')}
               </Text>
             </View>
           </View>
@@ -154,7 +164,7 @@ export default function About() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            © {new Date().getFullYear()} DebitTracker. All rights reserved.
+            {t('about.footer', { year: new Date().getFullYear() })}
           </Text>
         </View>
       </ScreenContainer>

@@ -7,9 +7,11 @@ import { useBudgetEdit } from '@/hooks/budget/useBudgetEdit';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function EditBudget() {
+  const { t } = useTranslation();
   const {
     control,
     errors,
@@ -27,8 +29,8 @@ export default function EditBudget() {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Budget not found</Text>
-          <Button title="Go Back" onPress={() => router.back()} />
+          <Text style={styles.errorText}>{t('budgetForm.errors.notFound')}</Text>
+          <Button title={t('budgetForm.actions.goBack')} onPress={() => router.back()} />
         </View>
       </ScreenContainer>
     );
@@ -38,26 +40,26 @@ export default function EditBudget() {
     <ScreenContainer>
       <Header
         openDrawer={() => router.push(`/(drawer)/budget/${budget.id}`)}
-        title="Edit Budget"
+        title={t('budgetForm.edit.title')}
         isGoBack={true}
       />
       <View style={styles.form}>
         {hasPendingSync ? (
           <View style={styles.pendingBadge}>
-            <Text style={styles.pendingBadgeText}>Pending sync</Text>
+            <Text style={styles.pendingBadgeText}>{t('budgetForm.edit.pendingSync')}</Text>
           </View>
         ) : null}
 
         <Controller
           control={control}
-          rules={{ required: 'Budget title is required' }}
+          rules={{ required: t('budgetForm.validation.titleRequired') }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Budget Title"
+              label={t('budgetForm.fields.titleLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="e.g. Monthly Groceries"
+              placeholder={t('budgetForm.fields.titlePlaceholder')}
               error={errors.title?.message}
             />
           )}
@@ -66,14 +68,14 @@ export default function EditBudget() {
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
         <Controller
           control={control}
-          rules={{ required: 'Total budget is required' }}
+          rules={{ required: t('budgetForm.validation.totalRequired') }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Total Budget"
+              label={t('budgetForm.fields.totalLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="300"
+              placeholder={t('budgetForm.fields.totalPlaceholder')}
               keyboardType="numeric"
               error={errors.totalBudget?.message}
             />
@@ -83,7 +85,7 @@ export default function EditBudget() {
 
         <View style={styles.actionSection}>
           <Button
-            title="Save Changes"
+            title={t('budgetForm.edit.submit')}
             onPress={handleSubmit}
             loading={loading}
             disabled={!canSave}

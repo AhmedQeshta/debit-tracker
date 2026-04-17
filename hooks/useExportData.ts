@@ -11,22 +11,25 @@ import {
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 
-const chooseDeliveryMode = (): Promise<ExportDeliveryMode | 'cancel'> => {
+const chooseDeliveryMode = (
+  t: (key: string, options?: Record<string, any>) => string,
+): Promise<ExportDeliveryMode | 'cancel'> => {
   return new Promise((resolve) => {
-    Alert.alert('Export', 'How do you want to continue?', [
+    Alert.alert(t('exportHooks.alert.title'), t('exportHooks.alert.message'), [
       {
-        text: 'Cancel',
+        text: t('common.actions.cancel'),
         style: 'cancel',
         onPress: () => resolve('cancel'),
       },
       {
-        text: 'Save to device',
+        text: t('budgetExportModal.actions.saveToDevice'),
         onPress: () => resolve('save'),
       },
       {
-        text: 'Share',
+        text: t('budgetExportModal.actions.share'),
         onPress: () => resolve('share'),
       },
     ]);
@@ -34,6 +37,7 @@ const chooseDeliveryMode = (): Promise<ExportDeliveryMode | 'cancel'> => {
 };
 
 export const useExportData = () => {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const { toastSuccess, toastError, toastInfo } = useToast();
   const { cloudUserId } = useSyncStore();
@@ -49,15 +53,15 @@ export const useExportData = () => {
   const scopedFriendId = typeof params.friendId === 'string' ? params.friendId : undefined;
 
   const summaryText = useMemo(() => {
-    if (friendsSelected && budgetsSelected) return 'Friends + Budgets';
-    if (friendsSelected) return 'Friends only';
-    if (budgetsSelected) return 'Budgets only';
-    return 'No dataset selected';
-  }, [friendsSelected, budgetsSelected]);
+    if (friendsSelected && budgetsSelected) return t('exportHooks.summary.friendsAndBudgets');
+    if (friendsSelected) return t('exportHooks.summary.friendsOnly');
+    if (budgetsSelected) return t('exportHooks.summary.budgetsOnly');
+    return t('exportHooks.summary.none');
+  }, [friendsSelected, budgetsSelected, t]);
 
   const handleExport = async () => {
     if (!friendsSelected && !budgetsSelected) {
-      toastError('Please select at least one dataset.');
+      toastError(t('exportHooks.errors.selectAtLeastOneDataset'));
       return;
     }
 
@@ -71,9 +75,9 @@ export const useExportData = () => {
 
     try {
       setIsExporting(true);
-      toastInfo('Preparing export...');
+      toastInfo(t('budgetHooks.export.preparing'));
 
-      const deliveryMode = await chooseDeliveryMode();
+      const deliveryMode = await chooseDeliveryMode(t);
       if (deliveryMode === 'cancel') {
         return;
       }
@@ -91,32 +95,40 @@ export const useExportData = () => {
 
       result.warnings.forEach((warning) => toastInfo(warning));
 
-      const fileCountText = result.files.length === 1 ? '1 file' : `${result.files.length} files`;
+      const fileCountText = t('budgetHooks.export.fileCount', { count: result.files.length });
       if (deliveryMode === 'save') {
-        const savedPath = result.files[0]?.uri || 'unknown path';
-        toastSuccess('Export saved');
-        Alert.alert('Export saved', `Saved ${fileCountText}\n${savedPath}`, [
-          {
-            text: 'Share file(s)',
-            onPress: () => {
-              shareSavedExportFiles(result.files).catch((error) => {
-                console.error('[ExportScreen] Share after save failed:', error);
-                toastError(`Couldn't export. ${error?.message || 'Unable to share files.'}`);
-              });
+        const savedPath = result.files[0]?.uri || t('exportHooks.unknownPath');
+        toastSuccess(t('budgetHooks.export.saved'));
+        Alert.alert(
+          t('budgetHooks.export.saved'),
+          t('budgetHooks.export.savedDetails', { fileCountText, savedPath }),
+          [
+            {
+              text: t('budgetHooks.export.shareFiles'),
+              onPress: () => {
+                shareSavedExportFiles(result.files).catch((error) => {
+                  console.error('[ExportScreen] Share after save failed:', error);
+                  toastError(
+                    t('budgetHooks.export.shareFailed', {
+                      message: error?.message || t('budgetHooks.export.unableToShareFiles'),
+                    }),
+                  );
+                });
+              },
             },
-          },
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-        ]);
+            {
+              text: t('common.actions.ok'),
+              style: 'cancel',
+            },
+          ],
+        );
       } else {
-        toastSuccess(`Export complete: ${fileCountText} shared.`);
+        toastSuccess(t('budgetHooks.export.completeShared', { fileCountText }));
       }
     } catch (error: any) {
-      const message = error?.message || 'Unknown error';
+      const message = error?.message || t('budgetHooks.export.unknownError');
       console.error('[ExportScreen] Export failed:', error);
-      toastError(`Couldn't export. ${message}`);
+      toastError(t('budgetHooks.export.failed', { message }));
     } finally {
       setIsExporting(false);
     }

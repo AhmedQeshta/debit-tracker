@@ -1,33 +1,38 @@
-import { View, StyleSheet } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
+import Header from '@/components/ui/Header';
+import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useBudgetCreate } from '@/hooks/budget/useBudgetCreate';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
-import { useBudgetCreate } from '@/hooks/budget/useBudgetCreate';
 import { Controller } from 'react-hook-form';
-import Header from '@/components/ui/Header';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
 
-export default function NewBudget()
-{
+export default function NewBudget() {
+  const { t } = useTranslation();
   const { control, errors, handleSubmit, currency, setCurrency, loading, router } =
     useBudgetCreate();
 
   return (
     <ScreenContainer>
-      <Header openDrawer={() => router.push('/(drawer)/(tabs)/budget')} title="New Budget" isGoBack={true} />
+      <Header
+        openDrawer={() => router.push('/(drawer)/(tabs)/budget')}
+        title={t('budgetForm.create.title')}
+        isGoBack={true}
+      />
       <View style={styles.form}>
         <Controller
           control={control}
-          rules={{ required: 'Budget title is required' }}
+          rules={{ required: t('budgetForm.validation.titleRequired') }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Budget Title"
+              label={t('budgetForm.fields.titleLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="e.g. Monthly Groceries"
+              placeholder={t('budgetForm.fields.titlePlaceholder')}
               error={errors.title?.message}
             />
           )}
@@ -38,14 +43,14 @@ export default function NewBudget()
 
         <Controller
           control={control}
-          rules={{ required: 'Total budget is required' }}
+          rules={{ required: t('budgetForm.validation.totalRequired') }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Total Budget"
+              label={t('budgetForm.fields.totalLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="300"
+              placeholder={t('budgetForm.fields.totalPlaceholder')}
               keyboardType="numeric"
               error={errors.totalBudget?.message}
             />
@@ -54,7 +59,7 @@ export default function NewBudget()
         />
 
         <View style={styles.actionSection}>
-          <Button title="Create Budget" onPress={handleSubmit} loading={loading} />
+          <Button title={t('budgetForm.create.submit')} onPress={handleSubmit} loading={loading} />
         </View>
       </View>
     </ScreenContainer>

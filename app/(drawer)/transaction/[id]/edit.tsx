@@ -11,9 +11,11 @@ import { Spacing } from '@/theme/spacing';
 import { Calculator } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditTransaction() {
+  const { t } = useTranslation();
   const {
     control,
     errors,
@@ -32,8 +34,8 @@ export default function EditTransaction() {
   if (!transaction) {
     return (
       <EmptySection
-        title={'Transaction Not Found'}
-        description={'The transaction you are looking for does not exist'}
+        title={t('transactionForm.errors.notFoundTitle')}
+        description={t('transactionForm.errors.notFoundDescription')}
         icon={'transactions'}
       />
     );
@@ -46,12 +48,12 @@ export default function EditTransaction() {
     <ScreenContainer>
       <Header
         openDrawer={() => router.push(`/(drawer)/friend/${transaction.friendId}`)}
-        title="Edit Transaction"
+        title={t('transactionForm.edit.title')}
         isGoBack={true}
       />
 
       <View style={styles.amountHeader}>
-        <Text style={styles.label}>Amount</Text>
+        <Text style={styles.label}>{t('transactionForm.fields.amountLabel')}</Text>
         <Controller
           control={control}
           name="isNegative"
@@ -74,7 +76,7 @@ export default function EditTransaction() {
 
       <Controller
         control={control}
-        rules={{ required: 'Amount is required' }}
+        rules={{ required: t('transactionForm.validation.amountRequired') }}
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
             value={value}
@@ -91,7 +93,7 @@ export default function EditTransaction() {
                 }}
                 style={styles.calcButton}
                 accessibilityRole="button"
-                accessibilityLabel="Open calculator">
+                accessibilityLabel={t('transactionForm.accessibility.openCalculator')}>
                 <Calculator size={18} color={Colors.textSecondary} />
               </TouchableOpacity>
             }
@@ -110,7 +112,7 @@ export default function EditTransaction() {
         }}
       />
 
-      <Text style={styles.label}>Budget (Optional)</Text>
+      <Text style={styles.label}>{t('transactionForm.fields.budgetOptionalLabel')}</Text>
       <Controller
         control={control}
         name="budgetId"
@@ -120,7 +122,7 @@ export default function EditTransaction() {
               style={[styles.budgetChip, !value && styles.budgetChipActive]}
               onPress={() => onChange('')}>
               <Text style={[styles.budgetChipText, !value && styles.budgetChipTextActive]}>
-                No budget
+                {t('transactionForm.budget.none')}
               </Text>
             </TouchableOpacity>
             {budgets.map((budget) => (
@@ -133,15 +135,22 @@ export default function EditTransaction() {
                     styles.budgetChipText,
                     value === budget.id && styles.budgetChipTextActive,
                   ]}>
-                  {budget.title} ({budget.currency || '$'}{' '}
-                  {getRemainingBudget(budget.id).toFixed(2)} left)
+                  {t('transactionForm.budget.optionWithRemaining', {
+                    title: budget.title,
+                    currency: budget.currency || '$',
+                    remaining: getRemainingBudget(budget.id).toFixed(2),
+                  })}
                 </Text>
               </TouchableOpacity>
             ))}
             {value ? (
               <View style={styles.selectedBudgetChip}>
                 <Text style={styles.selectedBudgetText}>
-                  Budget: {budgets.find((budget) => budget.id === value)?.title || 'Linked'}
+                  {t('transactionForm.budget.selected', {
+                    title:
+                      budgets.find((budget) => budget.id === value)?.title ||
+                      t('transactionForm.budget.linkedFallback'),
+                  })}
                 </Text>
               </View>
             ) : null}
@@ -151,19 +160,23 @@ export default function EditTransaction() {
 
       {activeBudget ? (
         <View style={styles.linkedBudgetInfo}>
-          <Text style={styles.linkedBudgetTitle}>Linked budget: {activeBudget.title}</Text>
+          <Text style={styles.linkedBudgetTitle}>
+            {t('transactionForm.budget.linkedBudget', { title: activeBudget.title })}
+          </Text>
           <Text style={styles.linkedBudgetRemaining}>
-            Remaining: {(activeBudget.currency || '$') + ' ' + activeBudgetRemaining?.toFixed(2)}
+            {t('transactionForm.budget.remaining', {
+              amount: (activeBudget.currency || '$') + ' ' + activeBudgetRemaining?.toFixed(2),
+            })}
           </Text>
         </View>
       ) : null}
 
       <Controller
         control={control}
-        rules={{ required: 'Description is required' }}
+        rules={{ required: t('transactionForm.validation.descriptionRequired') }}
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
-            label="Description"
+            label={t('transactionForm.fields.descriptionLabel')}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -173,7 +186,7 @@ export default function EditTransaction() {
         name="description"
       />
 
-      <Button title="Update Transaction" onPress={handleSubmit} loading={loading} />
+      <Button title={t('transactionForm.edit.submit')} onPress={handleSubmit} loading={loading} />
     </ScreenContainer>
   );
 }

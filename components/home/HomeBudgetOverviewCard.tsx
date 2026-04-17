@@ -6,6 +6,7 @@ import { HomeBudgetOverviewCardProps } from '@/types/budget';
 import { IMenuItem } from '@/types/common';
 import { CalendarDays, Copy, Download, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const HomeBudgetOverviewCard = ({
@@ -21,6 +22,7 @@ export const HomeBudgetOverviewCard = ({
   onCopyRemaining,
   onResetPeriod,
 }: HomeBudgetOverviewCardProps) => {
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = useState(false);
   const remaining = budget.totalBudget - spent;
   const progressColor = progress >= 1 ? Colors.error : Colors.primary;
@@ -29,7 +31,7 @@ export const HomeBudgetOverviewCard = ({
     () => [
       {
         icon: <Copy size={18} color={Colors.text} />,
-        label: 'Copy remaining',
+        label: t('budgetCard.menu.copyRemainingAmount'),
         onPress: () => onCopyRemaining(remaining, budget.currency),
       },
 
@@ -39,28 +41,28 @@ export const HomeBudgetOverviewCard = ({
         ) : (
           <Pin size={18} color={Colors.text} />
         ),
-        label: budget.pinned ? 'Unpin Budget' : 'Pin Budget',
+        label: budget.pinned ? t('budgetCard.menu.unpinBudget') : t('budgetCard.menu.pinBudget'),
         onPress: () => onPinToggle(budget.id),
       },
 
       {
         icon: <CalendarDays size={18} color={Colors.text} />,
-        label: 'Reset period',
+        label: t('budgetCard.menu.resetPeriod'),
         onPress: () => onResetPeriod(budget.id, budget.title),
       },
       {
         icon: <Download size={18} color={Colors.text} />,
-        label: 'Export Budget',
+        label: t('budgetCard.menu.exportBudgets'),
         onPress: () => onExportBudget?.(budget.id),
       },
       {
         icon: <Pencil size={18} color={Colors.text} />,
-        label: 'Edit Budget',
+        label: t('budgetCard.menu.editBudget'),
         onPress: () => onEdit(budget.id),
       },
       {
         icon: <Trash2 size={18} color={Colors.error} />,
-        label: 'Delete Budget',
+        label: t('budgetCard.menu.deleteBudget'),
         onPress: () => onDelete(budget.id, budget.title),
         danger: true,
       },
@@ -107,8 +109,10 @@ export const HomeBudgetOverviewCard = ({
         {warningLabel ? <Text style={styles.warningLabel}>{warningLabel}</Text> : <View />}
         <Text style={styles.budgetCompactMeta}>
           {remaining >= 0
-            ? `${formatCurrency(remaining, budget.currency)} left`
-            : `${formatCurrency(Math.abs(remaining), budget.currency)} over`}
+            ? t('budgetCard.status.left', { amount: formatCurrency(remaining, budget.currency) })
+            : t('budgetDetail.overview.overAmount', {
+                amount: formatCurrency(Math.abs(remaining), budget.currency),
+              })}
         </Text>
       </View>
     </Pressable>

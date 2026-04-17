@@ -3,14 +3,7 @@ import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
-
-export interface UnsyncedCounts {
-  friends: number;
-  transactions: number;
-  budgetItems: number;
-  budgets: number;
-  syncQueue: number;
-}
+import { UnsyncedCounts } from '@/types/common';
 
 export const getUnsyncedCounts = (): UnsyncedCounts => {
   const friends = useFriendsStore.getState().friends;

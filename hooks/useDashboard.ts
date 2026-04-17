@@ -3,24 +3,12 @@ import { getBalance, RANGE_OPTIONS } from '@/lib/utils';
 import { subscribeToNetwork } from '@/services/net';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
-import { Budget, Friend } from '@/types/models';
+import { BudgetSnapshot, DashboardRange, DebtItem } from '@/types/common';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
-type DashboardRange = 'week' | 'month' | 'all';
-
-type DebtItem = {
-  friend: Friend;
-  balance: number;
-};
-
-type BudgetSnapshot = {
-  budget: Budget;
-  spent: number;
-  remaining: number;
-  percentUsed: number;
-};
+import { useTranslation } from 'react-i18next';
 
 export const useDashboard = (summaryCurrency: string) => {
+  const { t } = useTranslation();
   const [isOnline, setIsOnline] = useState(true);
   const [selectedRange, setSelectedRange] = useState<DashboardRange>('month');
 
@@ -89,7 +77,12 @@ export const useDashboard = (summaryCurrency: string) => {
       .reduce((total, transaction) => total + transaction.amount, 0);
   }, [transactionsInSummaryCurrency]);
 
-  const trendText = weekDelta > 0 ? 'Up this week' : weekDelta < 0 ? 'Down this week' : 'Stable';
+  const trendText =
+    weekDelta > 0
+      ? t('dashboardHooks.trend.upThisWeek')
+      : weekDelta < 0
+        ? t('dashboardHooks.trend.downThisWeek')
+        : t('dashboardHooks.trend.stable');
 
   const debtItems = useMemo<DebtItem[]>(
     () =>
@@ -142,10 +135,10 @@ export const useDashboard = (summaryCurrency: string) => {
   const budgetSnapshot = useMemo(() => budgetSnapshots.slice(0, 3), [budgetSnapshots]);
 
   const rangeLabel = useMemo(() => {
-    if (selectedRange === 'week') return 'This week';
-    if (selectedRange === 'month') return 'This month';
-    return 'All time';
-  }, [selectedRange]);
+    if (selectedRange === 'week') return t('dashboard.rangeOptions.week');
+    if (selectedRange === 'month') return t('dashboard.rangeOptions.month');
+    return t('dashboard.rangeOptions.all');
+  }, [selectedRange, t]);
 
   const isFreshState =
     stats.friends.length === 0 && stats.transactions.length === 0 && activeBudgets.length === 0;
@@ -183,8 +176,12 @@ export const useDashboard = (summaryCurrency: string) => {
   };
 
   const insightItems: { label: string; value: string; emphasize?: boolean }[] = [
-    { label: 'Total friends', value: String(stats.friends.length) },
-    { label: 'Pending syncs', value: String(pendingCount), emphasize: pendingCount > 0 },
+    { label: t('dashboardHooks.insights.totalFriends'), value: String(stats.friends.length) },
+    {
+      label: t('dashboardHooks.insights.pendingSyncs'),
+      value: String(pendingCount),
+      emphasize: pendingCount > 0,
+    },
   ];
 
   const handleRangeChipPress = () => {
@@ -195,7 +192,7 @@ export const useDashboard = (summaryCurrency: string) => {
 
   if (activeBudgets.length > 0) {
     insightItems.push({
-      label: 'Budgets near limit',
+      label: t('dashboardHooks.insights.budgetsNearLimit'),
       value: String(budgetsNearLimit),
       emphasize: budgetsNearLimit > 0,
     });

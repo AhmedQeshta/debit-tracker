@@ -1,5 +1,6 @@
-import { Stack } from 'expo-router';
 import { Colors } from '@/theme/colors';
+import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 const STACK_OPTIONS = {
   headerStyle: {
@@ -14,12 +15,19 @@ const STACK_OPTIONS = {
   },
 };
 
-export default function FriendLayout()
-{
+export default function FriendLayout() {
+  const { t } = useTranslation();
+
   return (
     <Stack screenOptions={STACK_OPTIONS}>
-      <Stack.Screen name="new" options={{ title: 'Add Friend', headerShown: false }} />
-      <Stack.Screen name="[id]" options={{ title: 'Friend Details', headerShown: false }} />
+      <Stack.Screen
+        name="new"
+        options={{ title: t('friend.routes.newTitle'), headerShown: false }}
+      />
+      <Stack.Screen
+        name="[id]"
+        options={{ title: t('friend.routes.detailsTitle'), headerShown: false }}
+      />
     </Stack>
   );
 }

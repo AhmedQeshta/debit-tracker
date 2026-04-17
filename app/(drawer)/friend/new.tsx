@@ -1,36 +1,40 @@
-import { View, StyleSheet } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
+import Header from '@/components/ui/Header';
+import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useFriendCreate } from '@/hooks/friend/useFriendCreate';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
-import { useFriendCreate } from '@/hooks/friend/useFriendCreate';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { Controller } from 'react-hook-form';
-import Header from '@/components/ui/Header';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function AddFriend()
-{
+export default function AddFriend() {
+  const { t } = useTranslation();
   const { control, errors, handleSubmit, currency, setCurrency, loading, router } =
     useFriendCreate();
   const insets = useSafeAreaInsets();
   return (
     <ScreenContainer>
-
-      <Header openDrawer={() => router.push('/(drawer)/(tabs)/friends')} title="Add Friend" isGoBack={true} />
+      <Header
+        openDrawer={() => router.push('/(drawer)/(tabs)/friends')}
+        title={t('friendForm.create.title')}
+        isGoBack={true}
+      />
 
       <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
         <Controller
           control={control}
-          rules={{ required: 'Full name is required' }}
+          rules={{ required: t('friendForm.validation.nameRequired') }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Full Name"
+              label={t('friendForm.fields.fullNameLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="e.g. John Doe"
+              placeholder={t('friendForm.fields.fullNamePlaceholder')}
               error={errors.name?.message}
             />
           )}
@@ -41,11 +45,11 @@ export default function AddFriend()
           control={control}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Bio / Notes"
+              label={t('friendForm.fields.bioLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="Brief description or relationship..."
+              placeholder={t('friendForm.fields.bioPlaceholder')}
               multiline
               error={errors.bio?.message}
             />
@@ -56,7 +60,7 @@ export default function AddFriend()
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
 
         <View style={styles.actionSection}>
-          <Button title="Save Friend" onPress={handleSubmit} loading={loading} />
+          <Button title={t('friendForm.create.submit')} onPress={handleSubmit} loading={loading} />
         </View>
       </View>
     </ScreenContainer>

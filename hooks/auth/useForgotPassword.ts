@@ -1,4 +1,5 @@
 import { useNavigation } from '@/hooks/useNavigation';
+import i18n from '@/i18n';
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { useAuth, useSignIn } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -23,19 +24,19 @@ export const useForgotPassword = () => {
 
   const requestResetCode = async () => {
     if (!isLoaded || !signInLoaded) {
-      setError('Authentication not ready. Please wait...');
+      setError(i18n.t('auth.errors.authNotReady'));
       return;
     }
 
     // Validate email
     if (!email || !email.trim()) {
-      setError('Email is required');
+      setError(i18n.t('auth.validation.emailRequired'));
       return;
     }
 
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError(i18n.t('auth.validation.validEmail'));
       return;
     }
 
@@ -58,7 +59,7 @@ export const useForgotPassword = () => {
       );
 
       if (!resetFactor || !('emailAddressId' in resetFactor)) {
-        setError('Unable to start password reset. Please try again.');
+        setError(i18n.t('auth.errors.resetStartFailed'));
         return;
       }
 
@@ -78,25 +79,25 @@ export const useForgotPassword = () => {
 
   const submitReset = async () => {
     if (!isLoaded || !signInLoaded) {
-      setError('Authentication not ready. Please wait...');
+      setError(i18n.t('auth.errors.authNotReady'));
       return;
     }
 
     // Validate code
     if (!code || !code.trim()) {
-      setError('Verification code is required');
+      setError(i18n.t('auth.errors.verificationCodeRequired'));
       return;
     }
 
     // Validate new password
     if (!newPassword || newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(i18n.t('auth.validation.passwordMin'));
       return;
     }
 
     // Validate passwords match
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(i18n.t('auth.validation.passwordsNoMatch'));
       return;
     }
 
@@ -124,7 +125,7 @@ export const useForgotPassword = () => {
         navigateToHome();
       } else {
         // No session created, redirect to sign-in
-        setError('Password updated successfully. Please sign in.');
+        setError(i18n.t('auth.errors.resetNeedsSignIn'));
         setTimeout(() => {
           router.replace('/(auth)/sign-in');
         }, 2000);

@@ -1,17 +1,24 @@
-import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { Slot } from 'expo-router';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
+import { DrawerContent } from '@/components/drawer/DrawerContent';
 import { DRAWER_WIDTH, useDrawer } from '@/hooks/drawer/useDrawer';
 import { DrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { DrawerContent } from '@/components/drawer/DrawerContent';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { Slot } from 'expo-router';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-
-
-export default function DrawerLayoutWrapper()
-{
-  const { closeDrawer, insets, isActive, navigateTo, openDrawer, toggleDrawer, drawerOpen, overlayAnim, slideAnim } = useDrawer();
-
+export default function DrawerLayoutWrapper() {
+  const {
+    closeDrawer,
+    insets,
+    isActive,
+    navigateTo,
+    openDrawer,
+    toggleDrawer,
+    drawerOpen,
+    overlayAnim,
+    slideAnim,
+    isRTL,
+  } = useDrawer();
 
   return (
     <DrawerContext.Provider value={{ openDrawer, closeDrawer, toggleDrawer }}>
@@ -22,10 +29,7 @@ export default function DrawerLayoutWrapper()
 
         {drawerOpen && (
           <>
-            <TouchableOpacity
-              style={styles.overlay}
-              activeOpacity={1}
-              onPress={closeDrawer}>
+            <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={closeDrawer}>
               <Animated.View
                 style={[
                   styles.overlayAnimated,
@@ -38,11 +42,17 @@ export default function DrawerLayoutWrapper()
             <Animated.View
               style={[
                 styles.drawer,
+                isRTL ? styles.drawerRtl : styles.drawerLtr,
                 {
                   transform: [{ translateX: slideAnim }],
                 },
               ]}>
-              <DrawerContent insets={insets} closeDrawer={closeDrawer} isActive={isActive} navigateTo={navigateTo} />
+              <DrawerContent
+                insets={insets}
+                closeDrawer={closeDrawer}
+                isActive={isActive}
+                navigateTo={navigateTo}
+              />
             </Animated.View>
           </>
         )}
@@ -73,19 +83,28 @@ const styles = StyleSheet.create({
   drawer: {
     position: 'absolute',
     top: 0,
-    left: 0,
     bottom: 0,
     width: DRAWER_WIDTH,
     zIndex: 1000,
     backgroundColor: Colors.surface,
     shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  drawerLtr: {
+    left: 0,
     shadowOffset: {
       width: 2,
       height: 0,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  },
+  drawerRtl: {
+    right: 0,
+    shadowOffset: {
+      width: -2,
+      height: 0,
+    },
   },
   drawerContent: {
     flex: 1,

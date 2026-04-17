@@ -11,9 +11,11 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useFriendDetail = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const friendId = safeId(id);
@@ -66,8 +68,8 @@ export const useFriendDetail = () => {
     if (!friend || !friendId) return;
 
     showConfirm(
-      'Delete Friend',
-      `Are you sure you want to delete "${friend.name}"? This will also delete all associated transactions.`,
+      t('friendHooks.detail.deleteFriend.confirmTitle'),
+      t('friendHooks.detail.deleteFriend.confirmMessage', { name: friend.name }),
       async () => {
         // Delete all transactions for this friend first (get all, including already deleted ones)
         const allFriendTransactions = useTransactionsStore
@@ -83,7 +85,7 @@ export const useFriendDetail = () => {
 
         // Delete the friend (stores handle sync tracking automatically)
         deleteFriend(friendId);
-        toastSuccess('Friend deleted successfully');
+        toastSuccess(t('friendHooks.detail.deleteFriend.success'));
 
         // Trigger sync to push deletions to Supabase
         try {
@@ -94,7 +96,7 @@ export const useFriendDetail = () => {
 
         router.push('/(drawer)/(tabs)/friends');
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -103,8 +105,8 @@ export const useFriendDetail = () => {
     if (!transaction) return;
 
     showConfirm(
-      'Delete Transaction',
-      `Are you sure you want to delete "${transaction.title}"?`,
+      t('friendHooks.detail.deleteTransaction.confirmTitle'),
+      t('friendHooks.detail.deleteTransaction.confirmMessage', { title: transaction.title }),
       async () => {
         const removedItem = removeItemByTransactionId(transactionId);
 
@@ -119,12 +121,12 @@ export const useFriendDetail = () => {
         // Trigger sync to push deletion to Supabase
         try {
           await syncNow();
-          toastSuccess('Transaction deleted successfully');
+          toastSuccess(t('friendHooks.detail.deleteTransaction.success'));
         } catch (error) {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 

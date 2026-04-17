@@ -5,6 +5,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { CalculatorModalProps } from '@/types/common';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const CalculatorModal: React.FC<CalculatorModalProps> = ({
@@ -13,6 +14,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const { t } = useTranslation();
   const {
     lastResult,
     appendValue,
@@ -29,14 +31,18 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-          <Text style={styles.title}>Calculator</Text>
+          <Text style={styles.title}>{t('calculatorModal.title')}</Text>
 
           <View style={styles.displayCard}>
             <Text style={styles.expressionText} numberOfLines={2}>
               {expression || '0'}
             </Text>
             <Text style={styles.resultText} numberOfLines={1}>
-              {error ? error : lastResult ? `Last result: ${lastResult}` : ' '}
+              {error
+                ? error
+                : lastResult
+                  ? t('calculatorModal.lastResult', { result: lastResult })
+                  : ' '}
             </Text>
           </View>
 
@@ -47,7 +53,6 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({
                   <View
                     key={keyValue}
                     style={[styles.keyCell, row.length === 2 ? styles.wideCell : null]}>
-                    {/* {renderKey(keyValue)} */}
                     <RenderKey
                       value={keyValue}
                       handleBackspace={handleBackspace}
@@ -63,13 +68,13 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({
 
           <View style={styles.footer}>
             <TouchableOpacity style={[styles.footerButton, styles.cancelButton]} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('common.actions.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.footerButton, styles.okButton, !canConfirm && styles.disabledButton]}
               onPress={handleOk}
               disabled={!canConfirm}>
-              <Text style={styles.okButtonText}>OK</Text>
+              <Text style={styles.okButtonText}>{t('common.actions.ok')}</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

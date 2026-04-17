@@ -1,29 +1,29 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { AlertCircle } from 'lucide-react-native';
-import { ScreenContainer } from './ScreenContainer';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { AlertCircle } from 'lucide-react-native';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, View } from 'react-native';
+import { ScreenContainer } from './ScreenContainer';
 
-interface ErrorScreenProps
-{
+interface ErrorScreenProps {
   title?: string;
   message?: string;
 }
 
-export const ErrorScreen = ({
-  title = 'Configuration Error',
-  message = 'Missing required configuration. Please check your environment variables.'
-}: ErrorScreenProps) =>
-{
+export const ErrorScreen = ({ title, message }: ErrorScreenProps) => {
+  const { t } = useTranslation();
+  const resolvedTitle = title || t('errorScreen.default.title');
+  const resolvedMessage = message || t('errorScreen.default.message');
+
   return (
     <ScreenContainer scrollable={false}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
           <AlertCircle size={64} color={Colors.error} strokeWidth={1.5} />
         </View>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.message}>{message}</Text>
+        <Text style={styles.title}>{resolvedTitle}</Text>
+        <Text style={styles.message}>{resolvedMessage}</Text>
       </View>
     </ScreenContainer>
   );
@@ -62,4 +62,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
   },
 });
-

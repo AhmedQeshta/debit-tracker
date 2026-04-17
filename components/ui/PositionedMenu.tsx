@@ -1,15 +1,13 @@
-import { View, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 
-interface PositionedMenuProps
-{
+interface PositionedMenuProps {
   visible: boolean;
   onClose: () => void;
-  position: { top: number; right: number };
+  position: { top: number; right?: number; left?: number };
   children: React.ReactNode;
 }
 
-export const PositionedMenu = ({ visible, onClose, position, children }: PositionedMenuProps) =>
-{
+export const PositionedMenu = ({ visible, onClose, position, children }: PositionedMenuProps) => {
   if (!visible) return null;
 
   return (
@@ -17,7 +15,14 @@ export const PositionedMenu = ({ visible, onClose, position, children }: Positio
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <View
-            style={[styles.menuWrapper, { top: position.top, right: position.right }]}
+            style={[
+              styles.menuWrapper,
+              {
+                top: position.top,
+                right: position.right,
+                left: position.left,
+              },
+            ]}
             pointerEvents="box-none">
             <View style={styles.menuContent} pointerEvents="auto">
               {children}
@@ -50,4 +55,3 @@ const styles = StyleSheet.create({
     // Content styles are handled by children
   },
 });
-

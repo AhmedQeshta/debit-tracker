@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { Colors } from '@/theme/colors';
 import { BudgetSortKey } from '@/types/budget';
 import { ToastMessage } from '@/types/common';
@@ -51,7 +52,11 @@ export const getBalanceText = (balance: number, currency?: string) => {
 };
 
 export const getBalanceStatus = (balance: number) => {
-  return balance < 0 ? 'They owe you' : balance > 0 ? 'You owe them' : 'Settled';
+  return balance < 0
+    ? i18n.t('utils.balanceStatus.theyOweYou')
+    : balance > 0
+      ? i18n.t('utils.balanceStatus.youOweThem')
+      : i18n.t('utils.balanceStatus.settled');
 };
 
 export type BalanceDirectionTone = 'positive' | 'negative' | 'neutral';
@@ -63,9 +68,9 @@ export const getBalanceDirectionTone = (netBalance: number): BalanceDirectionTon
 };
 
 export const getBalanceDirectionText = (netBalance: number, friendName: string) => {
-  if (netBalance > 0) return `${friendName} owes you`;
-  if (netBalance < 0) return `You owe ${friendName}`;
-  return 'All settled';
+  if (netBalance > 0) return i18n.t('friendDetail.balance.directionOwesYou', { name: friendName });
+  if (netBalance < 0) return i18n.t('friendDetail.balance.directionYouOwe', { name: friendName });
+  return i18n.t('friendDetail.balance.directionSettled');
 };
 
 export const formatAbsoluteCurrency = (amount: number, currency?: string) => {
@@ -131,16 +136,16 @@ export const safeId = (id: string | string[] | undefined): string => {
  * Validation helpers
  */
 export const validateTitle = (title: string): string | null => {
-  if (!title.trim()) return 'Title is required';
-  if (title.length > 50) return 'Title must be less than 50 characters';
+  if (!title.trim()) return i18n.t('utils.validation.titleRequired');
+  if (title.length > 50) return i18n.t('utils.validation.titleTooLong');
   return null;
 };
 
 export const validateAmount = (amount: string, minValue: number = 0): string | null => {
   const num = parseFloat(amount);
-  if (isNaN(num)) return 'Amount must be a valid number';
-  if (minValue === 0 && num < 0) return 'Amount must be a valid number >= 0';
-  if (minValue > 0 && num <= 0) return 'Amount must be a valid number > 0';
+  if (isNaN(num)) return i18n.t('utils.validation.amountMustBeNumber');
+  if (minValue === 0 && num < 0) return i18n.t('utils.validation.amountMinZero');
+  if (minValue > 0 && num <= 0) return i18n.t('utils.validation.amountGreaterThanZero');
   return null;
 };
 
@@ -194,8 +199,8 @@ export const calculateBudgetMetrics = (items: BudgetItem[], budgetLimit: number)
  * Validation helpers
  */
 export const validateFriendName = (name: string): string | null => {
-  if (!name.trim()) return 'Name is required';
-  if (name.length > 50) return 'Name must be less than 50 characters';
+  if (!name.trim()) return i18n.t('utils.validation.nameRequired');
+  if (name.length > 50) return i18n.t('utils.validation.nameTooLong');
   return null;
 };
 
@@ -205,22 +210,22 @@ export const sortedTransactions = (transactions: Transaction[]) =>
   [...transactions].sort((a, b) => b.date - a.date);
 
 export const getFriendName = (friends: Friend[], id: string) =>
-  friends.find((f) => f.id === id)?.name || 'Unknown Friend';
+  friends.find((f) => f.id === id)?.name || i18n.t('utils.labels.unknownFriend');
 
 export const getProgressText = (pullProgress: string | any) => {
-  if (!pullProgress) return 'Downloading your data...';
+  if (!pullProgress) return i18n.t('sync.loading.downloadingData');
   if (typeof pullProgress === 'string' && pullProgress.startsWith('syncing ')) {
-    return `Syncing ${pullProgress.replace('syncing ', '')}...`;
+    return i18n.t('utils.progress.syncing', { target: pullProgress.replace('syncing ', '') });
   }
   switch (pullProgress) {
     case 'friends':
-      return 'Downloading friends...';
+      return i18n.t('utils.progress.downloadingFriends');
     case 'transactions':
-      return 'Downloading transactions...';
+      return i18n.t('utils.progress.downloadingTransactions');
     case 'budgets':
-      return 'Downloading budgets...';
+      return i18n.t('utils.progress.downloadingBudgets');
     default:
-      return 'Downloading your data...';
+      return i18n.t('sync.loading.downloadingData');
   }
 };
 
@@ -251,16 +256,16 @@ export const getBorderColor = (toast: ToastMessage) => {
 };
 
 export const SORT_OPTIONS = [
-  { key: 'recent', label: 'Recent' },
-  { key: 'name', label: 'Name' },
-  { key: 'balance', label: 'Balance' },
+  { key: 'recent', label: i18n.t('friends.sortOptions.recent') },
+  { key: 'name', label: i18n.t('friends.sortOptions.name') },
+  { key: 'balance', label: i18n.t('friends.sortOptions.balance') },
 ] as const;
 
 export const FILTER_OPTIONS = [
-  { key: 'all', label: 'All' },
-  { key: 'you-owe', label: 'You owe' },
-  { key: 'owes-you', label: 'Owes you' },
-  { key: 'settled', label: 'Settled' },
+  { key: 'all', label: i18n.t('friends.filterOptions.all') },
+  { key: 'you-owe', label: i18n.t('friends.filterOptions.you-owe') },
+  { key: 'owes-you', label: i18n.t('friends.filterOptions.owes-you') },
+  { key: 'settled', label: i18n.t('friends.filterOptions.settled') },
 ] as const;
 
 export const getMonthLabel = (timestamp: number): string => {
@@ -278,8 +283,8 @@ export const getDayLabel = (timestamp: number): string => {
   const dayValue = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
   const diff = Math.floor((today - dayValue) / (1000 * 60 * 60 * 24));
 
-  if (diff === 0) return 'Today';
-  if (diff === 1) return 'Yesterday';
+  if (diff === 0) return i18n.t('utils.date.today');
+  if (diff === 1) return i18n.t('utils.date.yesterday');
 
   return date.toLocaleDateString(undefined, {
     month: 'short',
@@ -296,7 +301,7 @@ export const getStatus = (synced: boolean, hasSyncError: boolean) => {
 
 export const formatDateLabel = (timestamp?: number): string => {
   if (!timestamp) {
-    return 'No recent activity';
+    return i18n.t('utils.date.noRecentActivity');
   }
 
   return new Date(timestamp).toLocaleDateString(undefined, {
@@ -308,9 +313,9 @@ export const formatDateLabel = (timestamp?: number): string => {
 export const WARNING_COLOR = '#E0AE49';
 
 export const SORT_LABELS: Record<BudgetSortKey, string> = {
-  recent: 'Recent',
-  name: 'Name',
-  usage: 'Usage',
+  recent: i18n.t('budget.sort.options.recent'),
+  name: i18n.t('budget.sort.options.name'),
+  usage: i18n.t('budget.sort.options.usage'),
 };
 
 export const getNextSortKey = (current: BudgetSortKey): BudgetSortKey => {
@@ -320,7 +325,7 @@ export const getNextSortKey = (current: BudgetSortKey): BudgetSortKey => {
 };
 
 export const RANGE_OPTIONS = [
-  { key: 'week', label: 'This week' },
-  { key: 'month', label: 'This month' },
-  { key: 'all', label: 'All time' },
+  { key: 'week', label: i18n.t('dashboard.rangeOptions.week') },
+  { key: 'month', label: i18n.t('dashboard.rangeOptions.month') },
+  { key: 'all', label: i18n.t('dashboard.rangeOptions.all') },
 ] as const;

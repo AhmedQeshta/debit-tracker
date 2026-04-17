@@ -2,6 +2,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { IFilteredFriendsProps } from '@/types/friend';
 import { CircleDollarSign, Copy, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { FriendCard } from './FriendCard';
 import { GridFriendCard } from './GridFriendCard';
@@ -15,15 +16,17 @@ export const FilteredFriends = ({
   onCopyAmount,
   onSettle,
 }: IFilteredFriendsProps) => {
+  const { t } = useTranslation();
+
   const menuItems = [
     {
       icon: <Copy size={18} color={Colors.text} />,
-      label: 'Copy Transaction Amount',
+      label: t('friendCard.menu.copyTransactionAmount'),
       onPress: () => onCopyAmount(row.friend.id),
     },
     {
       icon: <CircleDollarSign size={18} color={Colors.text} />,
-      label: 'Settle up',
+      label: t('friendDetail.actions.settleUp'),
       onPress: () => onSettle(row.friend.id),
     },
     {
@@ -32,17 +35,19 @@ export const FilteredFriends = ({
       ) : (
         <Pin size={18} color={Colors.text} />
       ),
-      label: row.friend.pinned ? 'Unpin friend' : 'Pin friend',
+      label: row.friend.pinned
+        ? t('friendDetail.menu.unpinFriend')
+        : t('friendDetail.menu.pinFriend'),
       onPress: () => handlePinToggle(row.friend.id),
     },
     {
       icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit friend',
+      label: t('friendDetail.menu.editFriend'),
       onPress: () => handleFriendEdit(row.friend.id),
     },
     {
       icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete friend',
+      label: t('friendDetail.menu.deleteFriend'),
       onPress: () => handleFriendDelete(row.friend.id, row.friend.name),
       danger: true,
     },

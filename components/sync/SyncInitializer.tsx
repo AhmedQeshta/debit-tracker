@@ -1,4 +1,5 @@
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
+import { LANGUAGE_STORAGE } from '@/i18n/languageService';
 import { getTotalUnsyncedCount, getUnsyncedCounts } from '@/lib/dashboardSelectors';
 import { setSupabaseAccessTokenGetter } from '@/lib/supabase';
 import { getFreshSupabaseJwt } from '@/services/authSync';
@@ -18,6 +19,7 @@ const USER_DATA_STORAGE_KEYS = [
   'transactions-storage',
   'budget-storage',
   'sync-storage',
+  LANGUAGE_STORAGE.KEY,
 ];
 
 /**

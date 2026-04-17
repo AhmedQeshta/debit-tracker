@@ -1,20 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { WifiOff, Pause } from 'lucide-react-native';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { Pause, WifiOff } from 'lucide-react-native';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, View } from 'react-native';
 
 /**
  * Small banner showing offline status and sync paused state
  */
 export const OfflineBanner = () => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <WifiOff size={14} color={Colors.error} />
-      <Text style={styles.text}>Offline mode</Text>
+      <Text style={styles.text}>{t('sync.banner.offlineMode')}</Text>
       <View style={styles.separator} />
       <Pause size={14} color={Colors.textSecondary} />
-      <Text style={styles.textSecondary}>Sync paused</Text>
+      <Text style={styles.textSecondary}>{t('sync.banner.syncPaused')}</Text>
     </View>
   );
 };
@@ -47,4 +50,3 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.xs,
   },
 });
-

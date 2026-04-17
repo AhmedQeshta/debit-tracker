@@ -1,28 +1,28 @@
-import { View, StyleSheet } from 'react-native';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
-import { useFriendEdit } from '@/hooks/friend/useFriendEdit';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { EmptySection } from '@/components/ui/EmptySection';
-import { Controller } from 'react-hook-form';
 import Header from '@/components/ui/Header';
+import { Input } from '@/components/ui/Input';
+import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useFriendEdit } from '@/hooks/friend/useFriendEdit';
+import { Colors } from '@/theme/colors';
+import { Spacing } from '@/theme/spacing';
+import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function EditFriend()
-{
+export default function EditFriend() {
+  const { t } = useTranslation();
   const { control, errors, handleSubmit, currency, setCurrency, friend, loading, router } =
     useFriendEdit();
   const insets = useSafeAreaInsets();
 
-  if (!friend)
-  {
+  if (!friend) {
     return (
       <EmptySection
-        title={'Friend Not Found'}
-        description={'The friend you are looking for does not exist'}
+        title={t('friendDetail.errors.notFoundTitle')}
+        description={t('friendDetail.errors.notFoundDescription')}
         icon={'users'}
       />
     );
@@ -30,19 +30,23 @@ export default function EditFriend()
 
   return (
     <ScreenContainer>
-      <Header openDrawer={() => router.push(`/(drawer)/friend/${friend.id}`)} title="Edit Friend" isGoBack={true} />
+      <Header
+        openDrawer={() => router.push(`/(drawer)/friend/${friend.id}`)}
+        title={t('friendForm.edit.title')}
+        isGoBack={true}
+      />
 
       <View style={[styles.form, { paddingBottom: insets.bottom + Spacing.md }]}>
         <Controller
           control={control}
-          rules={{ required: 'Full name is required' }}
+          rules={{ required: t('friendForm.validation.nameRequired') }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Full Name"
+              label={t('friendForm.fields.fullNameLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="e.g. John Doe"
+              placeholder={t('friendForm.fields.fullNamePlaceholder')}
               error={errors.name?.message}
             />
           )}
@@ -53,11 +57,11 @@ export default function EditFriend()
           control={control}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Bio / Notes"
+              label={t('friendForm.fields.bioLabel')}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="Brief description or relationship..."
+              placeholder={t('friendForm.fields.bioPlaceholder')}
               multiline
               error={errors.bio?.message}
             />
@@ -68,7 +72,7 @@ export default function EditFriend()
         <CurrencyPicker currency={currency} setCurrency={setCurrency} />
 
         <View style={styles.actionSection}>
-          <Button title="Save Changes" onPress={handleSubmit} loading={loading} />
+          <Button title={t('friendForm.edit.submit')} onPress={handleSubmit} loading={loading} />
         </View>
       </View>
     </ScreenContainer>

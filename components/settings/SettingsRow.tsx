@@ -3,7 +3,7 @@ import { Spacing } from '@/theme/spacing';
 import { SettingsRowProps } from '@/types/common';
 import { ChevronRight } from 'lucide-react-native';
 import { FC } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { I18nManager, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const SettingsRow: FC<SettingsRowProps> = ({
   icon: Icon,
@@ -41,7 +41,11 @@ export const SettingsRow: FC<SettingsRowProps> = ({
         </View>
       </View>
 
-      <View style={styles.rightGroup}>
+      <View
+        style={[
+          styles.rightGroup,
+          I18nManager.isRTL ? styles.rightGroupRtl : styles.rightGroupLtr,
+        ]}>
         {value ? <Text style={styles.value}>{value}</Text> : null}
         {rightSlot}
         {(showChevron ?? isPressable) ? (
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
   leftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: Spacing.md,
+    paddingEnd: Spacing.md,
     gap: Spacing.sm + 2,
   },
   iconWrap: {
@@ -104,12 +108,17 @@ const styles = StyleSheet.create({
   },
   rightGroup: {
     position: 'absolute',
-    right: Spacing.md,
     top: 0,
     bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+  },
+  rightGroupLtr: {
+    right: Spacing.md,
+  },
+  rightGroupRtl: {
+    left: Spacing.md,
   },
   value: {
     fontSize: 14,

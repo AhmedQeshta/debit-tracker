@@ -1,16 +1,18 @@
 import { useRouter, useSegments } from 'expo-router';
 import { useState } from 'react';
+import { Animated, I18nManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Animated } from 'react-native';
 
 export const DRAWER_WIDTH = 280;
 
 export const useDrawer = () => {
+  const isRTL = I18nManager.isRTL;
+  const closedDrawerTranslateX = isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const insets = useSafeAreaInsets();
-  const slideAnim = useState(new Animated.Value(-DRAWER_WIDTH))[0];
+  const slideAnim = useState(new Animated.Value(closedDrawerTranslateX))[0];
   const overlayAnim = useState(new Animated.Value(0))[0];
 
   const toggleDrawer = () => {
@@ -24,7 +26,7 @@ export const useDrawer = () => {
   const closeDrawer = () => {
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue: -DRAWER_WIDTH,
+        toValue: closedDrawerTranslateX,
         duration: 250,
         useNativeDriver: true,
       }),
@@ -107,5 +109,6 @@ export const useDrawer = () => {
     drawerOpen,
     overlayAnim,
     slideAnim,
+    isRTL,
   };
 };

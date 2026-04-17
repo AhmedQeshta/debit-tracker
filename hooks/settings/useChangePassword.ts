@@ -1,18 +1,15 @@
 import { useToast } from '@/hooks/useToast';
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
+import { ChangePasswordFormData } from '@/types/common';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from 'react-native';
 
-interface ChangePasswordFormData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export const useChangePassword = () => {
+  const { t } = useTranslation();
   const { user, isLoaded: userLoaded } = useUser();
   const { isLoaded: authLoaded } = useAuth();
   const router = useRouter();
@@ -43,13 +40,13 @@ export const useChangePassword = () => {
 
   const onChangePassword = async (data: ChangePasswordFormData) => {
     if (!isLoaded || !user) {
-      setAuthError('User not loaded. Please try again.');
+      setAuthError(t('changePassword.hooks.errors.userNotLoaded'));
       return;
     }
 
     // Validate passwords match
     if (data.newPassword !== data.confirmPassword) {
-      setError('confirmPassword', { message: 'Passwords do not match' });
+      setError('confirmPassword', { message: t('auth.validation.passwordsNoMatch') });
       return;
     }
 
@@ -73,13 +70,13 @@ export const useChangePassword = () => {
       });
 
       // Success - show toast and reset form
-      toastSuccess('Password updated');
+      toastSuccess(t('changePassword.hooks.success'));
       reset();
       setSignOutOtherSessions(false);
       router.push('/(drawer)/settings/account');
     } catch (err: any) {
       // Enhanced error extraction for Clerk errors
-      let errorMessage = 'An unexpected error occurred. Please try again.';
+      let errorMessage = t('changePassword.hooks.errors.unexpected');
 
       // Check for Clerk error structure with clerkError property
       if (err?.clerkError) {
@@ -105,7 +102,7 @@ export const useChangePassword = () => {
 
       const normalizedError = errorMessage.toLowerCase();
       if (normalizedError.includes('current') && normalizedError.includes('password')) {
-        setError('currentPassword', { message: 'Current password is incorrect' });
+        setError('currentPassword', { message: t('changePassword.hooks.errors.currentIncorrect') });
         setAuthError(null);
       } else {
         setAuthError(errorMessage);

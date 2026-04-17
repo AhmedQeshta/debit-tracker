@@ -1,18 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal } from 'react-native';
+import { useSyncLoading } from '@/hooks/sync/useSyncLoading';
+import { getProgressText } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { AlertCircle, WifiOff } from 'lucide-react-native';
-import { useSyncLoading } from '@/hooks/sync/useSyncLoading';
-import { getProgressText } from '@/lib/utils';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export const SyncLoadingOverlay = () =>
-{
+export const SyncLoadingOverlay = () => {
+  const { t } = useTranslation();
 
-  const { lastError, isOnline, isPulling, hasError, handleRetry, handleContinueOffline, pullProgress } = useSyncLoading();
+  const {
+    lastError,
+    isOnline,
+    isPulling,
+    hasError,
+    handleRetry,
+    handleContinueOffline,
+    pullProgress,
+  } = useSyncLoading();
 
   if (!isPulling && !hasError) return null;
-
 
   return (
     <Modal visible={true} transparent animationType="fade">
@@ -21,33 +29,37 @@ export const SyncLoadingOverlay = () =>
           {hasError ? (
             <>
               <AlertCircle size={48} color={Colors.error} style={styles.icon} />
-              <Text style={styles.title}>Could not download your data</Text>
+              <Text style={styles.title}>{t('sync.loading.errorTitle')}</Text>
               <Text style={styles.message}>
-                {lastError?.message || 'Your internet might be slow. Please check your connection and try again.'}
+                {lastError?.message || t('sync.loading.errorFallbackMessage')}
               </Text>
 
               {!isOnline && (
                 <View style={styles.networkWarning}>
                   <WifiOff size={16} color={Colors.error} />
-                  <Text style={styles.networkWarningText}>No internet connection</Text>
+                  <Text style={styles.networkWarningText}>{t('sync.loading.noInternet')}</Text>
                 </View>
               )}
 
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.retryButton} onPress={handleRetry} disabled={!isOnline}>
-                  <Text style={[styles.retryButtonText, !isOnline && styles.retryButtonTextDisabled]}>
-                    Retry
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={handleRetry}
+                  disabled={!isOnline}>
+                  <Text
+                    style={[styles.retryButtonText, !isOnline && styles.retryButtonTextDisabled]}>
+                    {t('sync.actions.retry')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.continueButton} onPress={handleContinueOffline}>
-                  <Text style={styles.continueButtonText}>Continue Offline</Text>
+                  <Text style={styles.continueButtonText}>{t('sync.actions.continueOffline')}</Text>
                 </TouchableOpacity>
               </View>
             </>
           ) : (
             <>
               <ActivityIndicator size="large" color={Colors.primary} style={styles.loader} />
-              <Text style={styles.title}>Downloading your data...</Text>
+              <Text style={styles.title}>{t('sync.loading.downloadingData')}</Text>
               <Text style={styles.progressText}>{getProgressText(pullProgress)}</Text>
             </>
           )}
@@ -148,4 +160,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

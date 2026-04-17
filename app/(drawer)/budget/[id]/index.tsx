@@ -22,12 +22,14 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 const NEAR_LIMIT_THRESHOLD = 0.8;
 
 export default function BudgetDetail() {
+  const { t } = useTranslation();
   const {
     budget,
     router,
@@ -84,17 +86,17 @@ export default function BudgetDetail() {
     const destructiveIndex = items.findIndex((item) => item.danger);
     const copyItem = {
       icon: <Copy size={18} color={Colors.text} />,
-      label: 'Copy Remaining Amount',
+      label: t('budgetDetail.menu.copyRemainingAmount'),
       onPress: () => handleBudgetAmountCopy(budget!.id),
     };
     const periodItem = {
       icon: <CalendarDays size={18} color={Colors.text} />,
-      label: 'Reset period',
+      label: t('budgetDetail.menu.resetPeriod'),
       onPress: () => handleBudgetResetPeriod(budget!.id, budget!.title),
     };
     const exportItem = {
       icon: <Download size={18} color={Colors.text} />,
-      label: 'Export budgets',
+      label: t('budgetDetail.menu.exportBudgets'),
       onPress: () => openBudgetExportModal({ budgetId: budget!.id }),
     };
 
@@ -107,14 +109,21 @@ export default function BudgetDetail() {
     items.push(periodItem);
     items.push(exportItem);
     return items;
-  }, [budget, handleBudgetAmountCopy, handleBudgetResetPeriod, menuItems, openBudgetExportModal]);
+  }, [
+    budget,
+    handleBudgetAmountCopy,
+    handleBudgetResetPeriod,
+    menuItems,
+    openBudgetExportModal,
+    t,
+  ]);
 
   if (!budget) {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Budget not found</Text>
-          <Button title="Go Back" onPress={() => router.back()} />
+          <Text style={styles.errorText}>{t('budgetDetail.errors.notFound')}</Text>
+          <Button title={t('budgetDetail.actions.goBack')} onPress={() => router.back()} />
         </View>
       </ScreenContainer>
     );
@@ -131,7 +140,9 @@ export default function BudgetDetail() {
   const spendingCount = sortedItems.length;
   const avgSpendPerItem = spendingCount > 0 ? rawNetSpent / spendingCount : 0;
   const lastUpdatedText =
-    spendingCount > 0 ? getDayLabel(sortedItems[0].createdAt) : 'No spending yet';
+    spendingCount > 0
+      ? getDayLabel(sortedItems[0].createdAt)
+      : t('budgetDetail.empty.noSpendingYet');
   const getSignedAmountLabel = (amount: number, type?: 'expense' | 'income') => {
     const safeAmount = Math.abs(amount);
     const sign = type === 'income' ? '+' : '-';
@@ -147,7 +158,7 @@ export default function BudgetDetail() {
             style={styles.backButton}
             activeOpacity={0.75}
             accessibilityRole="button"
-            accessibilityLabel="Go back">
+            accessibilityLabel={t('budgetDetail.accessibility.goBack')}>
             <ArrowLeft size={22} color={Colors.text} />
           </TouchableOpacity>
 
@@ -161,7 +172,8 @@ export default function BudgetDetail() {
               </Text>
             </View>
             <Text style={styles.appBarSubtitle}>
-              Monthly {String.fromCharCode(8226)} {getMonthLabel(Date.now())}
+              {t('budgetDetail.header.monthly')} {String.fromCharCode(8226)}{' '}
+              {getMonthLabel(Date.now())}
             </Text>
           </View>
         </View>
@@ -169,11 +181,13 @@ export default function BudgetDetail() {
         <View style={styles.overviewCard}>
           <View style={styles.overviewHeaderRow}>
             <Text style={styles.overviewMainLine}>
-              <Text style={[styles.overviewMainValue, { color: spentColor }]}>Net spent </Text>
+              <Text style={[styles.overviewMainValue, { color: spentColor }]}>
+                {t('budgetDetail.overview.netSpent')}{' '}
+              </Text>
               <Text style={[styles.overviewMainValue, { color: spentColor }]}>
                 {formatCurrency(displayNetSpent, budget.currency)}
               </Text>
-              <Text style={styles.overviewMainLineMuted}> of </Text>
+              <Text style={styles.overviewMainLineMuted}> {t('budgetDetail.overview.of')} </Text>
               <Text style={styles.overviewMainValue}>
                 {formatCurrency(budget.totalBudget, budget.currency)}
               </Text>
@@ -200,7 +214,7 @@ export default function BudgetDetail() {
           <View style={styles.overviewStatsRow}>
             <View style={styles.overviewStatItem}>
               <Text style={styles.overviewStatLabel}>
-                {isOverspent ? 'Overspent' : 'Remaining'}
+                {isOverspent ? t('budgetDetail.overview.overspent') : t('money.labels.remaining')}
               </Text>
               <Text
                 style={[
@@ -212,59 +226,69 @@ export default function BudgetDetail() {
                       : styles.remainingValue,
                 ]}>
                 {isOverspent
-                  ? `${formatCurrency(Math.abs(remaining), budget.currency)} over`
-                  : `${formatCurrency(remaining, budget.currency)} left`}
+                  ? t('budgetDetail.overview.overAmount', {
+                      amount: formatCurrency(Math.abs(remaining), budget.currency),
+                    })
+                  : t('budgetDetail.overview.leftAmount', {
+                      amount: formatCurrency(remaining, budget.currency),
+                    })}
               </Text>
             </View>
 
             <View style={styles.overviewStatItem}>
-              <Text style={styles.overviewStatLabel}>Used</Text>
+              <Text style={styles.overviewStatLabel}>{t('budgetDetail.overview.used')}</Text>
               <Text style={styles.overviewStatValue}>{usedPercentage}%</Text>
             </View>
 
             <View style={styles.overviewStatItem}>
-              <Text style={styles.overviewStatLabel}>Resets in</Text>
-              <Text style={styles.overviewStatValue}>{daysUntilReset} days</Text>
+              <Text style={styles.overviewStatLabel}>{t('budgetDetail.overview.resetsIn')}</Text>
+              <Text style={styles.overviewStatValue}>
+                {t('budgetDetail.overview.days', { count: daysUntilReset })}
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.detailInfoCard}>
-          <Text style={styles.detailInfoTitle}>Budget details</Text>
+          <Text style={styles.detailInfoTitle}>{t('budgetDetail.info.title')}</Text>
 
           <View style={styles.detailInfoRow}>
-            <Text style={styles.detailInfoLabel}>Currency</Text>
+            <Text style={styles.detailInfoLabel}>{t('budgetDetail.info.currency')}</Text>
             <Text style={styles.detailInfoValue}>{budget.currency}</Text>
           </View>
 
           <View style={styles.detailInfoRow}>
-            <Text style={styles.detailInfoLabel}>Items tracked</Text>
+            <Text style={styles.detailInfoLabel}>{t('budgetDetail.info.itemsTracked')}</Text>
             <Text style={styles.detailInfoValue}>{spendingCount}</Text>
           </View>
 
           <View style={styles.detailInfoRow}>
-            <Text style={styles.detailInfoLabel}>Average per item</Text>
+            <Text style={styles.detailInfoLabel}>{t('budgetDetail.info.averagePerItem')}</Text>
             <Text style={styles.detailInfoValue}>
               {formatCurrency(avgSpendPerItem, budget.currency)}
             </Text>
           </View>
 
           <View style={styles.detailInfoRow}>
-            <Text style={styles.detailInfoLabel}>Last update</Text>
+            <Text style={styles.detailInfoLabel}>{t('budgetDetail.info.lastUpdate')}</Text>
             <Text style={styles.detailInfoValue}>{lastUpdatedText}</Text>
           </View>
         </View>
 
         <View style={styles.quickAddCard}>
           <View style={styles.quickAddHeaderRow}>
-            <Text style={styles.sectionTitle}>Quick Add</Text>
+            <Text style={styles.sectionTitle}>{t('budgetDetail.quickAdd.title')}</Text>
             <TouchableOpacity
               onPress={() => setShowMoreFields((prev) => !prev)}
               style={styles.moreButton}
               activeOpacity={0.75}
               accessibilityRole="button"
-              accessibilityLabel={showMoreFields ? 'Hide more fields' : 'Show more fields'}>
-              <Text style={styles.moreButtonText}>More</Text>
+              accessibilityLabel={
+                showMoreFields
+                  ? t('budgetDetail.accessibility.hideMoreFields')
+                  : t('budgetDetail.accessibility.showMoreFields')
+              }>
+              <Text style={styles.moreButtonText}>{t('budgetDetail.quickAdd.more')}</Text>
               {showMoreFields ? (
                 <ChevronUp size={16} color={Colors.textSecondary} />
               ) : (
@@ -283,13 +307,13 @@ export default function BudgetDetail() {
                 onPress={() => setItemType('expense')}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel="Expense minus type">
+                accessibilityLabel={t('budgetDetail.accessibility.expenseType')}>
                 <Text
                   style={[
                     styles.typeToggleButtonText,
                     itemType === 'expense' ? styles.typeToggleButtonTextActive : null,
                   ]}>
-                  Expense (-)
+                  {t('budgetDetail.quickAdd.expenseType')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -300,13 +324,13 @@ export default function BudgetDetail() {
                 onPress={() => setItemType('income')}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel="Income plus type">
+                accessibilityLabel={t('budgetDetail.accessibility.incomeType')}>
                 <Text
                   style={[
                     styles.typeToggleButtonText,
                     itemType === 'income' ? styles.typeToggleButtonTextActive : null,
                   ]}>
-                  Income (+)
+                  {t('budgetDetail.quickAdd.incomeType')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -323,9 +347,9 @@ export default function BudgetDetail() {
                 setItemTitle(text);
                 setItemTitleError('');
               }}
-              placeholder="Item title"
+              placeholder={t('budgetDetail.quickAdd.itemTitlePlaceholder')}
               placeholderTextColor={Colors.textSecondary}
-              accessibilityLabel="Spending item title"
+              accessibilityLabel={t('budgetDetail.accessibility.itemTitle')}
             />
 
             <View style={styles.amountInputRow}>
@@ -344,14 +368,14 @@ export default function BudgetDetail() {
                 placeholder={`${budget.currency} 0.00`}
                 placeholderTextColor={Colors.textSecondary}
                 keyboardType="decimal-pad"
-                accessibilityLabel="Spending amount"
+                accessibilityLabel={t('budgetDetail.accessibility.spendingAmount')}
               />
 
               <TouchableOpacity
                 style={styles.calcButton}
                 onPress={() => setShowCalculator(true)}
                 accessibilityRole="button"
-                accessibilityLabel="Open calculator">
+                accessibilityLabel={t('budgetDetail.accessibility.openCalculator')}>
                 <Calculator size={18} color={Colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -361,8 +385,8 @@ export default function BudgetDetail() {
               onPress={handleAddItem}
               activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel="Add item">
-              <Text style={styles.addButtonText}>Add item</Text>
+              accessibilityLabel={t('budgetDetail.quickAdd.addItem')}>
+              <Text style={styles.addButtonText}>{t('budgetDetail.quickAdd.addItem')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -373,31 +397,29 @@ export default function BudgetDetail() {
 
           {showMoreFields ? (
             <View style={styles.moreFieldsPanel}>
-              <Text style={styles.moreFieldsText}>Date: auto set to today</Text>
-              <Text style={styles.moreFieldsText}>Category and note fields are coming soon.</Text>
+              <Text style={styles.moreFieldsText}>{t('budgetDetail.quickAdd.autoDate')}</Text>
+              <Text style={styles.moreFieldsText}>{t('budgetDetail.quickAdd.comingSoon')}</Text>
             </View>
           ) : null}
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Budget items</Text>
+            <Text style={styles.sectionTitle}>{t('budgetDetail.items.title')}</Text>
             <Text style={styles.sectionCount}>{sortedItems.length}</Text>
           </View>
 
           {sortedItems.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>No budget items added yet</Text>
-              <Text style={styles.emptyText}>
-                Track your first expense or income to start seeing progress.
-              </Text>
+              <Text style={styles.emptyTitle}>{t('budgetDetail.items.emptyTitle')}</Text>
+              <Text style={styles.emptyText}>{t('budgetDetail.items.emptyDescription')}</Text>
               <TouchableOpacity
                 style={styles.emptyCtaButton}
                 onPress={() => titleInputRef.current?.focus()}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel="Add your first item">
-                <Text style={styles.emptyCtaText}>Add your first item</Text>
+                accessibilityLabel={t('budgetDetail.items.addFirstItem')}>
+                <Text style={styles.emptyCtaText}>{t('budgetDetail.items.addFirstItem')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -415,9 +437,11 @@ export default function BudgetDetail() {
                         onPress={() => handleDeleteItem(item.id, item.title)}
                         activeOpacity={0.8}
                         accessibilityRole="button"
-                        accessibilityLabel={`Delete ${item.title}`}>
+                        accessibilityLabel={t('budgetDetail.accessibility.deleteItem', {
+                          title: item.title,
+                        })}>
                         <Trash2 size={16} color={Colors.error} />
-                        <Text style={styles.swipeDeleteText}>Delete</Text>
+                        <Text style={styles.swipeDeleteText}>{t('common.actions.delete')}</Text>
                       </TouchableOpacity>
                     )}
                     overshootRight={false}
@@ -447,7 +471,7 @@ export default function BudgetDetail() {
                         </Text>
                         {item.transactionId ? (
                           <Text style={styles.rowMeta} numberOfLines={1}>
-                            From transaction
+                            {t('budgetDetail.items.fromTransaction')}
                           </Text>
                         ) : null}
                       </View>
@@ -464,7 +488,9 @@ export default function BudgetDetail() {
                         </Text>
                         {showSyncPill ? (
                           <View style={styles.pendingPill}>
-                            <Text style={styles.pendingPillText}>Pending sync</Text>
+                            <Text style={styles.pendingPillText}>
+                              {t('budgetDetail.sync.pending')}
+                            </Text>
                           </View>
                         ) : null}
                         {showSyncFailed ? (
@@ -473,8 +499,10 @@ export default function BudgetDetail() {
                             onPress={handleRetrySync}
                             activeOpacity={0.8}
                             accessibilityRole="button"
-                            accessibilityLabel="Retry syncing this item">
-                            <Text style={styles.failedPillText}>Sync failed • Retry</Text>
+                            accessibilityLabel={t('budgetDetail.sync.retryAccessibility')}>
+                            <Text style={styles.failedPillText}>
+                              {t('budgetDetail.sync.failedRetry')}
+                            </Text>
                           </TouchableOpacity>
                         ) : null}
                       </View>

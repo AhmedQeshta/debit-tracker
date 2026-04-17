@@ -135,7 +135,7 @@ export interface ConfirmDialogContextType {
 
 export interface MenuModalState {
   visible: boolean;
-  position: { top: number; right: number };
+  position: { top: number; right?: number; left?: number };
   menuItems: {
     icon: ReactNode;
     label: string;
@@ -146,7 +146,7 @@ export interface MenuModalState {
 
 export interface MenuModalContextType {
   openMenu: (
-    position: { top: number; right: number },
+    position: { top: number; right?: number; left?: number },
     menuItems: MenuModalState['menuItems'],
   ) => void;
   closeMenu: () => void;
@@ -319,3 +319,34 @@ export interface CalculatorModalProps {
 
 export type CalcSuccess = { ok: true; value: number };
 export type CalcFailure = { ok: false; error: string };
+
+export type DashboardRange = 'week' | 'month' | 'all';
+
+export type DebtItem = {
+  friend: Friend;
+  balance: number;
+};
+
+export type BudgetSnapshot = {
+  budget: Budget;
+  spent: number;
+  remaining: number;
+  percentUsed: number;
+};
+
+export interface UnsyncedCounts {
+  friends: number;
+  transactions: number;
+  budgetItems: number;
+  budgets: number;
+  syncQueue: number;
+}
+
+export type QueueBlockedReason = 'offline' | 'auth' | 'unknown';
+
+export interface SyncQueueFlushSummary {
+  total: number;
+  successCount: number;
+  failedCount: number;
+  blockedReason?: QueueBlockedReason;
+}

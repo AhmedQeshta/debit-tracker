@@ -11,7 +11,7 @@ export const MenuModalProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const openMenu = (
-    position: { top: number; right: number },
+    position: { top: number; right?: number; left?: number },
     menuItems: MenuModalState['menuItems'],
   ) => {
     setMenuState({

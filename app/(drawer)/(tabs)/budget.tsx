@@ -6,13 +6,15 @@ import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
-import { getNextSortKey, SORT_LABELS, WARNING_COLOR } from '@/lib/utils';
+import { getNextSortKey, WARNING_COLOR } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Menu, SlidersHorizontal } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BudgetTab() {
+  const { t } = useTranslation();
   const {
     handlePinToggle,
     handleDelete,
@@ -55,19 +57,19 @@ export default function BudgetTab() {
             onPress={openDrawer}
             style={styles.topBarButton}
             accessibilityRole="button"
-            accessibilityLabel="Open menu">
+            accessibilityLabel={t('budget.accessibility.openMenu')}>
             <Menu color={Colors.text} size={20} />
           </TouchableOpacity>
 
           <View style={styles.titleWrap}>
-            <Text style={styles.title}>Budgets</Text>
+            <Text style={styles.title}>{t('budget.title')}</Text>
           </View>
 
           <TouchableOpacity
             onPress={() => setSortKey((current) => getNextSortKey(current))}
             style={styles.topBarButton}
             accessibilityRole="button"
-            accessibilityLabel="Change budget sorting">
+            accessibilityLabel={t('budget.accessibility.changeSorting')}>
             <SlidersHorizontal color={Colors.textSecondary} size={18} />
           </TouchableOpacity>
         </View>
@@ -76,30 +78,34 @@ export default function BudgetTab() {
           <View style={styles.monthChip}>
             <Text style={styles.monthChipText}>{monthLabel}</Text>
           </View>
-          <Text style={styles.sortLabel}>Sort: {SORT_LABELS[sortKey]}</Text>
+          <Text style={styles.sortLabel}>
+            {t('budget.sort.label', { sort: t(`budget.sort.options.${sortKey}`) })}
+          </Text>
         </View>
 
         <View style={styles.summaryStrip}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryTitle}>Overview</Text>
-            <Text style={styles.summaryUsed}>{summary.usedPercent}% used</Text>
+            <Text style={styles.summaryTitle}>{t('budget.summary.overview')}</Text>
+            <Text style={styles.summaryUsed}>
+              {t('budget.summary.usedPercent', { percent: summary.usedPercent })}
+            </Text>
           </View>
 
           <View style={styles.summaryStatsWrap}>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Total budget</Text>
+              <Text style={styles.summaryLabel}>{t('budget.summary.labels.totalBudget')}</Text>
               <Text style={styles.summaryValue} numberOfLines={1}>
                 {summary.totalBudget}
               </Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Net spent</Text>
+              <Text style={styles.summaryLabel}>{t('budget.summary.labels.netSpent')}</Text>
               <Text style={styles.summaryValue} numberOfLines={1}>
                 {summary.totalSpent}
               </Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Remaining</Text>
+              <Text style={styles.summaryLabel}>{t('money.labels.remaining')}</Text>
               <Text style={styles.summaryValue} numberOfLines={1}>
                 {summary.remaining}
               </Text>
@@ -108,13 +114,15 @@ export default function BudgetTab() {
 
           <View style={styles.summaryFooter}>
             {summary.hasMixedCurrency ? (
-              <Text style={styles.mixedCurrencyHint}>Totals include mixed currencies</Text>
+              <Text style={styles.mixedCurrencyHint}>{t('budget.summary.mixedCurrency')}</Text>
             ) : (
-              <Text style={styles.mixedCurrencyHint}>Based on your active budgets</Text>
+              <Text style={styles.mixedCurrencyHint}>{t('budget.summary.activeBudgets')}</Text>
             )}
             {summary.nearLimitCount > 0 ? (
               <View style={styles.nearLimitPill}>
-                <Text style={styles.nearLimitText}>{summary.nearLimitCount} near limit</Text>
+                <Text style={styles.nearLimitText}>
+                  {t('budget.summary.nearLimit', { count: summary.nearLimitCount })}
+                </Text>
               </View>
             ) : null}
           </View>
@@ -150,8 +158,8 @@ export default function BudgetTab() {
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
               <EmptySection
-                title="No budgets yet"
-                description="Set monthly limits and track spending"
+                title={t('budget.empty.title')}
+                description={t('budget.empty.description')}
                 icon="budgets"
               />
             }

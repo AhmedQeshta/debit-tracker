@@ -4,7 +4,7 @@ import { Spacing } from '@/theme/spacing';
 import { IActionsProps } from '@/types/common';
 import { MoreVertical } from 'lucide-react-native';
 import { useRef } from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, I18nManager, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProps) => {
   const buttonRef = useRef<View>(null);
@@ -19,9 +19,11 @@ export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProp
         // Calculate menu position with clamping
         const calculatedTop = y + height + 5;
         const calculatedRight = screenWidth - x - width;
+        const calculatedLeft = x;
 
         const menuTop = Math.min(calculatedTop, screenHeight - menuHeight - 8);
         const menuRight = Math.max(calculatedRight, 8);
+        const menuLeft = Math.max(calculatedLeft, 8);
 
         // Convert menuItems to the format expected by the context
         const formattedMenuItems = menuItems.map((item) => ({
@@ -31,7 +33,10 @@ export const Actions = ({ menuVisible, setMenuVisible, menuItems }: IActionsProp
           danger: item.danger,
         }));
 
-        openMenu({ top: menuTop, right: menuRight }, formattedMenuItems);
+        openMenu(
+          I18nManager.isRTL ? { top: menuTop, left: menuLeft } : { top: menuTop, right: menuRight },
+          formattedMenuItems,
+        );
         // Update parent state for compatibility
         if (setMenuVisible) {
           setMenuVisible(true);

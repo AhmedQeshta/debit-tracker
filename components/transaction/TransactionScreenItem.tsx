@@ -4,6 +4,7 @@ import { Spacing } from '@/theme/spacing';
 import { ITransactionScreenItemProps } from '@/types/transaction';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
@@ -13,13 +14,14 @@ export const TransactionScreenItem = ({
   onDelete,
   onPress,
 }: ITransactionScreenItemProps) => {
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = useState(false);
 
   const menuItems = [];
   if (onEdit) {
     menuItems.push({
       icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit Transaction',
+      label: t('transactionItem.menu.editTransaction'),
       onPress: () => onEdit(row.transaction.id),
     });
   }
@@ -27,7 +29,7 @@ export const TransactionScreenItem = ({
   if (onDelete) {
     menuItems.push({
       icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete Transaction',
+      label: t('transactionItem.menu.deleteTransaction'),
       onPress: () => onDelete(row.transaction.id, row.title),
       danger: true,
     });
@@ -39,18 +41,24 @@ export const TransactionScreenItem = ({
         style={styles.swipeActionButton}
         onPress={() => onEdit?.(row.transaction.id)}
         accessibilityRole="button"
-        accessibilityLabel={`Edit ${row.title}`}>
+        accessibilityLabel={t('transactionItem.accessibility.editTransaction', {
+          title: row.title,
+        })}>
         <Pencil size={16} color={Colors.text} />
-        <Text style={styles.swipeActionText}>Edit</Text>
+        <Text style={styles.swipeActionText}>{t('common.actions.edit')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.swipeActionButton, styles.swipeActionDelete]}
         onPress={() => onDelete?.(row.transaction.id, row.title)}
         accessibilityRole="button"
-        accessibilityLabel={`Delete ${row.title}`}>
+        accessibilityLabel={t('transactionItem.accessibility.deleteTransaction', {
+          title: row.title,
+        })}>
         <Trash2 size={16} color={Colors.error} />
-        <Text style={[styles.swipeActionText, styles.swipeDeleteText]}>Delete</Text>
+        <Text style={[styles.swipeActionText, styles.swipeDeleteText]}>
+          {t('common.actions.delete')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -72,8 +80,12 @@ export const TransactionScreenItem = ({
         style={({ pressed }) => [styles.transactionCard, pressed && styles.transactionCardPressed]}
         onPress={() => onPress?.(row.transaction.id)}
         accessibilityRole="button"
-        accessibilityHint="Opens transaction details"
-        accessibilityLabel={`${row.title}, ${row.amountDirectionLabel} ${row.amountText}`}>
+        accessibilityHint={t('transactionItem.accessibility.openDetailsHint')}
+        accessibilityLabel={t('transactionItem.accessibility.transactionSummary', {
+          title: row.title,
+          direction: row.amountDirectionLabel,
+          amount: row.amountText,
+        })}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
@@ -86,8 +98,10 @@ export const TransactionScreenItem = ({
           </Text>
           {row.budgetName ? (
             <Text style={styles.transactionBudget} numberOfLines={1}>
-              Budget: {row.budgetName}
-              {row.budgetRemainingText ? ` • ${row.budgetRemainingText} left` : ''}
+              {t('transactionItem.labels.budgetPrefix')}: {row.budgetName}
+              {row.budgetRemainingText
+                ? ` • ${t('budgetCard.status.left', { amount: row.budgetRemainingText })}`
+                : ''}
             </Text>
           ) : null}
           <Text style={styles.transactionDate}>
@@ -100,7 +114,9 @@ export const TransactionScreenItem = ({
           {showSyncPill ? (
             <View style={[styles.statusPill, isFailed ? styles.failedPill : styles.pendingPill]}>
               <Text style={[styles.statusText, isFailed ? styles.failedText : styles.pendingText]}>
-                {isFailed ? 'Failed' : 'Pending sync'}
+                {isFailed
+                  ? t('transactionItem.status.failed')
+                  : t('transactionItem.status.pendingSync')}
               </Text>
             </View>
           ) : null}

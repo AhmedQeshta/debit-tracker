@@ -8,9 +8,11 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Settings, Wifi, WifiOff } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
   const {
@@ -18,7 +20,6 @@ export default function Dashboard() {
     summaryStats,
     selectedRange,
     setSelectedRange,
-    rangeLabel,
     peopleYouOwe,
     peopleWhoOweYou,
     budgetSnapshot,
@@ -42,21 +43,32 @@ export default function Dashboard() {
       <View style={styles.appBar}>
         <View style={styles.titleRow}>
           {openDrawer ? (
-            <Pressable onPress={openDrawer} style={styles.iconButton} hitSlop={8}>
+            <Pressable
+              onPress={openDrawer}
+              style={styles.iconButton}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.accessibility.openMenu')}>
               <Menu size={20} color={Colors.text} />
             </Pressable>
           ) : null}
-          <Text style={styles.title}>Dashboard</Text>
+          <Text style={styles.title}>{t('dashboard.title')}</Text>
         </View>
 
         <View style={styles.appBarActions}>
-          <Pressable style={styles.rangeChip} onPress={handleRangeChipPress}>
-            <Text style={styles.rangeChipText}>{rangeLabel}</Text>
+          <Pressable
+            style={styles.rangeChip}
+            onPress={handleRangeChipPress}
+            accessibilityRole="button"
+            accessibilityLabel={t('dashboard.accessibility.cycleRange')}>
+            <Text style={styles.rangeChipText}>{t(`dashboard.rangeOptions.${selectedRange}`)}</Text>
           </Pressable>
           <Pressable
             style={styles.iconButton}
             onPress={() => router.push('/(drawer)/(tabs)/settings')}
-            hitSlop={8}>
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('dashboard.accessibility.openSettings')}>
             <Settings size={20} color={Colors.text} />
           </Pressable>
         </View>
@@ -69,7 +81,9 @@ export default function Dashboard() {
           ) : (
             <WifiOff size={13} color={Colors.textSecondary} />
           )}
-          <Text style={styles.statusText}>{isOnline ? 'Online' : 'Offline'}</Text>
+          <Text style={styles.statusText}>
+            {isOnline ? t('dashboard.status.online') : t('dashboard.status.offline')}
+          </Text>
         </View>
 
         <View style={styles.rangeSelectorRow}>
@@ -86,7 +100,7 @@ export default function Dashboard() {
                   styles.rangeSelectorText,
                   selectedRange === range.key ? styles.rangeSelectorTextActive : null,
                 ]}>
-                {range.label}
+                {t(`dashboard.rangeOptions.${range.key}`)}
               </Text>
             </Pressable>
           ))}
@@ -95,40 +109,42 @@ export default function Dashboard() {
 
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
-          <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+          <Text style={styles.summaryHeaderText}>
+            {t('dashboard.summary.title', { currencyLabel: summaryCurrencyLabel })}
+          </Text>
           <Pressable
             style={styles.currencyButton}
             onPress={handleSummaryCurrencyToggle}
             accessibilityRole="button"
-            accessibilityLabel="Change summary currency"
-            accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+            accessibilityLabel={t('dashboard.summary.accessibility.changeCurrencyLabel')}
+            accessibilityHint={t('dashboard.summary.accessibility.changeCurrencyHint')}>
             <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
           </Pressable>
         </View>
 
         <View style={styles.summaryStatsWrap}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Friends</Text>
+            <Text style={styles.summaryLabel}>{t('dashboard.summary.labels.friends')}</Text>
             <Text style={styles.summaryValue}>{summaryStats.totalFriends}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>You owe</Text>
+            <Text style={styles.summaryLabel}>{t('money.labels.youOwe')}</Text>
             <Text style={[styles.summaryValue, styles.negative]}>
               {formatCurrency(summaryStats.youOweTotal, summaryCurrency)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Owed to you</Text>
+            <Text style={styles.summaryLabel}>{t('money.labels.owedToYou')}</Text>
             <Text style={[styles.summaryValue, styles.positive]}>
               {formatCurrency(summaryStats.owedToYouTotal, summaryCurrency)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Settled</Text>
+            <Text style={styles.summaryLabel}>{t('dashboard.summary.labels.settled')}</Text>
             <Text style={styles.summaryValue}>{summaryStats.settledCount}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Net</Text>
+            <Text style={styles.summaryLabel}>{t('dashboard.summary.labels.net')}</Text>
             <Text style={[styles.summaryValue, netTone]}>
               {formatCurrency(summaryStats.netBalance, summaryCurrency)}
             </Text>
@@ -150,44 +166,42 @@ export default function Dashboard() {
 
       {isFreshState ? (
         <View style={styles.getStartedCard}>
-          <Text style={styles.getStartedTitle}>Get started</Text>
-          <Text style={styles.getStartedText}>
-            Track debt, transactions, and budgets in a few taps.
-          </Text>
+          <Text style={styles.getStartedTitle}>{t('dashboard.getStarted.title')}</Text>
+          <Text style={styles.getStartedText}>{t('dashboard.getStarted.description')}</Text>
 
           <View style={styles.getStartedActions}>
             <TouchableOpacity
               style={styles.getStartedAction}
               onPress={() => router.push('/(drawer)/friend/new')}
               activeOpacity={0.8}>
-              <Text style={styles.getStartedActionText}>1. Add friend</Text>
+              <Text style={styles.getStartedActionText}>{t('dashboard.getStarted.step1')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.getStartedAction}
               onPress={() => router.push('/(drawer)/transaction/new')}
               activeOpacity={0.8}>
-              <Text style={styles.getStartedActionText}>2. Add transaction</Text>
+              <Text style={styles.getStartedActionText}>{t('dashboard.getStarted.step2')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.getStartedAction}
               onPress={() => router.push('/(drawer)/budget/new')}
               activeOpacity={0.8}>
-              <Text style={styles.getStartedActionText}>3. Create budget (optional)</Text>
+              <Text style={styles.getStartedActionText}>{t('dashboard.getStarted.step3')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       ) : null}
 
       <HomeSectionHeader
-        title="Settle Up"
-        seeAllLabel="See all"
+        title={t('dashboard.sections.settleUp')}
+        seeAllLabel={t('dashboard.actions.seeAll')}
         onSeeAll={() => router.push('/friends')}
       />
 
       <View style={styles.sectionCard}>
-        <Text style={styles.listTitle}>People you owe</Text>
+        <Text style={styles.listTitle}>{t('dashboard.settle.peopleYouOwe')}</Text>
         {peopleYouOwe.length === 0 ? (
-          <Text style={styles.emptyText}>No debts to settle.</Text>
+          <Text style={styles.emptyText}>{t('dashboard.settle.noDebts')}</Text>
         ) : (
           peopleYouOwe.map((item) => (
             <View key={`owe-${item.friend.id}`} style={styles.settleRow}>
@@ -206,7 +220,7 @@ export default function Dashboard() {
                 style={styles.rowActionButton}
                 onPress={() => router.push(`/(drawer)/transaction/new?friendId=${item.friend.id}`)}
                 activeOpacity={0.8}>
-                <Text style={styles.rowActionLabel}>Settle</Text>
+                <Text style={styles.rowActionLabel}>{t('dashboard.actions.settle')}</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -214,9 +228,9 @@ export default function Dashboard() {
 
         <View style={styles.listDivider} />
 
-        <Text style={styles.listTitle}>People who owe you</Text>
+        <Text style={styles.listTitle}>{t('dashboard.settle.peopleWhoOweYou')}</Text>
         {peopleWhoOweYou.length === 0 ? (
-          <Text style={styles.emptyText}>No incoming settlements right now.</Text>
+          <Text style={styles.emptyText}>{t('dashboard.settle.noIncoming')}</Text>
         ) : (
           peopleWhoOweYou.map((item) => (
             <View key={`owed-${item.friend.id}`} style={styles.settleRow}>
@@ -235,7 +249,7 @@ export default function Dashboard() {
                 style={styles.rowActionButton}
                 onPress={() => router.push(`/(drawer)/friend/${item.friend.id}`)}
                 activeOpacity={0.8}>
-                <Text style={styles.rowActionLabel}>View</Text>
+                <Text style={styles.rowActionLabel}>{t('dashboard.actions.view')}</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -245,8 +259,8 @@ export default function Dashboard() {
       {activeBudgetCount > 0 ? (
         <>
           <HomeSectionHeader
-            title="Budget Snapshot"
-            seeAllLabel="See all budgets"
+            title={t('dashboard.sections.budgetSnapshot')}
+            seeAllLabel={t('dashboard.actions.seeAllBudgets')}
             onSeeAll={() => router.push('/budget')}
           />
 
@@ -264,11 +278,15 @@ export default function Dashboard() {
                     <Text style={styles.budgetTitle} numberOfLines={1}>
                       {item.budget.title}
                     </Text>
-                    <Text style={styles.budgetUsage}>{Math.round(shownPercentUsed)}% used</Text>
+                    <Text style={styles.budgetUsage}>
+                      {t('dashboard.budget.percentUsed', { percent: Math.round(shownPercentUsed) })}
+                    </Text>
                   </View>
 
                   <Text style={styles.budgetAmountLine}>
-                    Net spent {formatCurrency(item.spent, item.budget.currency)} of{' '}
+                    {t('dashboard.budget.netSpentOf', {
+                      spent: formatCurrency(item.spent, item.budget.currency),
+                    })}{' '}
                     {formatCurrency(item.budget.totalBudget, item.budget.currency)}
                   </Text>
 
@@ -290,8 +308,12 @@ export default function Dashboard() {
                       { color: item.remaining < 0 ? Colors.error : Colors.textSecondary },
                     ]}>
                     {item.remaining < 0
-                      ? `Overspent by ${formatCurrency(Math.abs(item.remaining), item.budget.currency)}`
-                      : `${formatCurrency(item.remaining, item.budget.currency)} remaining`}
+                      ? t('dashboard.budget.overspentBy', {
+                          amount: formatCurrency(Math.abs(item.remaining), item.budget.currency),
+                        })
+                      : t('dashboard.budget.remaining', {
+                          amount: formatCurrency(item.remaining, item.budget.currency),
+                        })}
                   </Text>
                 </Pressable>
               );
@@ -301,7 +323,7 @@ export default function Dashboard() {
       ) : null}
 
       <View style={styles.insightInlineNotice}>
-        <Text style={styles.insightInlineText}>Insights chart is coming soon.</Text>
+        <Text style={styles.insightInlineText}>{t('dashboard.insightsComingSoon')}</Text>
       </View>
     </ScreenContainer>
   );

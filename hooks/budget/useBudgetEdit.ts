@@ -10,8 +10,10 @@ import NetInfo from '@react-native-community/netinfo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export const useBudgetEdit = () => {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const budgetId = safeId(id);
   const router = useRouter();
@@ -96,12 +98,12 @@ export const useBudgetEdit = () => {
     newTotalBudget: number,
   ): Promise<'synced' | 'pending'> => {
     if (!Number.isFinite(newTotalBudget) || newTotalBudget < 0) {
-      throw new Error('Total budget must be a valid number greater than or equal to 0');
+      throw new Error(t('budgetHooks.edit.errors.invalidTotal'));
     }
 
     const currentBudget = useBudgetStore.getState().budgets.find((item) => item.id === id);
     if (!currentBudget) {
-      throw new Error('Budget not found');
+      throw new Error(t('budgetHooks.edit.errors.notFound'));
     }
 
     const metrics = useBudgetStore.getState().getBudgetMetrics(id);
@@ -212,15 +214,15 @@ export const useBudgetEdit = () => {
       const amount = Number.parseFloat(data.totalBudget);
       const status = await updateBudgetTotalBudget(budgetId, amount);
       if (status === 'pending') {
-        toastInfo('Budget saved locally. Pending sync.');
+        toastInfo(t('budgetHooks.edit.pendingSyncInfo'));
       } else {
-        toastSuccess('Budget updated');
+        toastSuccess(t('budgetHooks.edit.success'));
       }
 
       router.back();
     } catch (error) {
       console.error('[Budget] Failed to update budget total:', error);
-      toastError('Failed to update budget');
+      toastError(t('budgetHooks.edit.errors.updateFailed'));
     } finally {
       setLoading(false);
     }

@@ -1,0 +1,1266 @@
+{
+  "navigation": {
+    "tabs": {
+      "home": "Home",
+      "friends": "Friends",
+      "transactions": "Transactions",
+      "budgets": "Budgets",
+      "dashboard": "Dashboard",
+      "settings": "Settings"
+    },
+    "drawer": {
+      "menu": "Menu",
+      "about": "About Me"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Account & app preferences",
+    "sections": {
+      "account": "Account",
+      "sync": "Sync",
+      "app": "App",
+      "danger": "Danger Zone"
+    },
+    "rows": {
+      "signIn": "Sign in",
+      "manageAccount": "Manage account",
+      "security": "Security",
+      "signOut": "Sign out",
+      "cloudSync": "Cloud Sync",
+      "status": "Status",
+      "lastSynced": "Last synced",
+      "syncNow": "Sync now",
+      "exportData": "Export data",
+      "version": "Version",
+      "theme": "Theme",
+      "about": "About",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "clearLocalData": "Clear local data",
+      "language": "Language"
+    },
+    "descriptions": {
+      "loadingAccount": "Loading account...",
+      "accountFallback": "Couldn't load account info. You can still use settings.",
+      "signInSub": "Sign in to manage your account and cloud sync",
+      "manageAccountSub": "Profile details and email",
+      "securitySub": "Change your password",
+      "signOutLoading": "Signing out...",
+      "signOutSub": "Sign out from this device",
+      "syncEnabled": "Keep data synced across devices",
+      "syncDisabled": "Sign in to enable cloud sync",
+      "syncErrorSub": "Tap Sync now to retry",
+      "syncNowLoading": "Sync in progress",
+      "syncNowSub": "Force a sync now",
+      "exportDataSub": "Save or share friends and budgets as CSV or JSON",
+      "themeSub": "Dark mode is currently active",
+      "aboutSub": "App details and developer info",
+      "privacySub": "How your data is handled",
+      "termsSub": "Terms and conditions",
+      "clearLocalDataSub": "Remove local budgets, friends, and transactions"
+    },
+    "statusValues": {
+      "signedIn": "Signed in",
+      "disabled": "Disabled",
+      "offline": "Offline",
+      "syncing": "Syncing...",
+      "error": "Error",
+      "idle": "Idle",
+      "never": "Never",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago",
+      "daysAgo": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago"
+    },
+    "languageOptions": {
+      "english": "English",
+      "arabic": "Arabic",
+      "pickerTitle": "Choose language",
+      "pickerMessage": "App direction will update automatically when needed."
+    },
+    "clearDataConfirm": {
+      "title": "Clear local data?",
+      "message": "This will remove local friends, transactions, budgets, and cached app data from this device. Your account remains active, and cloud data can be restored after sync. This action cannot be undone.",
+      "confirm": "Clear data"
+    }
+  },
+  "common": {
+    "actions": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "ok": "OK",
+      "search": "Search",
+      "filter": "Filter",
+      "verify": "Verify"
+    },
+    "words": {
+      "or": "or",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "states": {
+      "loading": "Loading..."
+    }
+  },
+  "money": {
+    "labels": {
+      "youOwe": "You owe",
+      "owedToYou": "Owed to you",
+      "netBalance": "Net balance",
+      "remaining": "Remaining",
+      "spent": "Spent",
+      "income": "Income"
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign In",
+      "subtitle": "Sync your data across devices",
+      "verifyEmailTitle": "Verify your email",
+      "twoFactorTitle": "Two-Factor Authentication",
+      "verifySubtitle": "Enter the 6-digit code sent to your email",
+      "email": "Email",
+      "password": "Password",
+      "code": "Verification Code",
+      "forgotPassword": "Forgot password?",
+      "resendCode": "Resend code",
+      "resendCodeIn": "Resend code in {{seconds}}s",
+      "changeEmail": "Change email",
+      "noAccount": "Don't have an account?",
+      "signUpCta": "Sign up",
+      "Completing": "Completing sign-in..."
+    },
+    "signUp": {
+      "title": "Create Account",
+      "subtitle": "Create an account to save and sync your data",
+      "verifyEmailTitle": "Verify your email",
+      "verifySubtitle": "Enter the 6-digit code sent to your email",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "createPasswordPlaceholder": "Create a password",
+      "confirmPasswordPlaceholder": "Re-enter your password",
+      "helperPassword": "Use at least 8 characters",
+      "createAccount": "Create Account",
+      "alreadyHave": "Already have an account?",
+      "backToSignIn": "Back to Sign in"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "resetTitle": "Reset Password",
+      "subtitle": "We'll email you a reset code",
+      "resetSubtitle": "Enter the reset code and your new password",
+      "resetCode": "Reset Code",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "sendResetCode": "Send reset code",
+      "backToSignIn": "Back to Sign in"
+    },
+    "oauth": {
+      "continueWithGoogle": "Continue with Google"
+    },
+    "otp": {
+      "accessibility": {
+        "focusInput": "Focus verification code input",
+        "codeInput": "Verification code input"
+      }
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "validEmail": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsNoMatch": "Passwords do not match",
+      "codeRequired": "Code is required",
+      "codeMustBeSix": "Code must be 6 digits",
+      "enterSixDigitCode": "Enter the 6-digit code"
+    },
+    "errors": {
+      "verificationIncorrect": "The verification code is incorrect. Please try again.",
+      "verificationExpired": "That verification code has expired. Please request a new one.",
+      "tooManyAttempts": "Too many attempts. Please wait a moment and try again.",
+      "verificationUnavailable": "Email verification is required but not available. Please contact support.",
+      "twoFactorUnavailable": "Two-factor authentication is required but email verification is not available.",
+      "verificationIncomplete": "Verification incomplete. Please try again.",
+      "resendFailed": "Unable to resend code. Please try again.",
+      "signInIncomplete": "Sign in incomplete. Status: {{status}}. Please try again.",
+      "signUpIncomplete": "Sign up incomplete. Status: {{status}}. Please try again.",
+      "authNotReady": "Authentication not ready. Please wait...",
+      "resetStartFailed": "Unable to start password reset. Please try again.",
+      "resetNeedsSignIn": "Password updated successfully. Please sign in.",
+      "verificationCodeRequired": "Verification code is required"
+    }
+  },
+  "toast": {
+    "settings": {
+      "clearDataSuccess": "All local data has been cleared.",
+      "clearDataFailed": "Failed to clear local data. Please try again."
+    }
+  },
+  "home": {
+    "title": "Home",
+    "sections": {
+      "quickActions": "Quick Actions",
+      "budgetsOverview": "Budgets Overview",
+      "settleUp": "Settle Up",
+      "recentTransactions": "Recent Transactions"
+    },
+    "summary": {
+      "title": "Summary ({{currencyLabel}})",
+      "labels": {
+        "friends": "Friends",
+        "settled": "Settled",
+        "net": "Net"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "Change summary currency",
+        "changeCurrencyHint": "Cycles through USD, ILS, and EUR currencies"
+      }
+    },
+    "actions": {
+      "seeAll": "See all",
+      "createBudget": "Create Budget",
+      "addFriend": "Add Friend",
+      "settleUp": "Settle up",
+      "settled": "Settled",
+      "addTransaction": "Add Transaction"
+    },
+    "emptyStates": {
+      "budgets": {
+        "title": "No Budgets",
+        "description": "Create your first budget to start tracking your spending"
+      },
+      "settle": {
+        "title": "No balances to settle",
+        "description": "Add a friend to get started."
+      },
+      "transactions": {
+        "title": "No Transactions Yet",
+        "description": "Add your first transaction to start tracking debts"
+      }
+    },
+    "settle": {
+      "badges": {
+        "theyOweYou": "They owe you"
+      }
+    }
+  },
+  "homeSummary": {
+    "netBalance": "Net Balance",
+    "updatedJustNow": "Updated just now",
+    "getStartedDescription": "Set up your tracking in a few quick steps.",
+    "steps": {
+      "step1": "Step 1",
+      "step2": "Step 2",
+      "step3Optional": "Step 3 (Optional)"
+    }
+  },
+  "friends": {
+    "title": "Friends",
+    "viewModes": {
+      "list": "List",
+      "grid": "Grid"
+    },
+    "search": {
+      "placeholder": "Search by friend name"
+    },
+    "sortOptions": {
+      "recent": "Recent",
+      "name": "Name",
+      "balance": "Balance"
+    },
+    "filterOptions": {
+      "all": "All",
+      "you-owe": "You owe",
+      "owes-you": "Owes you",
+      "settled": "Settled"
+    },
+    "summary": {
+      "title": "Summary ({{currencyLabel}})",
+      "labels": {
+        "friends": "Friends",
+        "settled": "Settled",
+        "net": "Net"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "Change summary currency",
+        "changeCurrencyHint": "Cycles through USD, ILS, and EUR currencies"
+      }
+    },
+    "empty": {
+      "searchTitle": "No matching friends",
+      "defaultTitle": "No friends yet",
+      "searchDescription": "Try another name, filter, or sort option.",
+      "defaultDescription": "Track who owes who and settle faster",
+      "addFirstFriend": "Add your first friend"
+    },
+    "actions": {
+      "addFriend": "Add friend"
+    },
+    "accessibility": {
+      "openMenu": "Open menu",
+      "listView": "List view",
+      "gridView": "Grid view",
+      "toggleFilters": "Show or hide filters",
+      "searchFriends": "Search friends",
+      "sortBy": "Sort by {{label}}",
+      "filterBy": "Filter {{label}}"
+    }
+  },
+  "transactions": {
+    "title": "Transactions",
+    "search": {
+      "placeholder": "Search transactions..."
+    },
+    "summary": {
+      "title": "Summary ({{currencyLabel}})",
+      "labels": {
+        "totalThisMonth": "Total this month",
+        "youPaid": "You paid",
+        "youReceived": "You received"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "Change summary currency",
+        "changeCurrencyHint": "Cycles through USD, ILS, and EUR currencies"
+      }
+    },
+    "statusLegend": "Status: Pending sync • Failed",
+    "empty": {
+      "title": "No transactions yet",
+      "addFriendFirst": "Add a friend first",
+      "addFirstTransaction": "Add your first transaction to start tracking balances"
+    },
+    "actions": {
+      "addFriend": "Add friend",
+      "addTransaction": "Add transaction"
+    },
+    "accessibility": {
+      "openMenu": "Open menu",
+      "toggleFilters": "Show or hide filters",
+      "searchTransactions": "Search transactions"
+    }
+  },
+  "budget": {
+    "title": "Budgets",
+    "routes": {
+      "newTitle": "New Budget",
+      "detailsTitle": "Budget Details",
+      "editTitle": "Edit Budget"
+    },
+    "accessibility": {
+      "openMenu": "Open menu",
+      "changeSorting": "Change budget sorting"
+    },
+    "sort": {
+      "label": "Sort: {{sort}}",
+      "options": {
+        "recent": "Recent",
+        "name": "Name",
+        "usage": "Usage"
+      }
+    },
+    "summary": {
+      "overview": "Overview",
+      "usedPercent": "{{percent}}% used",
+      "labels": {
+        "totalBudget": "Total budget",
+        "netSpent": "Net spent"
+      },
+      "mixedCurrency": "Totals include mixed currencies",
+      "activeBudgets": "Based on your active budgets",
+      "nearLimit": "{{count}} near limit"
+    },
+    "empty": {
+      "title": "No budgets yet",
+      "description": "Set monthly limits and track spending"
+    }
+  },
+  "budgetForm": {
+    "create": {
+      "title": "Create Budget",
+      "submit": "Create Budget"
+    },
+    "edit": {
+      "title": "Edit Budget",
+      "submit": "Save Changes",
+      "pendingSync": "Pending sync"
+    },
+    "fields": {
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Groceries",
+      "totalLabel": "Total Budget",
+      "totalPlaceholder": "300"
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "totalRequired": "Total budget is required"
+    },
+    "errors": {
+      "notFound": "Budget not found"
+    },
+    "actions": {
+      "goBack": "Go Back"
+    }
+  },
+  "budgetDetail": {
+    "errors": {
+      "notFound": "Budget not found"
+    },
+    "actions": {
+      "goBack": "Go Back"
+    },
+    "header": {
+      "monthly": "Monthly"
+    },
+    "menu": {
+      "copyRemainingAmount": "Copy Remaining Amount",
+      "resetPeriod": "Reset period",
+      "exportBudgets": "Export budgets"
+    },
+    "overview": {
+      "netSpent": "Net spent",
+      "of": "of",
+      "overspent": "Overspent",
+      "overAmount": "{{amount}} over",
+      "leftAmount": "{{amount}} left",
+      "used": "Used",
+      "resetsIn": "Resets in",
+      "days": "{{count}} days"
+    },
+    "info": {
+      "title": "Budget details",
+      "currency": "Currency",
+      "itemsTracked": "Items tracked",
+      "averagePerItem": "Average per item",
+      "lastUpdate": "Last update"
+    },
+    "quickAdd": {
+      "title": "Quick Add",
+      "more": "More",
+      "expenseType": "Expense (-)",
+      "incomeType": "Income (+)",
+      "itemTitlePlaceholder": "Item title",
+      "addItem": "Add item",
+      "autoDate": "Date: auto set to today",
+      "comingSoon": "Category and note fields are coming soon."
+    },
+    "items": {
+      "title": "Budget items",
+      "emptyTitle": "No budget items added yet",
+      "emptyDescription": "Track your first expense or income to start seeing progress.",
+      "addFirstItem": "Add your first item",
+      "fromTransaction": "From transaction"
+    },
+    "sync": {
+      "pending": "Pending sync",
+      "failedRetry": "Sync failed • Retry",
+      "retryAccessibility": "Retry syncing this item"
+    },
+    "empty": {
+      "noSpendingYet": "No spending yet"
+    },
+    "accessibility": {
+      "goBack": "Go back",
+      "showMoreFields": "Show more fields",
+      "hideMoreFields": "Hide more fields",
+      "expenseType": "Expense minus type",
+      "incomeType": "Income plus type",
+      "itemTitle": "Spending item title",
+      "spendingAmount": "Spending amount",
+      "openCalculator": "Open calculator",
+      "deleteItem": "Delete {{title}}"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "status": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "rangeOptions": {
+      "week": "This week",
+      "month": "This month",
+      "all": "All time"
+    },
+    "summary": {
+      "title": "Summary ({{currencyLabel}})",
+      "labels": {
+        "friends": "Friends",
+        "settled": "Settled",
+        "net": "Net"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "Change summary currency",
+        "changeCurrencyHint": "Cycles through USD, ILS, and EUR currencies"
+      }
+    },
+    "getStarted": {
+      "title": "Get started",
+      "description": "Track debt, transactions, and budgets in a few taps.",
+      "step1": "1. Add friend",
+      "step2": "2. Add transaction",
+      "step3": "3. Create budget (optional)"
+    },
+    "sections": {
+      "settleUp": "Settle Up",
+      "budgetSnapshot": "Budget Snapshot"
+    },
+    "settle": {
+      "peopleYouOwe": "People you owe",
+      "noDebts": "No debts to settle.",
+      "peopleWhoOweYou": "People who owe you",
+      "noIncoming": "No incoming settlements right now."
+    },
+    "budget": {
+      "percentUsed": "{{percent}}% used",
+      "netSpentOf": "Net spent {{spent}} of",
+      "overspentBy": "Overspent by {{amount}}",
+      "remaining": "{{amount}} remaining"
+    },
+    "actions": {
+      "seeAll": "See all",
+      "settle": "Settle",
+      "view": "View",
+      "seeAllBudgets": "See all budgets"
+    },
+    "insightsComingSoon": "Insights chart is coming soon.",
+    "accessibility": {
+      "openMenu": "Open menu",
+      "cycleRange": "Cycle summary range",
+      "openSettings": "Open settings"
+    }
+  },
+  "friend": {
+    "routes": {
+      "newTitle": "Add Friend",
+      "detailsTitle": "Friend Details",
+      "editTitle": "Edit Friend"
+    }
+  },
+  "friendForm": {
+    "create": {
+      "title": "Add Friend",
+      "submit": "Save Friend"
+    },
+    "edit": {
+      "title": "Edit Friend",
+      "submit": "Save Changes"
+    },
+    "fields": {
+      "fullNameLabel": "Full Name",
+      "fullNamePlaceholder": "e.g. John Doe",
+      "bioLabel": "Bio / Notes",
+      "bioPlaceholder": "Brief description or relationship..."
+    },
+    "validation": {
+      "nameRequired": "Full name is required"
+    }
+  },
+  "friendDetail": {
+    "errors": {
+      "notFoundTitle": "Friend Not Found",
+      "notFoundDescription": "The friend you are looking for does not exist"
+    },
+    "menu": {
+      "pinFriend": "Pin Friend",
+      "unpinFriend": "Unpin Friend",
+      "copyBalance": "Copy Balance",
+      "editFriend": "Edit Friend",
+      "export": "Export",
+      "deleteFriend": "Delete Friend"
+    },
+    "status": {
+      "synced": "Synced",
+      "active": "Active"
+    },
+    "balance": {
+      "title": "Balance",
+      "pendingSync": "Pending sync",
+      "youOwe": "You owe:",
+      "owedToYou": "Owed to you:",
+      "lastActivity": "Last activity:",
+      "noActivityYet": "No activity yet",
+      "directionOwesYou": "{{name}} owes you",
+      "directionYouOwe": "You owe {{name}}",
+      "directionSettled": "All settled"
+    },
+    "actions": {
+      "copy": "Copy",
+      "addTransaction": "Add transaction",
+      "settleUp": "Settle up",
+      "settled": "Settled"
+    },
+    "history": {
+      "title": "Transactions",
+      "searchPlaceholder": "Search transactions",
+      "emptyTitle": "No transactions yet",
+      "emptyDescription": "Add a transaction to start tracking this balance."
+    },
+    "filters": {
+      "all": "All",
+      "you-paid": "You paid",
+      "they-paid": "They paid",
+      "pending": "Pending"
+    },
+    "toasts": {
+      "filterHint": "Use tabs below to filter transactions",
+      "balanceCopied": "Balance copied to clipboard",
+      "balanceCopyFailed": "Failed to copy balance",
+      "transactionAmountCopied": "Transaction amount copied to clipboard",
+      "amountCopyFailed": "Failed to copy amount"
+    }
+  },
+  "friendCard": {
+    "menu": {
+      "copyTransactionAmount": "Copy Transaction Amount"
+    },
+    "accessibility": {
+      "copyTransactionAmount": "Copy transaction amount {{name}}",
+      "settleBalanceWith": "Settle balance with {{name}}",
+      "edit": "Edit {{name}}",
+      "delete": "Delete {{name}}",
+      "openFriend": "{{name}}, {{direction}} {{amount}}"
+    }
+  },
+  "friendHooks": {
+    "settle": {
+      "defaultFriendName": "this friend",
+      "confirmTitle": "Settle up with {{name}}?",
+      "confirmMessage": "This will clear all transactions with {{name}} and reset the balance to ₪0.00. You can't undo this.",
+      "confirmAction": "Settle up",
+      "success": "Settled. Balance is now ₪0.00",
+      "error": "Couldn't settle right now. Try again."
+    },
+    "edit": {
+      "successSynced": "Friend updated successfully",
+      "successLocal": "Friend updated locally"
+    },
+    "detail": {
+      "deleteFriend": {
+        "confirmTitle": "Delete Friend",
+        "confirmMessage": "Are you sure you want to delete \"{{name}}\"? This will also delete all associated transactions.",
+        "success": "Friend deleted successfully"
+      },
+      "deleteTransaction": {
+        "confirmTitle": "Delete Transaction",
+        "confirmMessage": "Are you sure you want to delete \"{{title}}\"?",
+        "success": "Transaction deleted successfully"
+      }
+    }
+  },
+  "friendsHooks": {
+    "list": {
+      "lastActivityWithDate": "Last activity {{date}}",
+      "copiedAmount": "Copied {{amount}} to clipboard"
+    },
+    "delete": {
+      "deletingFromCloud": "Deleting from cloud...",
+      "deletedPermanently": "Friend deleted permanently",
+      "cloudFailedQueued": "Cloud deletion failed. Deleted locally and queued for sync.",
+      "deletedLocallyWillSync": "Friend deleted locally (will sync when online)"
+    }
+  },
+  "homeHooks": {
+    "budget": {
+      "warningOverLimit": "Over limit"
+    }
+  },
+  "calc": {
+    "errors": {
+      "invalidExpression": "Invalid expression",
+      "cannotDivideByZero": "Cannot divide by zero"
+    }
+  },
+  "clerkUtils": {
+    "errors": {
+      "unexpected": "An unexpected error occurred",
+      "unexpectedTryAgain": "An unexpected error occurred. Please try again.",
+      "noInternet": "No internet connection. Please check your network and try again."
+    }
+  },
+  "utils": {
+    "balanceStatus": {
+      "theyOweYou": "They owe you",
+      "youOweThem": "You owe them",
+      "settled": "Settled"
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "titleTooLong": "Title must be less than 50 characters",
+      "amountMustBeNumber": "Amount must be a valid number",
+      "amountMinZero": "Amount must be a valid number >= 0",
+      "amountGreaterThanZero": "Amount must be a valid number > 0",
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name must be less than 50 characters"
+    },
+    "labels": {
+      "unknownFriend": "Unknown Friend"
+    },
+    "progress": {
+      "syncing": "Syncing {{target}}...",
+      "downloadingFriends": "Downloading friends...",
+      "downloadingTransactions": "Downloading transactions...",
+      "downloadingBudgets": "Downloading budgets..."
+    },
+    "date": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "noRecentActivity": "No recent activity"
+    }
+  },
+  "copyAmount": {
+    "success": "Amount copied to clipboard",
+    "error": "Failed to copy amount"
+  },
+  "dashboardHooks": {
+    "trend": {
+      "upThisWeek": "Up this week",
+      "downThisWeek": "Down this week",
+      "stable": "Stable"
+    },
+    "insights": {
+      "totalFriends": "Total friends",
+      "pendingSyncs": "Pending syncs",
+      "budgetsNearLimit": "Budgets near limit"
+    }
+  },
+  "transactionHooks": {
+    "defaults": {
+      "title": "Transaction"
+    },
+    "row": {
+      "received": "Received",
+      "paid": "Paid",
+      "withFriend": "with {{name}}"
+    },
+    "empty": {
+      "addFriendRequiredMessage": "You need at least one friend before adding a transaction."
+    },
+    "actions": {
+      "later": "Later"
+    },
+    "errors": {
+      "invalidAmount": "Invalid amount",
+      "saveFailed": "Failed to save transaction",
+      "updateBudgetFailed": "Failed to update budget"
+    },
+    "form": {
+      "addedSuccess": "Transaction added successfully"
+    },
+    "edit": {
+      "updatedSuccess": "Transaction updated successfully"
+    }
+  },
+  "exportHooks": {
+    "alert": {
+      "title": "Export",
+      "message": "How do you want to continue?"
+    },
+    "summary": {
+      "friendsAndBudgets": "Friends + Budgets",
+      "friendsOnly": "Friends only",
+      "budgetsOnly": "Budgets only",
+      "none": "No dataset selected"
+    },
+    "errors": {
+      "selectAtLeastOneDataset": "Please select at least one dataset."
+    },
+    "unknownPath": "unknown path"
+  },
+  "cloudSyncHooks": {
+    "errors": {
+      "pullFailed": "Pull failed",
+      "syncBlocked": "Sync blocked: {{reason}}",
+      "someChangesFailed": "Some changes failed to sync"
+    }
+  },
+  "transaction": {
+    "routes": {
+      "newTitle": "Add Transaction",
+      "detailsTitle": "Transaction Details",
+      "editTitle": "Edit Transaction"
+    }
+  },
+  "transactionForm": {
+    "create": {
+      "title": "Add Transaction",
+      "submit": "Add Transaction"
+    },
+    "edit": {
+      "title": "Edit Transaction",
+      "submit": "Update Transaction"
+    },
+    "fields": {
+      "selectFriendLabel": "Select Friend",
+      "budgetOptionalLabel": "Budget (Optional)",
+      "amountLabel": "Amount",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Lunch, Borrowed cash...",
+      "descriptionLabel": "Description"
+    },
+    "budget": {
+      "none": "No budget",
+      "optionWithRemaining": "{{title}} ({{currency}} {{remaining}} left)",
+      "selected": "Budget: {{title}}",
+      "linkedFallback": "Linked",
+      "linkedBudget": "Linked budget: {{title}}",
+      "remaining": "Remaining: {{amount}}"
+    },
+    "validation": {
+      "amountRequired": "Amount is required",
+      "titleRequired": "Title is required",
+      "descriptionRequired": "Description is required"
+    },
+    "hints": {
+      "negative": "Friendly reminder: You owe this friend. Expense mode: you paid now, so this reduces the linked budget.",
+      "positive": "Nice! This friend owes you. Income mode: money came back to you, so this increases the linked budget."
+    },
+    "actions": {
+      "goBack": "Go back"
+    },
+    "accessibility": {
+      "openCalculator": "Open calculator"
+    },
+    "errors": {
+      "notFoundTitle": "Transaction Not Found",
+      "notFoundDescription": "The transaction you are looking for does not exist",
+      "noFriendsAvailable": "No friends available. Create one first."
+    }
+  },
+  "budgetCard": {
+    "labels": {
+      "archived": "Archived",
+      "netSpent": "Net spent",
+      "transactionsCount_one": "{{count}} transaction",
+      "transactionsCount_other": "{{count}} transactions"
+    },
+    "menu": {
+      "copyRemainingAmount": "Copy Remaining Amount",
+      "pinBudget": "Pin Budget",
+      "unpinBudget": "Unpin Budget",
+      "resetPeriod": "Reset period",
+      "exportBudgets": "Export budgets",
+      "editBudget": "Edit Budget",
+      "deleteBudget": "Delete Budget"
+    },
+    "status": {
+      "overspentBy": "Overspent by {{amount}}",
+      "nearLimit": "Near limit",
+      "left": "{{amount}} left"
+    },
+    "accessibility": {
+      "usagePercent": "Budget usage {{percent}} percent"
+    }
+  },
+  "calculatorModal": {
+    "title": "Calculator",
+    "lastResult": "Last result: {{result}}"
+  },
+  "budgetExportModal": {
+    "title": "Export budgets",
+    "subtitle": "Choose format and what to include.",
+    "sections": {
+      "scope": "Scope",
+      "format": "Format",
+      "includeItems": "Include budget items"
+    },
+    "scope": {
+      "all": "All budgets",
+      "selected": "Selected budget",
+      "selectedHint": "Selected budget is available from budget-specific menus."
+    },
+    "format": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
+    "actions": {
+      "saveToDevice": "Save to device",
+      "exporting": "Exporting...",
+      "share": "Share"
+    }
+  },
+  "menuItemTypes": {
+    "item": "Item",
+    "friend": "Friend",
+    "budget": "Budget",
+    "transaction": "Transaction"
+  },
+  "menuActions": {
+    "pinItem": "Pin {{type}}",
+    "unpinItem": "Unpin {{type}}",
+    "copyItemAmount": "Copy {{type}} amount",
+    "editItem": "Edit {{type}}",
+    "deleteItem": "Delete {{type}}"
+  },
+  "currencyPicker": {
+    "accessibility": {
+      "selectCurrency": "Select currency {{symbol}} {{label}}"
+    }
+  },
+  "errorScreen": {
+    "default": {
+      "title": "Configuration Error",
+      "message": "Missing required configuration. Please check your environment variables."
+    }
+  },
+  "passwordInput": {
+    "accessibility": {
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    }
+  },
+  "transactionItem": {
+    "menu": {
+      "typeLabel": "Transaction",
+      "editTransaction": "Edit Transaction",
+      "deleteTransaction": "Delete Transaction"
+    },
+    "labels": {
+      "noNote": "No note",
+      "budgetPrefix": "Budget"
+    },
+    "status": {
+      "synced": "Synced",
+      "pendingSync": "Pending sync",
+      "failed": "Failed"
+    },
+    "accessibility": {
+      "openDetailsHint": "Opens transaction details",
+      "transactionSummary": "{{title}}, {{direction}} {{amount}}",
+      "editTransaction": "Edit {{title}}",
+      "deleteTransaction": "Delete {{title}}"
+    }
+  },
+  "budgetHooks": {
+    "amount": {
+      "copySuccess": "Copied {{currency}}{{amount}} to clipboard"
+    },
+    "refresh": {
+      "error": "Could not refresh budgets right now"
+    },
+    "items": {
+      "addSuccess": "Budget item added successfully",
+      "deleteConfirmTitle": "Delete Item",
+      "deleteConfirmMessage": "Are you sure you want to delete \"{{title}}\"?",
+      "deleteSuccess": "Budget item deleted successfully"
+    },
+    "resetPeriod": {
+      "confirmTitle": "Reset Budget Period",
+      "confirmMessage": "Clear all transactions from \"{{title}}\" and start a new period?",
+      "confirmAction": "Reset",
+      "success": "Budget period has been reset"
+    },
+    "deleteBudget": {
+      "confirmTitle": "Delete Budget",
+      "confirmMessage": "Are you sure you want to delete \"{{title}}\"?",
+      "cannotUndoMessage": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+      "success": "Budget deleted successfully"
+    },
+    "edit": {
+      "pendingSyncInfo": "Budget saved locally. Pending sync.",
+      "success": "Budget updated",
+      "errors": {
+        "invalidTotal": "Total budget must be a valid number greater than or equal to 0",
+        "notFound": "Budget not found",
+        "updateFailed": "Failed to update budget"
+      }
+    },
+    "export": {
+      "preparing": "Preparing budget export...",
+      "fileCount_one": "1 file",
+      "fileCount_other": "{{count}} files",
+      "saved": "Export saved",
+      "savedDetails": "Saved {{fileCountText}}\n{{savedPath}}",
+      "shareFiles": "Share file(s)",
+      "completeShared": "Export complete: {{fileCountText}} shared.",
+      "failed": "Couldn't export. {{message}}",
+      "shareFailed": "Couldn't export. {{message}}",
+      "unableToShareFiles": "Unable to share files.",
+      "unknownError": "Unknown error",
+      "scopeSelectedOnly": "Selected budget only",
+      "scopeAllBudgets": "All budgets"
+    }
+  },
+  "drawer": {
+    "errors": {
+      "useWithinLayout": "useDrawer must be used within DrawerLayoutWrapper"
+    }
+  },
+  "sync": {
+    "banner": {
+      "offlineMode": "Offline mode",
+      "syncPaused": "Sync paused"
+    },
+    "actions": {
+      "retry": "Retry",
+      "continueOffline": "Continue Offline"
+    },
+    "loading": {
+      "errorTitle": "Could not download your data",
+      "errorFallbackMessage": "Your internet might be slow. Please check your connection and try again.",
+      "noInternet": "No internet connection",
+      "downloadingData": "Downloading your data..."
+    },
+    "status": {
+      "internetWeak": "Internet is weak. Sync may fail.",
+      "needsConfig": "JWT template missing. Check setup.",
+      "needsLogin": "Authentication expired. Please log in again.",
+      "timeoutError": "Network timeout. Check your connection and retry.",
+      "genericError": "Sync error occurred. Please try again.",
+      "complete": "Sync complete",
+      "online": "Online",
+      "active": "Active",
+      "allChangesSynced": "All changes synced",
+      "changesPending_one": "{{count}} change pending",
+      "changesPending_other": "{{count}} changes pending",
+      "lastSync": "Last Sync"
+    }
+  },
+  "account": {
+    "sections": {
+      "profile": "Profile",
+      "email": "Email",
+      "security": "Security"
+    },
+    "rows": {
+      "emailAddress": "Email address",
+      "changePassword": "Change password",
+      "changePasswordSub": "Update your password",
+      "deleteAccountSub": "Permanently remove your account"
+    },
+    "fields": {
+      "firstNameLabel": "First name",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastNameLabel": "Last name",
+      "lastNamePlaceholder": "Enter your last name"
+    },
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required"
+    },
+    "fallbacks": {
+      "user": "User",
+      "noEmail": "No email"
+    },
+    "actions": {
+      "change": "Change",
+      "saveChanges": "Save changes",
+      "saving": "Saving...",
+      "signingOut": "Signing out...",
+      "deleteAccount": "Delete account",
+      "deletingAccount": "Deleting account...",
+      "backToSettings": "Back to Settings",
+      "goToLogin": "Go to Login"
+    },
+    "accessibility": {
+      "backToSettings": "Go back to settings",
+      "changeEmail": "Change email",
+      "goToChangePassword": "Go to change password"
+    },
+    "errors": {
+      "loadFailed": "Couldn't load account info. Please check your connection and try again.",
+      "signInRequired": "Please sign in to manage your account."
+    },
+    "modal": {
+      "changeEmailTitle": "Change email",
+      "changeEmailSubtitle": "We'll send a code to confirm your email.",
+      "newEmailLabel": "New email",
+      "newEmailPlaceholder": "name@example.com",
+      "sendVerification": "Send verification",
+      "verificationCodeLabel": "Verification code",
+      "verificationCodePlaceholder": "Enter verification code",
+      "verifyEmail": "Verify email",
+      "resendCode": "Resend code"
+    }
+  },
+  "accountHooks": {
+    "timeouts": {
+      "saveProfile": "Saving profile timed out. Please try again.",
+      "createVerification": "Creating email verification timed out. Please try again.",
+      "sendCode": "Sending verification code timed out. Please try again.",
+      "verifyEmail": "Email verification timed out. Please try again.",
+      "setPrimaryEmail": "Setting primary email timed out. Please try again.",
+      "refreshAccount": "Refreshing account timed out. Please try again.",
+      "resendCode": "Resending verification code timed out. Please try again.",
+      "deleteAccount": "Delete account timed out. Please try again.",
+      "signOut": "Sign out timed out. Please try again."
+    },
+    "profile": {
+      "saved": "Saved",
+      "updateFailed": "Failed to update name. Please try again."
+    },
+    "email": {
+      "enterDifferentEmail": "Enter a different email address.",
+      "codeSentInfo": "We'll send a code to confirm your email.",
+      "sendCodeFailed": "Failed to send verification code.",
+      "pendingNotFoundTryAgain": "Could not find pending email address. Please try again.",
+      "updated": "Email updated",
+      "invalidOrExpiredCode": "Invalid or expired code.",
+      "pendingNotFound": "Could not find pending email address.",
+      "codeResent": "A new verification code has been sent.",
+      "resendFailed": "Failed to resend code."
+    },
+    "deleteAccount": {
+      "confirmTitle": "Delete account",
+      "confirmMessage": "This will permanently delete your account and all associated data. This action cannot be undone.",
+      "success": "Account deleted",
+      "failed": "Failed to delete account. Please try again."
+    }
+  },
+  "changePassword": {
+    "title": "Change password",
+    "subtitle": "Use a strong password you don't reuse.",
+    "fields": {
+      "currentPasswordLabel": "Current password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "Create a new password",
+      "newPasswordHelper": "At least 8 characters. One number or symbol is required.",
+      "confirmPasswordLabel": "Confirm new password",
+      "confirmPasswordPlaceholder": "Re-enter new password"
+    },
+    "rules": {
+      "minLength": "At least 8 characters",
+      "numberOrSymbol": "One number or symbol",
+      "uppercaseRecommended": "Uppercase letter (recommended)"
+    },
+    "strength": {
+      "label": "Strength",
+      "weak": "Weak",
+      "ok": "OK",
+      "strong": "Strong"
+    },
+    "signOutOthers": {
+      "title": "Log out other devices",
+      "subtitle": "Recommended when changing a password on a shared device."
+    },
+    "validation": {
+      "currentPasswordRequired": "Current password is required",
+      "newPasswordRequired": "New password is required",
+      "numberOrSymbolRequired": "Password must include at least one number or symbol"
+    },
+    "errors": {
+      "signInRequired": "Please sign in to change your password."
+    },
+    "hooks": {
+      "success": "Password updated",
+      "errors": {
+        "userNotLoaded": "User not loaded. Please try again.",
+        "unexpected": "An unexpected error occurred. Please try again.",
+        "currentIncorrect": "Current password is incorrect"
+      }
+    },
+    "actions": {
+      "goToSignIn": "Go to Sign In",
+      "updatePassword": "Update password",
+      "updating": "Updating password..."
+    }
+  },
+  "settingsExport": {
+    "title": "Export Data",
+    "subtitle": "Save or share friends and budgets as CSV or JSON",
+    "sections": {
+      "whatToExport": "What to export",
+      "format": "Format",
+      "detailLevel": "Detail level",
+      "dataSource": "Data source"
+    },
+    "friendScopedHint": "Friend-scoped export is active.",
+    "formatOptions": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
+    "detailOptions": {
+      "summary": {
+        "label": "Summary only",
+        "subtitle": "Top-level friend and budget fields"
+      },
+      "detailed": {
+        "label": "Include items/transactions",
+        "subtitle": "Adds friend transactions and budget items"
+      }
+    },
+    "sourceOptions": {
+      "local": {
+        "label": "Local cache",
+        "subtitle": "Fast and offline-friendly"
+      },
+      "supabase": {
+        "label": "Fresh from Supabase",
+        "subtitle": "Falls back to local cache on failure"
+      }
+    },
+    "quickFacts": {
+      "friends": "Friends include balance, you owe, owed to you, and sync state.",
+      "budgets": "Budgets include spent, remaining, progress, and optional item rows."
+    },
+    "actions": {
+      "exportData": "Export data",
+      "exporting": "Exporting..."
+    }
+  },
+  "legal": {
+    "lastUpdated": "Last updated: March 11, 2026",
+    "privacy": {
+      "title": "Privacy",
+      "subtitle": "How your data is handled",
+      "paragraph1": "Debit Tracker stores your app data locally on your device. If cloud sync is enabled, your data can also be stored securely in your connected cloud account to support backup and multi-device use.",
+      "paragraph2": "You can sign out at any time. You can also clear local data from Settings, which removes data only from this device and does not automatically delete cloud data already synced to your account."
+    },
+    "terms": {
+      "title": "Terms",
+      "subtitle": "Terms and conditions",
+      "paragraph1": "By using Debit Tracker, you agree to use the app responsibly and keep your account credentials secure. You are responsible for the accuracy of the debt, budget, and transaction data you enter.",
+      "paragraph2": "The app is provided as-is without guarantees of uninterrupted availability. For sensitive decisions, always verify financial data before acting."
+    }
+  },
+  "about": {
+    "title": "About",
+    "version": "Version {{version}}",
+    "sections": {
+      "description": {
+        "title": "Description",
+        "body": "DebitTracker is a premium, offline-first mobile application designed to help you manage personal finances with ease. Track debts, transactions, and balances seamlessly, even without an internet connection. Built with modern technologies for a fast, reliable, and intuitive user experience."
+      },
+      "features": {
+        "title": "Features",
+        "items": {
+          "offlineFirst": "Offline-First Architecture",
+          "darkMode": "Premium Dark Mode Interface",
+          "friendManagement": "Friend Management & Profiles",
+          "transactionTracking": "Transaction Tracking & History",
+          "budgetManagement": "Budget Calculator & Management",
+          "dashboard": "Dashboard & Analytics",
+          "stateManagement": "Persistent State Management"
+        }
+      },
+      "developer": {
+        "title": "Developer",
+        "role": "Computer Engineer - Full Stack Engineer",
+        "social": {
+          "linkedin": "LinkedIn",
+          "github": "GitHub",
+          "website": "Website"
+        },
+        "summaryTitle": "Professional Summary",
+        "summaryBody": "Experienced Full Stack Engineer with a strong focus on React, Next.js, and modern web technologies. Specialized in building production-ready applications with emphasis on component architecture, state management, and performance optimization. Comfortable working across the full stack, from frontend UI/UX to backend APIs and database design.",
+        "educationTitle": "Education",
+        "educationBody": "Bachelor's degree in Computer Engineering from The Islamic University of Gaza (April 2016 - June 2021)",
+        "skillsTitle": "Key Skills",
+        "skillsBody": "React.js, Next.js, React Native, Node.js, TypeScript, JavaScript, PHP/Laravel, REST APIs, GraphQL, PostgreSQL, MongoDB, AWS, Docker, Git, and modern development tools."
+      }
+    },
+    "footer": "© {{year}} DebitTracker. All rights reserved.",
+    "errors": {
+      "openLinkFailed": "Could not open the link"
+    }
+  }
+}

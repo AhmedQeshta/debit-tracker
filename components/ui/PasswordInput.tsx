@@ -3,6 +3,7 @@ import { Spacing } from '@/theme/spacing';
 import { PasswordInputProps } from '@/types/common';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export const PasswordInput = ({
@@ -20,6 +21,7 @@ export const PasswordInput = ({
   blurOnSubmit,
   inputRef,
 }: PasswordInputProps) => {
+  const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
   const [isHidden, setIsHidden] = useState(true);
 
@@ -61,7 +63,11 @@ export const PasswordInput = ({
           style={styles.iconButton}
           activeOpacity={0.75}
           accessibilityRole="button"
-          accessibilityLabel={isHidden ? 'Show password' : 'Hide password'}>
+          accessibilityLabel={
+            isHidden
+              ? t('passwordInput.accessibility.showPassword')
+              : t('passwordInput.accessibility.hidePassword')
+          }>
           {isHidden ? (
             <Eye size={18} color={Colors.textSecondary} />
           ) : (

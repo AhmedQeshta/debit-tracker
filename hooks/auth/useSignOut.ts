@@ -1,6 +1,7 @@
 import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { LANGUAGE_STORAGE } from '@/i18n/languageService';
 import { getTotalUnsyncedCount, getUnsyncedCounts } from '@/lib/dashboardSelectors';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -17,6 +18,7 @@ const USER_DATA_STORAGE_KEYS = [
   'transactions-storage',
   'budget-storage',
   'sync-storage',
+  LANGUAGE_STORAGE.KEY,
 ];
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, message: string) => {
