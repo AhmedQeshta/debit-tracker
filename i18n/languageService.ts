@@ -14,6 +14,7 @@ export const loadSavedLanguage = async (): Promise<SupportedLanguage> => {
     if (savedLanguage) {
       const resolvedSavedLanguage = resolveSupportedLanguage(savedLanguage);
       await i18n.changeLanguage(resolvedSavedLanguage);
+      await applyRTLIfNeeded(resolvedSavedLanguage);
       return resolvedSavedLanguage;
     }
 
@@ -22,6 +23,7 @@ export const loadSavedLanguage = async (): Promise<SupportedLanguage> => {
 
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, resolvedLanguage);
     await i18n.changeLanguage(resolvedLanguage);
+    await applyRTLIfNeeded(resolvedLanguage);
 
     return resolvedLanguage;
   } catch (error) {

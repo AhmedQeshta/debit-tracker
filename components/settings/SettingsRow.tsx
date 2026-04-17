@@ -1,7 +1,7 @@
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { SettingsRowProps } from '@/types/common';
-import { ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { FC } from 'react';
 import { I18nManager, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -49,7 +49,11 @@ export const SettingsRow: FC<SettingsRowProps> = ({
         {value ? <Text style={styles.value}>{value}</Text> : null}
         {rightSlot}
         {(showChevron ?? isPressable) ? (
-          <ChevronRight size={16} color={destructive ? Colors.error : Colors.textSecondary} />
+          I18nManager.isRTL ? (
+            <ChevronLeft size={16} color={destructive ? Colors.error : Colors.textSecondary} />
+          ) : (
+            <ChevronRight size={16} color={destructive ? Colors.error : Colors.textSecondary} />
+          )
         ) : null}
       </View>
 
@@ -63,6 +67,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 2,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   rowPressed: {
@@ -72,6 +78,7 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   leftGroup: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingEnd: Spacing.md,
@@ -107,23 +114,21 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   rightGroup: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
   rightGroupLtr: {
-    right: Spacing.md,
+    marginStart: 'auto',
   },
   rightGroupRtl: {
-    left: Spacing.md,
+    marginStart: 'auto',
   },
   value: {
     fontSize: 14,
     color: Colors.textSecondary,
     fontWeight: '500',
+    flexShrink: 1,
   },
   divider: {
     position: 'absolute',
