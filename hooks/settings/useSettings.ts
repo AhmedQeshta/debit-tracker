@@ -101,23 +101,26 @@ export const useSettings = () => {
   const currentLanguage = i18n.language.startsWith('ar') ? 'ar' : 'en';
 
   const handleLanguageChange = () => {
+    const targetLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
+    const targetLanguageLabel =
+      targetLanguage === 'ar'
+        ? t('settings.languageOptions.arabic')
+        : t('settings.languageOptions.english');
+
     Alert.alert(
       t('settings.languageOptions.pickerTitle'),
       t('settings.languageOptions.pickerMessage'),
       [
         {
-          text: t('settings.languageOptions.english'),
-          onPress: () => {
-            void setLanguage('en');
-          },
+          text: t('common.actions.cancel'),
+          style: 'cancel',
         },
         {
-          text: t('settings.languageOptions.arabic'),
+          text: targetLanguageLabel,
           onPress: () => {
-            void setLanguage('ar');
+            void setLanguage(targetLanguage);
           },
         },
-        { text: t('common.actions.cancel'), style: 'cancel' },
       ],
     );
   };

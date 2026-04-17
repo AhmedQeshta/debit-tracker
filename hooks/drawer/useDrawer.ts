@@ -111,6 +111,7 @@ export const useDrawer = () => {
     drawerOpen,
     overlayAnim,
     slideAnim,
+    isRTL,
     // isRTL,
   };
 };
