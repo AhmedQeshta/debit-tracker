@@ -2,6 +2,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { OtpInputProps } from '@/types/common';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export const OtpInput = ({
@@ -12,6 +13,7 @@ export const OtpInput = ({
   helperText,
   length = 6,
 }: OtpInputProps) => {
+  const { t } = useTranslation();
   const inputRef = React.useRef<TextInput>(null);
   const digits = value.slice(0, length).split('');
 
@@ -23,7 +25,11 @@ export const OtpInput = ({
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <Pressable style={styles.boxesRow} onPress={() => inputRef.current?.focus()}>
+      <Pressable
+        style={styles.boxesRow}
+        onPress={() => inputRef.current?.focus()}
+        accessibilityRole="button"
+        accessibilityLabel={t('auth.otp.accessibility.focusInput')}>
         {Array.from({ length }).map((_, index) => {
           const digit = digits[index] ?? '';
           const isActive = index === digits.length && digits.length < length;
@@ -43,6 +49,7 @@ export const OtpInput = ({
         style={styles.hiddenInput}
         value={value}
         onChangeText={onCodeChange}
+        accessibilityLabel={t('auth.otp.accessibility.codeInput')}
         keyboardType="numeric"
         textContentType="oneTimeCode"
         autoComplete="sms-otp"

@@ -1,0 +1,1266 @@
+{
+  "navigation": {
+    "tabs": {
+      "home": "الرئيسية",
+      "friends": "الأصدقاء",
+      "transactions": "المعاملات",
+      "budgets": "الميزانيات",
+      "dashboard": "لوحة المعلومات",
+      "settings": "الإعدادات"
+    },
+    "drawer": {
+      "menu": "القائمة",
+      "about": "عني"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "subtitle": "إعدادات الحساب والتطبيق",
+    "sections": {
+      "account": "الحساب",
+      "sync": "المزامنة",
+      "app": "التطبيق",
+      "danger": "منطقة خطرة"
+    },
+    "rows": {
+      "signIn": "تسجيل الدخول",
+      "manageAccount": "إدارة الحساب",
+      "security": "الأمان",
+      "signOut": "تسجيل الخروج",
+      "cloudSync": "المزامنة السحابية",
+      "status": "الحالة",
+      "lastSynced": "آخر مزامنة",
+      "syncNow": "مزامنة الآن",
+      "exportData": "تصدير البيانات",
+      "version": "الإصدار",
+      "theme": "السمة",
+      "about": "حول",
+      "privacy": "الخصوصية",
+      "terms": "الشروط",
+      "clearLocalData": "مسح البيانات المحلية",
+      "language": "اللغة"
+    },
+    "descriptions": {
+      "loadingAccount": "جارٍ تحميل الحساب...",
+      "accountFallback": "تعذر تحميل معلومات الحساب. لا يزال بإمكانك استخدام الإعدادات.",
+      "signInSub": "سجل الدخول لإدارة حسابك والمزامنة السحابية",
+      "manageAccountSub": "تفاصيل الملف الشخصي والبريد الإلكتروني",
+      "securitySub": "تغيير كلمة المرور",
+      "signOutLoading": "جارٍ تسجيل الخروج...",
+      "signOutSub": "تسجيل الخروج من هذا الجهاز",
+      "syncEnabled": "حافظ على مزامنة البيانات عبر الأجهزة",
+      "syncDisabled": "سجل الدخول لتفعيل المزامنة السحابية",
+      "syncErrorSub": "اضغط مزامنة الآن لإعادة المحاولة",
+      "syncNowLoading": "المزامنة قيد التنفيذ",
+      "syncNowSub": "فرض المزامنة الآن",
+      "exportDataSub": "احفظ أو شارك الأصدقاء والميزانيات بصيغة CSV أو JSON",
+      "themeSub": "الوضع الداكن مفعل حالياً",
+      "aboutSub": "تفاصيل التطبيق ومعلومات المطور",
+      "privacySub": "كيفية التعامل مع بياناتك",
+      "termsSub": "الشروط والأحكام",
+      "clearLocalDataSub": "إزالة الميزانيات والأصدقاء والمعاملات المحلية"
+    },
+    "statusValues": {
+      "signedIn": "تم تسجيل الدخول",
+      "disabled": "معطل",
+      "offline": "غير متصل",
+      "syncing": "جارٍ المزامنة...",
+      "error": "خطأ",
+      "idle": "خامل",
+      "never": "أبداً",
+      "justNow": "الآن",
+      "minutesAgo": "منذ دقيقة",
+      "minutesAgo_other": "منذ {{count}} دقائق",
+      "hoursAgo": "منذ ساعة",
+      "hoursAgo_other": "منذ {{count}} ساعات",
+      "daysAgo": "منذ يوم",
+      "daysAgo_other": "منذ {{count}} أيام"
+    },
+    "languageOptions": {
+      "english": "الإنجليزية",
+      "arabic": "العربية",
+      "pickerTitle": "اختر اللغة",
+      "pickerMessage": "سيتم تحديث اتجاه التطبيق تلقائياً عند الحاجة."
+    },
+    "clearDataConfirm": {
+      "title": "مسح البيانات المحلية؟",
+      "message": "سيؤدي هذا إلى إزالة الأصدقاء والمعاملات والميزانيات المحلية وبيانات التطبيق المخزنة على هذا الجهاز. سيبقى حسابك نشطاً، ويمكن استعادة البيانات السحابية بعد المزامنة. لا يمكن التراجع عن هذا الإجراء.",
+      "confirm": "مسح البيانات"
+    }
+  },
+  "common": {
+    "actions": {
+      "add": "إضافة",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "ok": "موافق",
+      "search": "بحث",
+      "filter": "تصفية",
+      "verify": "تحقق"
+    },
+    "words": {
+      "or": "أو",
+      "yes": "نعم",
+      "no": "لا"
+    },
+    "states": {
+      "loading": "جارٍ التحميل..."
+    }
+  },
+  "money": {
+    "labels": {
+      "youOwe": "عليك",
+      "owedToYou": "لك عند الآخرين",
+      "netBalance": "صافي الرصيد",
+      "remaining": "المتبقي",
+      "spent": "المصروف",
+      "income": "الدخل"
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "تسجيل الدخول",
+      "subtitle": "زامن بياناتك عبر الأجهزة",
+      "verifyEmailTitle": "تحقق من بريدك الإلكتروني",
+      "twoFactorTitle": "المصادقة الثنائية",
+      "verifySubtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "code": "رمز التحقق",
+      "forgotPassword": "هل نسيت كلمة المرور؟",
+      "resendCode": "إعادة إرسال الرمز",
+      "resendCodeIn": "إعادة الإرسال خلال {{seconds}}ث",
+      "changeEmail": "تغيير البريد الإلكتروني",
+      "noAccount": "ليس لديك حساب؟",
+      "signUpCta": "إنشاء حساب",
+      "Completing": " جارٍ إكمال تسجيل الدخول..."
+    },
+    "signUp": {
+      "title": "إنشاء حساب",
+      "subtitle": "أنشئ حساباً لحفظ بياناتك ومزامنتها",
+      "verifyEmailTitle": "تحقق من بريدك الإلكتروني",
+      "verifySubtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "createPasswordPlaceholder": "أنشئ كلمة مرور",
+      "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
+      "helperPassword": "استخدم 8 أحرف على الأقل",
+      "createAccount": "إنشاء حساب",
+      "alreadyHave": "لديك حساب بالفعل؟",
+      "backToSignIn": "العودة إلى تسجيل الدخول"
+    },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "resetTitle": "إعادة تعيين كلمة المرور",
+      "subtitle": "سنرسل لك رمز إعادة تعيين عبر البريد الإلكتروني",
+      "resetSubtitle": "أدخل رمز إعادة التعيين وكلمة المرور الجديدة",
+      "resetCode": "رمز إعادة التعيين",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "sendResetCode": "إرسال رمز إعادة التعيين",
+      "backToSignIn": "العودة إلى تسجيل الدخول"
+    },
+    "oauth": {
+      "continueWithGoogle": "المتابعة باستخدام Google"
+    },
+    "otp": {
+      "accessibility": {
+        "focusInput": "تركيز على إدخال رمز التحقق",
+        "codeInput": "إدخال رمز التحقق"
+      }
+    },
+    "validation": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "validEmail": "أدخل بريداً إلكترونياً صالحاً",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordMin": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
+      "passwordsNoMatch": "كلمتا المرور غير متطابقتين",
+      "codeRequired": "الرمز مطلوب",
+      "codeMustBeSix": "يجب أن يكون الرمز 6 أرقام",
+      "enterSixDigitCode": "أدخل الرمز المكون من 6 أرقام"
+    },
+    "errors": {
+      "verificationIncorrect": "رمز التحقق غير صحيح. حاول مرة أخرى.",
+      "verificationExpired": "انتهت صلاحية رمز التحقق. اطلب رمزاً جديداً.",
+      "tooManyAttempts": "محاولات كثيرة جداً. انتظر قليلاً ثم حاول مرة أخرى.",
+      "verificationUnavailable": "يلزم التحقق عبر البريد الإلكتروني لكنه غير متاح. يرجى التواصل مع الدعم.",
+      "twoFactorUnavailable": "المصادقة الثنائية مطلوبة لكن التحقق عبر البريد الإلكتروني غير متاح.",
+      "verificationIncomplete": "التحقق غير مكتمل. حاول مرة أخرى.",
+      "resendFailed": "تعذر إعادة إرسال الرمز. حاول مرة أخرى.",
+      "signInIncomplete": "تسجيل الدخول غير مكتمل. الحالة: {{status}}. حاول مرة أخرى.",
+      "signUpIncomplete": "إنشاء الحساب غير مكتمل. الحالة: {{status}}. حاول مرة أخرى.",
+      "authNotReady": "التهيئة لم تكتمل بعد. يرجى الانتظار...",
+      "resetStartFailed": "تعذر بدء إعادة تعيين كلمة المرور. حاول مرة أخرى.",
+      "resetNeedsSignIn": "تم تحديث كلمة المرور بنجاح. يرجى تسجيل الدخول.",
+      "verificationCodeRequired": "رمز التحقق مطلوب"
+    }
+  },
+  "toast": {
+    "settings": {
+      "clearDataSuccess": "تم مسح جميع البيانات المحلية.",
+      "clearDataFailed": "فشل مسح البيانات المحلية. حاول مرة أخرى."
+    }
+  },
+  "home": {
+    "title": "الرئيسية",
+    "sections": {
+      "quickActions": "إجراءات سريعة",
+      "budgetsOverview": "نظرة عامة على الميزانيات",
+      "settleUp": "تسوية الديون",
+      "recentTransactions": "آخر المعاملات"
+    },
+    "summary": {
+      "title": "الملخص ({{currencyLabel}})",
+      "labels": {
+        "friends": "الأصدقاء",
+        "settled": "تمت التسوية",
+        "net": "الصافي"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "تغيير عملة الملخص",
+        "changeCurrencyHint": "يبدّل بين عملات USD و ILS و EUR"
+      }
+    },
+    "actions": {
+      "seeAll": "عرض الكل",
+      "createBudget": "إنشاء ميزانية",
+      "addFriend": "إضافة صديق",
+      "settleUp": "تسوية الآن",
+      "settled": "تمت التسوية",
+      "addTransaction": "إضافة معاملة"
+    },
+    "emptyStates": {
+      "budgets": {
+        "title": "لا توجد ميزانيات",
+        "description": "أنشئ ميزانيتك الأولى لبدء تتبع مصروفاتك"
+      },
+      "settle": {
+        "title": "لا توجد أرصدة للتسوية",
+        "description": "أضف صديقاً للبدء."
+      },
+      "transactions": {
+        "title": "لا توجد معاملات بعد",
+        "description": "أضف معاملتك الأولى لبدء تتبع الديون"
+      }
+    },
+    "settle": {
+      "badges": {
+        "theyOweYou": "لك عليه"
+      }
+    }
+  },
+  "homeSummary": {
+    "netBalance": "صافي الرصيد",
+    "updatedJustNow": "تم التحديث الآن",
+    "getStartedDescription": "جهّز التتبع لديك بخطوات سريعة.",
+    "steps": {
+      "step1": "الخطوة 1",
+      "step2": "الخطوة 2",
+      "step3Optional": "الخطوة 3 (اختياري)"
+    }
+  },
+  "friends": {
+    "title": "الأصدقاء",
+    "viewModes": {
+      "list": "قائمة",
+      "grid": "شبكة"
+    },
+    "search": {
+      "placeholder": "ابحث باسم الصديق"
+    },
+    "sortOptions": {
+      "recent": "الأحدث",
+      "name": "الاسم",
+      "balance": "الرصيد"
+    },
+    "filterOptions": {
+      "all": "الكل",
+      "you-owe": "عليك",
+      "owes-you": "لك عليه",
+      "settled": "تمت التسوية"
+    },
+    "summary": {
+      "title": "الملخص ({{currencyLabel}})",
+      "labels": {
+        "friends": "الأصدقاء",
+        "settled": "تمت التسوية",
+        "net": "الصافي"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "تغيير عملة الملخص",
+        "changeCurrencyHint": "يبدّل بين عملات USD و ILS و EUR"
+      }
+    },
+    "empty": {
+      "searchTitle": "لا يوجد أصدقاء مطابقون",
+      "defaultTitle": "لا يوجد أصدقاء بعد",
+      "searchDescription": "جرّب اسماً آخر أو خيار تصفية أو ترتيب.",
+      "defaultDescription": "تتبّع من يدين لمن وسوِّ الديون بسرعة",
+      "addFirstFriend": "أضف صديقك الأول"
+    },
+    "actions": {
+      "addFriend": "إضافة صديق"
+    },
+    "accessibility": {
+      "openMenu": "فتح القائمة",
+      "listView": "عرض القائمة",
+      "gridView": "عرض الشبكة",
+      "toggleFilters": "إظهار أو إخفاء عوامل التصفية",
+      "searchFriends": "البحث في الأصدقاء",
+      "sortBy": "ترتيب حسب {{label}}",
+      "filterBy": "تصفية {{label}}"
+    }
+  },
+  "transactions": {
+    "title": "المعاملات",
+    "search": {
+      "placeholder": "ابحث في المعاملات..."
+    },
+    "summary": {
+      "title": "الملخص ({{currencyLabel}})",
+      "labels": {
+        "totalThisMonth": "إجمالي هذا الشهر",
+        "youPaid": "دفعت أنت",
+        "youReceived": "استلمت أنت"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "تغيير عملة الملخص",
+        "changeCurrencyHint": "يبدّل بين عملات USD و ILS و EUR"
+      }
+    },
+    "statusLegend": "الحالة: مزامنة معلّقة • فشل",
+    "empty": {
+      "title": "لا توجد معاملات بعد",
+      "addFriendFirst": "أضف صديقاً أولاً",
+      "addFirstTransaction": "أضف معاملتك الأولى لبدء تتبع الأرصدة"
+    },
+    "actions": {
+      "addFriend": "إضافة صديق",
+      "addTransaction": "إضافة معاملة"
+    },
+    "accessibility": {
+      "openMenu": "فتح القائمة",
+      "toggleFilters": "إظهار أو إخفاء عوامل التصفية",
+      "searchTransactions": "البحث في المعاملات"
+    }
+  },
+  "budget": {
+    "title": "الميزانيات",
+    "routes": {
+      "newTitle": "ميزانية جديدة",
+      "detailsTitle": "تفاصيل الميزانية",
+      "editTitle": "تعديل الميزانية"
+    },
+    "accessibility": {
+      "openMenu": "فتح القائمة",
+      "changeSorting": "تغيير ترتيب الميزانيات"
+    },
+    "sort": {
+      "label": "الترتيب: {{sort}}",
+      "options": {
+        "recent": "الأحدث",
+        "name": "الاسم",
+        "usage": "الاستخدام"
+      }
+    },
+    "summary": {
+      "overview": "نظرة عامة",
+      "usedPercent": "تم استخدام {{percent}}%",
+      "labels": {
+        "totalBudget": "إجمالي الميزانية",
+        "netSpent": "صافي المصروف"
+      },
+      "mixedCurrency": "الإجماليات تشمل عملات متعددة",
+      "activeBudgets": "استناداً إلى ميزانياتك النشطة",
+      "nearLimit": "{{count}} قرب الحد"
+    },
+    "empty": {
+      "title": "لا توجد ميزانيات بعد",
+      "description": "حدّد حدوداً شهرية وتتبع المصروفات"
+    }
+  },
+  "budgetForm": {
+    "create": {
+      "title": "إنشاء ميزانية",
+      "submit": "إنشاء الميزانية"
+    },
+    "edit": {
+      "title": "تعديل الميزانية",
+      "submit": "حفظ التغييرات",
+      "pendingSync": "مزامنة معلّقة"
+    },
+    "fields": {
+      "titleLabel": "العنوان",
+      "titlePlaceholder": "مثال: البقالة",
+      "totalLabel": "إجمالي الميزانية",
+      "totalPlaceholder": "300"
+    },
+    "validation": {
+      "titleRequired": "العنوان مطلوب",
+      "totalRequired": "إجمالي الميزانية مطلوب"
+    },
+    "errors": {
+      "notFound": "لم يتم العثور على الميزانية"
+    },
+    "actions": {
+      "goBack": "العودة"
+    }
+  },
+  "budgetDetail": {
+    "errors": {
+      "notFound": "لم يتم العثور على الميزانية"
+    },
+    "actions": {
+      "goBack": "العودة"
+    },
+    "header": {
+      "monthly": "شهري"
+    },
+    "menu": {
+      "copyRemainingAmount": "نسخ المبلغ المتبقي",
+      "resetPeriod": "إعادة ضبط الفترة",
+      "exportBudgets": "تصدير الميزانيات"
+    },
+    "overview": {
+      "netSpent": "صافي المصروف",
+      "of": "من",
+      "overspent": "تجاوز الميزانية",
+      "overAmount": "تجاوز {{amount}}",
+      "leftAmount": "المتبقي {{amount}}",
+      "used": "المستخدم",
+      "resetsIn": "إعادة الضبط خلال",
+      "days": "{{count}} يوم"
+    },
+    "info": {
+      "title": "تفاصيل الميزانية",
+      "currency": "العملة",
+      "itemsTracked": "العناصر المتتبعة",
+      "averagePerItem": "المتوسط لكل عنصر",
+      "lastUpdate": "آخر تحديث"
+    },
+    "quickAdd": {
+      "title": "إضافة سريعة",
+      "more": "المزيد",
+      "expenseType": "مصروف (-)",
+      "incomeType": "دخل (+)",
+      "itemTitlePlaceholder": "عنوان العنصر",
+      "addItem": "إضافة عنصر",
+      "autoDate": "التاريخ: يُضبط تلقائياً على اليوم",
+      "comingSoon": "حقول الفئة والملاحظة قريباً."
+    },
+    "items": {
+      "title": "عناصر الميزانية",
+      "emptyTitle": "لم تتم إضافة عناصر للميزانية بعد",
+      "emptyDescription": "تتبع أول مصروف أو دخل لبدء رؤية التقدم.",
+      "addFirstItem": "أضف أول عنصر",
+      "fromTransaction": "من معاملة"
+    },
+    "sync": {
+      "pending": "مزامنة معلّقة",
+      "failedRetry": "فشلت المزامنة • إعادة المحاولة",
+      "retryAccessibility": "إعادة محاولة مزامنة هذا العنصر"
+    },
+    "empty": {
+      "noSpendingYet": "لا يوجد إنفاق بعد"
+    },
+    "accessibility": {
+      "goBack": "العودة",
+      "showMoreFields": "إظهار المزيد من الحقول",
+      "hideMoreFields": "إخفاء المزيد من الحقول",
+      "expenseType": "نوع مصروف سالب",
+      "incomeType": "نوع دخل موجب",
+      "itemTitle": "عنوان عنصر الإنفاق",
+      "spendingAmount": "قيمة الإنفاق",
+      "openCalculator": "فتح الآلة الحاسبة",
+      "deleteItem": "حذف {{title}}"
+    }
+  },
+  "dashboard": {
+    "title": "لوحة المعلومات",
+    "status": {
+      "online": "متصل",
+      "offline": "غير متصل"
+    },
+    "rangeOptions": {
+      "week": "هذا الأسبوع",
+      "month": "هذا الشهر",
+      "all": "كل الوقت"
+    },
+    "summary": {
+      "title": "الملخص ({{currencyLabel}})",
+      "labels": {
+        "friends": "الأصدقاء",
+        "settled": "تمت التسوية",
+        "net": "الصافي"
+      },
+      "accessibility": {
+        "changeCurrencyLabel": "تغيير عملة الملخص",
+        "changeCurrencyHint": "يبدّل بين عملات USD و ILS و EUR"
+      }
+    },
+    "getStarted": {
+      "title": "ابدأ الآن",
+      "description": "تتبّع الديون والمعاملات والميزانيات خلال بضع نقرات.",
+      "step1": "1. أضف صديقاً",
+      "step2": "2. أضف معاملة",
+      "step3": "3. أنشئ ميزانية (اختياري)"
+    },
+    "sections": {
+      "settleUp": "تسوية الديون",
+      "budgetSnapshot": "لقطة الميزانيات"
+    },
+    "settle": {
+      "peopleYouOwe": "أشخاص تدين لهم",
+      "noDebts": "لا توجد ديون للتسوية.",
+      "peopleWhoOweYou": "أشخاص يدينون لك",
+      "noIncoming": "لا توجد تسويات واردة حالياً."
+    },
+    "budget": {
+      "percentUsed": "تم استخدام {{percent}}%",
+      "netSpentOf": "صافي المصروف {{spent}} من",
+      "overspentBy": "تجاوزت الميزانية بمقدار {{amount}}",
+      "remaining": "المتبقي {{amount}}"
+    },
+    "actions": {
+      "seeAll": "عرض الكل",
+      "settle": "تسوية",
+      "view": "عرض",
+      "seeAllBudgets": "عرض كل الميزانيات"
+    },
+    "insightsComingSoon": "مخطط الإحصاءات قريباً.",
+    "accessibility": {
+      "openMenu": "فتح القائمة",
+      "cycleRange": "تبديل نطاق الملخص",
+      "openSettings": "فتح الإعدادات"
+    }
+  },
+  "friend": {
+    "routes": {
+      "newTitle": "إضافة صديق",
+      "detailsTitle": "تفاصيل الصديق",
+      "editTitle": "تعديل الصديق"
+    }
+  },
+  "friendForm": {
+    "create": {
+      "title": "إضافة صديق",
+      "submit": "حفظ الصديق"
+    },
+    "edit": {
+      "title": "تعديل الصديق",
+      "submit": "حفظ التغييرات"
+    },
+    "fields": {
+      "fullNameLabel": "الاسم الكامل",
+      "fullNamePlaceholder": "مثال: أحمد محمد",
+      "bioLabel": "نبذة / ملاحظات",
+      "bioPlaceholder": "وصف مختصر أو نوع العلاقة..."
+    },
+    "validation": {
+      "nameRequired": "الاسم الكامل مطلوب"
+    }
+  },
+  "friendDetail": {
+    "errors": {
+      "notFoundTitle": "لم يتم العثور على الصديق",
+      "notFoundDescription": "الصديق الذي تبحث عنه غير موجود"
+    },
+    "menu": {
+      "pinFriend": "تثبيت الصديق",
+      "unpinFriend": "إلغاء تثبيت الصديق",
+      "copyBalance": "نسخ الرصيد",
+      "editFriend": "تعديل الصديق",
+      "export": "تصدير",
+      "deleteFriend": "حذف الصديق"
+    },
+    "status": {
+      "synced": "متزامن",
+      "active": "نشط"
+    },
+    "balance": {
+      "title": "الرصيد",
+      "pendingSync": "مزامنة معلّقة",
+      "youOwe": "عليك:",
+      "owedToYou": "لك عند الآخرين:",
+      "lastActivity": "آخر نشاط:",
+      "noActivityYet": "لا يوجد نشاط بعد",
+      "directionOwesYou": "{{name}} مدين لك",
+      "directionYouOwe": "أنت مدين لـ {{name}}",
+      "directionSettled": "تمت التسوية بالكامل"
+    },
+    "actions": {
+      "copy": "نسخ",
+      "addTransaction": "إضافة معاملة",
+      "settleUp": "تسوية الآن",
+      "settled": "تمت التسوية"
+    },
+    "history": {
+      "title": "المعاملات",
+      "searchPlaceholder": "ابحث في المعاملات",
+      "emptyTitle": "لا توجد معاملات بعد",
+      "emptyDescription": "أضف معاملة لبدء تتبع هذا الرصيد."
+    },
+    "filters": {
+      "all": "الكل",
+      "you-paid": "دفعت أنت",
+      "they-paid": "دفع هو",
+      "pending": "معلّق"
+    },
+    "toasts": {
+      "filterHint": "استخدم التبويبات أدناه لتصفية المعاملات",
+      "balanceCopied": "تم نسخ الرصيد إلى الحافظة",
+      "balanceCopyFailed": "فشل نسخ الرصيد",
+      "transactionAmountCopied": "تم نسخ مبلغ المعاملة إلى الحافظة",
+      "amountCopyFailed": "فشل نسخ المبلغ"
+    }
+  },
+  "friendCard": {
+    "menu": {
+      "copyTransactionAmount": "نسخ مبلغ المعاملة"
+    },
+    "accessibility": {
+      "copyTransactionAmount": "نسخ مبلغ المعاملة {{name}}",
+      "settleBalanceWith": "تسوية الرصيد مع {{name}}",
+      "edit": "تعديل {{name}}",
+      "delete": "حذف {{name}}",
+      "openFriend": "{{name}}، {{direction}} {{amount}}"
+    }
+  },
+  "friendHooks": {
+    "settle": {
+      "defaultFriendName": "هذا الصديق",
+      "confirmTitle": "تسوية مع {{name}}؟",
+      "confirmMessage": "سيؤدي هذا إلى مسح جميع المعاملات مع {{name}} وإعادة الرصيد إلى ₪0.00. لا يمكن التراجع عن هذا الإجراء.",
+      "confirmAction": "تسوية الآن",
+      "success": "تمت التسوية. الرصيد الآن ₪0.00",
+      "error": "تعذرت التسوية الآن. حاول مرة أخرى."
+    },
+    "edit": {
+      "successSynced": "تم تحديث الصديق بنجاح",
+      "successLocal": "تم تحديث الصديق محلياً"
+    },
+    "detail": {
+      "deleteFriend": {
+        "confirmTitle": "حذف الصديق",
+        "confirmMessage": "هل أنت متأكد من حذف \"{{name}}\"؟ سيؤدي هذا أيضاً إلى حذف جميع المعاملات المرتبطة.",
+        "success": "تم حذف الصديق بنجاح"
+      },
+      "deleteTransaction": {
+        "confirmTitle": "حذف المعاملة",
+        "confirmMessage": "هل أنت متأكد من حذف \"{{title}}\"؟",
+        "success": "تم حذف المعاملة بنجاح"
+      }
+    }
+  },
+  "friendsHooks": {
+    "list": {
+      "lastActivityWithDate": "آخر نشاط {{date}}",
+      "copiedAmount": "تم نسخ {{amount}} إلى الحافظة"
+    },
+    "delete": {
+      "deletingFromCloud": "جارٍ الحذف من السحابة...",
+      "deletedPermanently": "تم حذف الصديق نهائياً",
+      "cloudFailedQueued": "فشل الحذف السحابي. تم الحذف محلياً وإضافته إلى قائمة المزامنة.",
+      "deletedLocallyWillSync": "تم حذف الصديق محلياً (ستتم المزامنة عند الاتصال)"
+    }
+  },
+  "homeHooks": {
+    "budget": {
+      "warningOverLimit": "تجاوز الحد"
+    }
+  },
+  "calc": {
+    "errors": {
+      "invalidExpression": "تعبير غير صالح",
+      "cannotDivideByZero": "لا يمكن القسمة على الصفر"
+    }
+  },
+  "clerkUtils": {
+    "errors": {
+      "unexpected": "حدث خطأ غير متوقع",
+      "unexpectedTryAgain": "حدث خطأ غير متوقع. حاول مرة أخرى.",
+      "noInternet": "لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة والمحاولة مرة أخرى."
+    }
+  },
+  "utils": {
+    "balanceStatus": {
+      "theyOweYou": "مدينون لك",
+      "youOweThem": "أنت مدين لهم",
+      "settled": "تمت التسوية"
+    },
+    "validation": {
+      "titleRequired": "العنوان مطلوب",
+      "titleTooLong": "يجب أن يكون العنوان أقل من 50 حرفاً",
+      "amountMustBeNumber": "يجب أن يكون المبلغ رقماً صالحاً",
+      "amountMinZero": "يجب أن يكون المبلغ رقماً صالحاً أكبر من أو يساوي 0",
+      "amountGreaterThanZero": "يجب أن يكون المبلغ رقماً صالحاً أكبر من 0",
+      "nameRequired": "الاسم مطلوب",
+      "nameTooLong": "يجب أن يكون الاسم أقل من 50 حرفاً"
+    },
+    "labels": {
+      "unknownFriend": "صديق غير معروف"
+    },
+    "progress": {
+      "syncing": "جارٍ مزامنة {{target}}...",
+      "downloadingFriends": "جارٍ تنزيل الأصدقاء...",
+      "downloadingTransactions": "جارٍ تنزيل المعاملات...",
+      "downloadingBudgets": "جارٍ تنزيل الميزانيات..."
+    },
+    "date": {
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "noRecentActivity": "لا يوجد نشاط حديث"
+    }
+  },
+  "copyAmount": {
+    "success": "تم نسخ المبلغ إلى الحافظة",
+    "error": "فشل نسخ المبلغ"
+  },
+  "dashboardHooks": {
+    "trend": {
+      "upThisWeek": "ارتفاع هذا الأسبوع",
+      "downThisWeek": "انخفاض هذا الأسبوع",
+      "stable": "مستقر"
+    },
+    "insights": {
+      "totalFriends": "إجمالي الأصدقاء",
+      "pendingSyncs": "مزامنات معلّقة",
+      "budgetsNearLimit": "ميزانيات قرب الحد"
+    }
+  },
+  "transactionHooks": {
+    "defaults": {
+      "title": "معاملة"
+    },
+    "row": {
+      "received": "تم الاستلام",
+      "paid": "تم الدفع",
+      "withFriend": "مع {{name}}"
+    },
+    "empty": {
+      "addFriendRequiredMessage": "تحتاج إلى صديق واحد على الأقل قبل إضافة معاملة."
+    },
+    "actions": {
+      "later": "لاحقاً"
+    },
+    "errors": {
+      "invalidAmount": "مبلغ غير صالح",
+      "saveFailed": "فشل حفظ المعاملة",
+      "updateBudgetFailed": "فشل تحديث الميزانية"
+    },
+    "form": {
+      "addedSuccess": "تمت إضافة المعاملة بنجاح"
+    },
+    "edit": {
+      "updatedSuccess": "تم تحديث المعاملة بنجاح"
+    }
+  },
+  "exportHooks": {
+    "alert": {
+      "title": "تصدير",
+      "message": "كيف تريد المتابعة؟"
+    },
+    "summary": {
+      "friendsAndBudgets": "الأصدقاء + الميزانيات",
+      "friendsOnly": "الأصدقاء فقط",
+      "budgetsOnly": "الميزانيات فقط",
+      "none": "لم يتم اختيار أي مجموعة بيانات"
+    },
+    "errors": {
+      "selectAtLeastOneDataset": "يرجى اختيار مجموعة بيانات واحدة على الأقل."
+    },
+    "unknownPath": "مسار غير معروف"
+  },
+  "cloudSyncHooks": {
+    "errors": {
+      "pullFailed": "فشل سحب البيانات",
+      "syncBlocked": "تم حظر المزامنة: {{reason}}",
+      "someChangesFailed": "فشل مزامنة بعض التغييرات"
+    }
+  },
+  "transaction": {
+    "routes": {
+      "newTitle": "إضافة معاملة",
+      "detailsTitle": "تفاصيل المعاملة",
+      "editTitle": "تعديل المعاملة"
+    }
+  },
+  "transactionForm": {
+    "create": {
+      "title": "إضافة معاملة",
+      "submit": "إضافة معاملة"
+    },
+    "edit": {
+      "title": "تعديل المعاملة",
+      "submit": "تحديث المعاملة"
+    },
+    "fields": {
+      "selectFriendLabel": "اختر صديقاً",
+      "budgetOptionalLabel": "الميزانية (اختياري)",
+      "amountLabel": "المبلغ",
+      "titleLabel": "العنوان",
+      "titlePlaceholder": "مثال: غداء، مبلغ مستعار...",
+      "descriptionLabel": "الوصف"
+    },
+    "budget": {
+      "none": "بدون ميزانية",
+      "optionWithRemaining": "{{title}} ({{currency}} {{remaining}} متبقٍ)",
+      "selected": "الميزانية: {{title}}",
+      "linkedFallback": "مرتبطة",
+      "linkedBudget": "الميزانية المرتبطة: {{title}}",
+      "remaining": "المتبقي: {{amount}}"
+    },
+    "validation": {
+      "amountRequired": "المبلغ مطلوب",
+      "titleRequired": "العنوان مطلوب",
+      "descriptionRequired": "الوصف مطلوب"
+    },
+    "hints": {
+      "negative": "تذكير ودي: أنت مدين لهذا الصديق. وضع المصروف يعني أنك دفعت الآن، لذا سيقل ذلك من الميزانية المرتبطة.",
+      "positive": "ممتاز! هذا الصديق مدين لك. وضع الدخل يعني أن المال عاد إليك، لذا سيزيد ذلك من الميزانية المرتبطة."
+    },
+    "actions": {
+      "goBack": "العودة"
+    },
+    "accessibility": {
+      "openCalculator": "فتح الآلة الحاسبة"
+    },
+    "errors": {
+      "notFoundTitle": "لم يتم العثور على المعاملة",
+      "notFoundDescription": "المعاملة التي تبحث عنها غير موجودة",
+      "noFriendsAvailable": "لا يوجد أصدقاء متاحون. أنشئ صديقاً أولاً."
+    }
+  },
+  "budgetCard": {
+    "labels": {
+      "archived": "مؤرشفة",
+      "netSpent": "صافي المصروف",
+      "transactionsCount_one": "{{count}} معاملة",
+      "transactionsCount_other": "{{count}} معاملات"
+    },
+    "menu": {
+      "copyRemainingAmount": "نسخ المبلغ المتبقي",
+      "pinBudget": "تثبيت الميزانية",
+      "unpinBudget": "إلغاء تثبيت الميزانية",
+      "resetPeriod": "إعادة ضبط الفترة",
+      "exportBudgets": "تصدير الميزانيات",
+      "editBudget": "تعديل الميزانية",
+      "deleteBudget": "حذف الميزانية"
+    },
+    "status": {
+      "overspentBy": "تجاوزت الميزانية بمقدار {{amount}}",
+      "nearLimit": "قرب الحد",
+      "left": "المتبقي {{amount}}"
+    },
+    "accessibility": {
+      "usagePercent": "استخدام الميزانية {{percent}} بالمئة"
+    }
+  },
+  "calculatorModal": {
+    "title": "الآلة الحاسبة",
+    "lastResult": "آخر نتيجة: {{result}}"
+  },
+  "budgetExportModal": {
+    "title": "تصدير الميزانيات",
+    "subtitle": "اختر الصيغة وما تريد تضمينه.",
+    "sections": {
+      "scope": "النطاق",
+      "format": "الصيغة",
+      "includeItems": "تضمين عناصر الميزانية"
+    },
+    "scope": {
+      "all": "كل الميزانيات",
+      "selected": "الميزانية المحددة",
+      "selectedHint": "تتوفر الميزانية المحددة من قوائم الميزانية الخاصة."
+    },
+    "format": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
+    "actions": {
+      "saveToDevice": "حفظ على الجهاز",
+      "exporting": "جارٍ التصدير...",
+      "share": "مشاركة"
+    }
+  },
+  "menuItemTypes": {
+    "item": "عنصر",
+    "friend": "صديق",
+    "budget": "ميزانية",
+    "transaction": "معاملة"
+  },
+  "menuActions": {
+    "pinItem": "تثبيت {{type}}",
+    "unpinItem": "إلغاء تثبيت {{type}}",
+    "copyItemAmount": "نسخ مبلغ {{type}}",
+    "editItem": "تعديل {{type}}",
+    "deleteItem": "حذف {{type}}"
+  },
+  "currencyPicker": {
+    "accessibility": {
+      "selectCurrency": "اختيار العملة {{symbol}} {{label}}"
+    }
+  },
+  "errorScreen": {
+    "default": {
+      "title": "خطأ في الإعدادات",
+      "message": "إعدادات مطلوبة مفقودة. يرجى التحقق من متغيرات البيئة."
+    }
+  },
+  "passwordInput": {
+    "accessibility": {
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور"
+    }
+  },
+  "transactionItem": {
+    "menu": {
+      "typeLabel": "معاملة",
+      "editTransaction": "تعديل المعاملة",
+      "deleteTransaction": "حذف المعاملة"
+    },
+    "labels": {
+      "noNote": "بدون ملاحظة",
+      "budgetPrefix": "الميزانية"
+    },
+    "status": {
+      "synced": "متزامنة",
+      "pendingSync": "مزامنة معلّقة",
+      "failed": "فشل"
+    },
+    "accessibility": {
+      "openDetailsHint": "يفتح تفاصيل المعاملة",
+      "transactionSummary": "{{title}}، {{direction}} {{amount}}",
+      "editTransaction": "تعديل {{title}}",
+      "deleteTransaction": "حذف {{title}}"
+    }
+  },
+  "budgetHooks": {
+    "amount": {
+      "copySuccess": "تم نسخ {{currency}}{{amount}} إلى الحافظة"
+    },
+    "refresh": {
+      "error": "تعذر تحديث الميزانيات حالياً"
+    },
+    "items": {
+      "addSuccess": "تمت إضافة عنصر الميزانية بنجاح",
+      "deleteConfirmTitle": "حذف العنصر",
+      "deleteConfirmMessage": "هل أنت متأكد من حذف \"{{title}}\"؟",
+      "deleteSuccess": "تم حذف عنصر الميزانية بنجاح"
+    },
+    "resetPeriod": {
+      "confirmTitle": "إعادة ضبط فترة الميزانية",
+      "confirmMessage": "مسح جميع المعاملات من \"{{title}}\" وبدء فترة جديدة؟",
+      "confirmAction": "إعادة ضبط",
+      "success": "تمت إعادة ضبط فترة الميزانية"
+    },
+    "deleteBudget": {
+      "confirmTitle": "حذف الميزانية",
+      "confirmMessage": "هل أنت متأكد من حذف \"{{title}}\"؟",
+      "cannotUndoMessage": "هل أنت متأكد من حذف \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "success": "تم حذف الميزانية بنجاح"
+    },
+    "edit": {
+      "pendingSyncInfo": "تم حفظ الميزانية محلياً. بانتظار المزامنة.",
+      "success": "تم تحديث الميزانية",
+      "errors": {
+        "invalidTotal": "يجب أن يكون إجمالي الميزانية رقماً صالحاً أكبر من أو يساوي 0",
+        "notFound": "لم يتم العثور على الميزانية",
+        "updateFailed": "فشل تحديث الميزانية"
+      }
+    },
+    "export": {
+      "preparing": "جارٍ تجهيز تصدير الميزانية...",
+      "fileCount_one": "ملف واحد",
+      "fileCount_other": "{{count}} ملفات",
+      "saved": "تم حفظ التصدير",
+      "savedDetails": "تم حفظ {{fileCountText}}\n{{savedPath}}",
+      "shareFiles": "مشاركة الملف/الملفات",
+      "completeShared": "اكتمل التصدير: تمت مشاركة {{fileCountText}}.",
+      "failed": "تعذر التصدير. {{message}}",
+      "shareFailed": "تعذر التصدير. {{message}}",
+      "unableToShareFiles": "تعذر مشاركة الملفات.",
+      "unknownError": "خطأ غير معروف",
+      "scopeSelectedOnly": "الميزانية المحددة فقط",
+      "scopeAllBudgets": "كل الميزانيات"
+    }
+  },
+  "drawer": {
+    "errors": {
+      "useWithinLayout": "يجب استخدام useDrawer داخل DrawerLayoutWrapper"
+    }
+  },
+  "sync": {
+    "banner": {
+      "offlineMode": "وضع عدم الاتصال",
+      "syncPaused": "المزامنة متوقفة"
+    },
+    "actions": {
+      "retry": "إعادة المحاولة",
+      "continueOffline": "المتابعة دون اتصال"
+    },
+    "loading": {
+      "errorTitle": "تعذر تنزيل بياناتك",
+      "errorFallbackMessage": "قد يكون اتصال الإنترنت بطيئاً. تحقق من الاتصال وحاول مرة أخرى.",
+      "noInternet": "لا يوجد اتصال بالإنترنت",
+      "downloadingData": "جارٍ تنزيل بياناتك..."
+    },
+    "status": {
+      "internetWeak": "الإنترنت ضعيف. قد تفشل المزامنة.",
+      "needsConfig": "قالب JWT مفقود. تحقق من الإعدادات.",
+      "needsLogin": "انتهت صلاحية المصادقة. يرجى تسجيل الدخول مرة أخرى.",
+      "timeoutError": "انتهت مهلة الشبكة. تحقق من الاتصال وأعد المحاولة.",
+      "genericError": "حدث خطأ في المزامنة. يرجى المحاولة مرة أخرى.",
+      "complete": "اكتملت المزامنة",
+      "online": "متصل",
+      "active": "نشط",
+      "allChangesSynced": "تمت مزامنة جميع التغييرات",
+      "changesPending_one": "تغيير واحد قيد الانتظار",
+      "changesPending_other": "{{count}} تغييرات قيد الانتظار",
+      "lastSync": "آخر مزامنة"
+    }
+  },
+  "account": {
+    "sections": {
+      "profile": "الملف الشخصي",
+      "email": "البريد الإلكتروني",
+      "security": "الأمان"
+    },
+    "rows": {
+      "emailAddress": "عنوان البريد الإلكتروني",
+      "changePassword": "تغيير كلمة المرور",
+      "changePasswordSub": "حدّث كلمة المرور الخاصة بك",
+      "deleteAccountSub": "إزالة حسابك نهائياً"
+    },
+    "fields": {
+      "firstNameLabel": "الاسم الأول",
+      "firstNamePlaceholder": "أدخل اسمك الأول",
+      "lastNameLabel": "اسم العائلة",
+      "lastNamePlaceholder": "أدخل اسم العائلة"
+    },
+    "validation": {
+      "firstNameRequired": "الاسم الأول مطلوب",
+      "lastNameRequired": "اسم العائلة مطلوب"
+    },
+    "fallbacks": {
+      "user": "مستخدم",
+      "noEmail": "لا يوجد بريد إلكتروني"
+    },
+    "actions": {
+      "change": "تغيير",
+      "saveChanges": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
+      "signingOut": "جارٍ تسجيل الخروج...",
+      "deleteAccount": "حذف الحساب",
+      "deletingAccount": "جارٍ حذف الحساب...",
+      "backToSettings": "العودة إلى الإعدادات",
+      "goToLogin": "الانتقال إلى تسجيل الدخول"
+    },
+    "accessibility": {
+      "backToSettings": "العودة إلى الإعدادات",
+      "changeEmail": "تغيير البريد الإلكتروني",
+      "goToChangePassword": "الانتقال إلى تغيير كلمة المرور"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل معلومات الحساب. يرجى التحقق من الاتصال والمحاولة مرة أخرى.",
+      "signInRequired": "يرجى تسجيل الدخول لإدارة حسابك."
+    },
+    "modal": {
+      "changeEmailTitle": "تغيير البريد الإلكتروني",
+      "changeEmailSubtitle": "سنرسل رمزاً لتأكيد بريدك الإلكتروني.",
+      "newEmailLabel": "البريد الإلكتروني الجديد",
+      "newEmailPlaceholder": "name@example.com",
+      "sendVerification": "إرسال التحقق",
+      "verificationCodeLabel": "رمز التحقق",
+      "verificationCodePlaceholder": "أدخل رمز التحقق",
+      "verifyEmail": "تأكيد البريد الإلكتروني",
+      "resendCode": "إعادة إرسال الرمز"
+    }
+  },
+  "accountHooks": {
+    "timeouts": {
+      "saveProfile": "انتهت مهلة حفظ الملف الشخصي. حاول مرة أخرى.",
+      "createVerification": "انتهت مهلة إنشاء تحقق البريد الإلكتروني. حاول مرة أخرى.",
+      "sendCode": "انتهت مهلة إرسال رمز التحقق. حاول مرة أخرى.",
+      "verifyEmail": "انتهت مهلة التحقق من البريد الإلكتروني. حاول مرة أخرى.",
+      "setPrimaryEmail": "انتهت مهلة تعيين البريد الإلكتروني الأساسي. حاول مرة أخرى.",
+      "refreshAccount": "انتهت مهلة تحديث الحساب. حاول مرة أخرى.",
+      "resendCode": "انتهت مهلة إعادة إرسال رمز التحقق. حاول مرة أخرى.",
+      "deleteAccount": "انتهت مهلة حذف الحساب. حاول مرة أخرى.",
+      "signOut": "انتهت مهلة تسجيل الخروج. حاول مرة أخرى."
+    },
+    "profile": {
+      "saved": "تم الحفظ",
+      "updateFailed": "فشل تحديث الاسم. حاول مرة أخرى."
+    },
+    "email": {
+      "enterDifferentEmail": "أدخل عنوان بريد إلكتروني مختلفاً.",
+      "codeSentInfo": "سنرسل رمزاً لتأكيد بريدك الإلكتروني.",
+      "sendCodeFailed": "فشل إرسال رمز التحقق.",
+      "pendingNotFoundTryAgain": "تعذر العثور على عنوان بريد إلكتروني قيد الانتظار. حاول مرة أخرى.",
+      "updated": "تم تحديث البريد الإلكتروني",
+      "invalidOrExpiredCode": "الرمز غير صالح أو منتهي الصلاحية.",
+      "pendingNotFound": "تعذر العثور على عنوان بريد إلكتروني قيد الانتظار.",
+      "codeResent": "تم إرسال رمز تحقق جديد.",
+      "resendFailed": "فشل إعادة إرسال الرمز."
+    },
+    "deleteAccount": {
+      "confirmTitle": "حذف الحساب",
+      "confirmMessage": "سيؤدي هذا إلى حذف حسابك وجميع البيانات المرتبطة به نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+      "success": "تم حذف الحساب",
+      "failed": "فشل حذف الحساب. حاول مرة أخرى."
+    }
+  },
+  "changePassword": {
+    "title": "تغيير كلمة المرور",
+    "subtitle": "استخدم كلمة مرور قوية لا تعيد استخدامها.",
+    "fields": {
+      "currentPasswordLabel": "كلمة المرور الحالية",
+      "currentPasswordPlaceholder": "أدخل كلمة المرور الحالية",
+      "newPasswordLabel": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "أنشئ كلمة مرور جديدة",
+      "newPasswordHelper": "8 أحرف على الأقل. يجب أن تحتوي على رقم أو رمز.",
+      "confirmPasswordLabel": "تأكيد كلمة المرور الجديدة",
+      "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور الجديدة"
+    },
+    "rules": {
+      "minLength": "8 أحرف على الأقل",
+      "numberOrSymbol": "رقم أو رمز واحد",
+      "uppercaseRecommended": "حرف كبير (موصى به)"
+    },
+    "strength": {
+      "label": "القوة",
+      "weak": "ضعيفة",
+      "ok": "متوسطة",
+      "strong": "قوية"
+    },
+    "signOutOthers": {
+      "title": "تسجيل خروج الأجهزة الأخرى",
+      "subtitle": "موصى به عند تغيير كلمة المرور على جهاز مشترك."
+    },
+    "validation": {
+      "currentPasswordRequired": "كلمة المرور الحالية مطلوبة",
+      "newPasswordRequired": "كلمة المرور الجديدة مطلوبة",
+      "numberOrSymbolRequired": "يجب أن تتضمن كلمة المرور رقماً أو رمزاً واحداً على الأقل"
+    },
+    "errors": {
+      "signInRequired": "يرجى تسجيل الدخول لتغيير كلمة المرور."
+    },
+    "hooks": {
+      "success": "تم تحديث كلمة المرور",
+      "errors": {
+        "userNotLoaded": "لم يتم تحميل المستخدم بعد. حاول مرة أخرى.",
+        "unexpected": "حدث خطأ غير متوقع. حاول مرة أخرى.",
+        "currentIncorrect": "كلمة المرور الحالية غير صحيحة"
+      }
+    },
+    "actions": {
+      "goToSignIn": "الذهاب إلى تسجيل الدخول",
+      "updatePassword": "تحديث كلمة المرور",
+      "updating": "جارٍ تحديث كلمة المرور..."
+    }
+  },
+  "settingsExport": {
+    "title": "تصدير البيانات",
+    "subtitle": "احفظ أو شارك الأصدقاء والميزانيات بصيغة CSV أو JSON",
+    "sections": {
+      "whatToExport": "ما الذي تريد تصديره",
+      "format": "الصيغة",
+      "detailLevel": "مستوى التفاصيل",
+      "dataSource": "مصدر البيانات"
+    },
+    "friendScopedHint": "تصدير النطاق الخاص بالصديق مفعل.",
+    "formatOptions": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
+    "detailOptions": {
+      "summary": {
+        "label": "ملخص فقط",
+        "subtitle": "حقول الأصدقاء والميزانيات الأساسية"
+      },
+      "detailed": {
+        "label": "تضمين العناصر/المعاملات",
+        "subtitle": "إضافة معاملات الأصدقاء وعناصر الميزانية"
+      }
+    },
+    "sourceOptions": {
+      "local": {
+        "label": "الذاكرة المحلية",
+        "subtitle": "سريع وملائم دون اتصال"
+      },
+      "supabase": {
+        "label": "الأحدث من Supabase",
+        "subtitle": "الرجوع إلى الذاكرة المحلية عند الفشل"
+      }
+    },
+    "quickFacts": {
+      "friends": "يتضمن الأصدقاء الرصيد، ما عليك، ما لك، وحالة المزامنة.",
+      "budgets": "تتضمن الميزانيات المصروف والمتبقي والتقدم وصفوف العناصر الاختيارية."
+    },
+    "actions": {
+      "exportData": "تصدير البيانات",
+      "exporting": "جارٍ التصدير..."
+    }
+  },
+  "legal": {
+    "lastUpdated": "آخر تحديث: 11 مارس 2026",
+    "privacy": {
+      "title": "الخصوصية",
+      "subtitle": "كيفية التعامل مع بياناتك",
+      "paragraph1": "يخزن Debit Tracker بيانات التطبيق محلياً على جهازك. وإذا تم تفعيل المزامنة السحابية، يمكن أيضاً تخزين بياناتك بشكل آمن في حسابك السحابي المتصل لدعم النسخ الاحتياطي والاستخدام عبر أجهزة متعددة.",
+      "paragraph2": "يمكنك تسجيل الخروج في أي وقت. ويمكنك أيضاً مسح البيانات المحلية من الإعدادات، وهذا يزيل البيانات من هذا الجهاز فقط ولا يحذف تلقائياً بيانات السحابة التي تمت مزامنتها مسبقاً إلى حسابك."
+    },
+    "terms": {
+      "title": "الشروط",
+      "subtitle": "الشروط والأحكام",
+      "paragraph1": "باستخدام Debit Tracker، فإنك توافق على استخدام التطبيق بمسؤولية والحفاظ على أمان بيانات الدخول الخاصة بك. وأنت مسؤول عن دقة بيانات الديون والميزانيات والمعاملات التي تُدخلها.",
+      "paragraph2": "يتم توفير التطبيق كما هو دون ضمانات لتوفر الخدمة بشكل متواصل. وبالنسبة للقرارات الحساسة، تحقق دائماً من البيانات المالية قبل اتخاذ أي إجراء."
+    }
+  },
+  "about": {
+    "title": "حول",
+    "version": "الإصدار {{version}}",
+    "sections": {
+      "description": {
+        "title": "الوصف",
+        "body": "DebitTracker هو تطبيق جوال مميز يعمل وفق مبدأ العمل دون اتصال أولاً، صُمم لمساعدتك على إدارة الشؤون المالية الشخصية بسهولة. تتبع الديون والمعاملات والأرصدة بسلاسة حتى بدون اتصال بالإنترنت. بُني بتقنيات حديثة لتقديم تجربة استخدام سريعة وموثوقة وسهلة."
+      },
+      "features": {
+        "title": "المميزات",
+        "items": {
+          "offlineFirst": "بنية تعمل دون اتصال أولاً",
+          "darkMode": "واجهة وضع داكن مميزة",
+          "friendManagement": "إدارة الأصدقاء والملفات الشخصية",
+          "transactionTracking": "تتبع المعاملات والسجل",
+          "budgetManagement": "حاسبة الميزانية وإدارتها",
+          "dashboard": "لوحة المعلومات والتحليلات",
+          "stateManagement": "إدارة حالة دائمة"
+        }
+      },
+      "developer": {
+        "title": "المطور",
+        "role": "مهندس حاسوب - مهندس برمجيات Full Stack",
+        "social": {
+          "linkedin": "LinkedIn",
+          "github": "GitHub",
+          "website": "الموقع"
+        },
+        "summaryTitle": "ملخص مهني",
+        "summaryBody": "مهندس برمجيات Full Stack ذو خبرة مع تركيز قوي على React وNext.js وتقنيات الويب الحديثة. متخصص في بناء تطبيقات جاهزة للإنتاج مع التركيز على هيكلة المكونات وإدارة الحالة وتحسين الأداء. متمكن من العمل عبر كامل المكدس من واجهات المستخدم إلى واجهات البرمجة وقواعد البيانات.",
+        "educationTitle": "التعليم",
+        "educationBody": "بكالوريوس هندسة الحاسوب من الجامعة الإسلامية بغزة (أبريل 2016 - يونيو 2021)",
+        "skillsTitle": "المهارات الأساسية",
+        "skillsBody": "React.js وNext.js وReact Native وNode.js وTypeScript وJavaScript وPHP/Laravel وREST APIs وGraphQL وPostgreSQL وMongoDB وAWS وDocker وGit وأدوات التطوير الحديثة."
+      }
+    },
+    "footer": "© {{year}} DebitTracker. جميع الحقوق محفوظة.",
+    "errors": {
+      "openLinkFailed": "تعذر فتح الرابط"
+    }
+  }
+}

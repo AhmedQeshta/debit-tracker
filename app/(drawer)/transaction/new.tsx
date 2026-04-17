@@ -10,9 +10,11 @@ import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Calculator } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AddTransaction() {
+  const { t } = useTranslation();
   const {
     friends,
     friendId,
@@ -40,15 +42,15 @@ export default function AddTransaction() {
     <ScreenContainer>
       <Header
         openDrawer={() => router.push(`/(drawer)/friend/${friendId}`)}
-        title="Add Transaction"
+        title={t('transactionForm.create.title')}
         isGoBack={true}
       />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.form}>
-          <Text style={styles.label}>Select Friend</Text>
+          <Text style={styles.label}>{t('transactionForm.fields.selectFriendLabel')}</Text>
           <View style={styles.userPicker}>
             {friends.length === 0 ? (
-              <Text style={styles.errorText}>No friends available. Create one first.</Text>
+              <Text style={styles.errorText}>{t('transactionForm.errors.noFriendsAvailable')}</Text>
             ) : (
               friends.map((f) => (
                 <TouchableOpacity
@@ -69,13 +71,13 @@ export default function AddTransaction() {
             )}
           </View>
 
-          <Text style={styles.label}>Budget (Optional)</Text>
+          <Text style={styles.label}>{t('transactionForm.fields.budgetOptionalLabel')}</Text>
           <View style={styles.userPicker}>
             <TouchableOpacity
               style={[styles.userChip, !budgetId && styles.userChipSelected]}
               onPress={() => setBudgetId('')}>
               <Text style={[styles.userChipText, !budgetId && styles.userChipTextSelected]}>
-                No budget
+                {t('transactionForm.budget.none')}
               </Text>
             </TouchableOpacity>
 
@@ -89,15 +91,18 @@ export default function AddTransaction() {
                     styles.userChipText,
                     budgetId === budget.id && styles.userChipTextSelected,
                   ]}>
-                  {budget.title} ({budget.currency || '$'}{' '}
-                  {getRemainingBudget(budget.id).toFixed(2)} left)
+                  {t('transactionForm.budget.optionWithRemaining', {
+                    title: budget.title,
+                    currency: budget.currency || '$',
+                    remaining: getRemainingBudget(budget.id).toFixed(2),
+                  })}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           <View style={styles.amountHeader}>
-            <Text style={styles.label}>Amount</Text>
+            <Text style={styles.label}>{t('transactionForm.fields.amountLabel')}</Text>
             <Controller
               control={control}
               name="isNegative"
@@ -127,7 +132,7 @@ export default function AddTransaction() {
                 onChangeText={onChange}
                 placeholder="0.00"
                 keyboardType="numeric"
-                error={errors.amount ? 'Amount is required' : undefined}
+                error={errors.amount ? t('transactionForm.validation.amountRequired') : undefined}
                 inputRef={amountInputRef}
                 rightAccessory={
                   <TouchableOpacity
@@ -137,7 +142,7 @@ export default function AddTransaction() {
                     }}
                     style={styles.calcButton}
                     accessibilityRole="button"
-                    accessibilityLabel="Open calculator">
+                    accessibilityLabel={t('transactionForm.accessibility.openCalculator')}>
                     <Calculator size={18} color={Colors.textSecondary} />
                   </TouchableOpacity>
                 }
@@ -158,7 +163,9 @@ export default function AddTransaction() {
 
           {selectedBudget ? (
             <View style={styles.selectedBudgetChip}>
-              <Text style={styles.selectedBudgetText}>Budget: {selectedBudget.title}</Text>
+              <Text style={styles.selectedBudgetText}>
+                {t('transactionForm.budget.selected', { title: selectedBudget.title })}
+              </Text>
             </View>
           ) : null}
 
@@ -167,11 +174,11 @@ export default function AddTransaction() {
             rules={{ required: true }}
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Title"
+                label={t('transactionForm.fields.titleLabel')}
                 value={value}
                 onChangeText={onChange}
-                placeholder="e.g. Lunch, Borrowed cash..."
-                error={errors.title ? 'Title is required' : undefined}
+                placeholder={t('transactionForm.fields.titlePlaceholder')}
+                error={errors.title ? t('transactionForm.validation.titleRequired') : undefined}
               />
             )}
             name="title"
@@ -180,13 +187,13 @@ export default function AddTransaction() {
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
               {isNegative
-                ? 'Friendly reminder: You owe this friend. Expense mode: you paid now, so this reduces the linked budget.'
-                : 'Nice! This friend owes you. Income mode: money came back to you, so this increases the linked budget.'}
+                ? t('transactionForm.hints.negative')
+                : t('transactionForm.hints.positive')}
             </Text>
           </View>
 
           <Button
-            title="Add Transaction"
+            title={t('transactionForm.create.submit')}
             onPress={handleSubmit}
             disabled={friends.length === 0}
             loading={loading}

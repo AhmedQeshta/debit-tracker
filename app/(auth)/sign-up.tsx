@@ -8,9 +8,11 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { X } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SignUpScreen() {
+  const { t } = useTranslation();
   const {
     control,
     handleSubmit,
@@ -30,12 +32,10 @@ export default function SignUpScreen() {
         <View style={styles.header}>
           <View style={styles.headerTextBlock}>
             <Text style={styles.title}>
-              {pendingVerification ? 'Verify your email' : 'Create Account'}
+              {pendingVerification ? t('auth.signUp.verifyEmailTitle') : t('auth.signUp.title')}
             </Text>
             <Text style={styles.subtitle}>
-              {pendingVerification
-                ? 'Enter the 6-digit code sent to your email'
-                : 'Create an account to save and sync your data'}
+              {pendingVerification ? t('auth.signUp.verifySubtitle') : t('auth.signUp.subtitle')}
             </Text>
           </View>
           <TouchableOpacity onPress={() => router.replace('/')} style={styles.closeButton}>
@@ -49,15 +49,15 @@ export default function SignUpScreen() {
               <Controller
                 control={control}
                 rules={{
-                  required: 'Email is required',
+                  required: t('auth.validation.emailRequired'),
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Enter a valid email address',
+                    message: t('auth.validation.validEmail'),
                   },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label="Email"
+                    label={t('auth.signUp.email')}
                     placeholder="you@example.com"
                     onBlur={onBlur}
                     onChangeText={onChange}
@@ -73,22 +73,22 @@ export default function SignUpScreen() {
               <Controller
                 control={control}
                 rules={{
-                  required: 'Password is required',
+                  required: t('auth.validation.passwordRequired'),
                   minLength: {
                     value: 8,
-                    message: 'Password must be at least 8 characters',
+                    message: t('auth.validation.passwordMin'),
                   },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label="Password"
-                    placeholder="Create a password"
+                    label={t('auth.signUp.password')}
+                    placeholder={t('auth.signUp.createPasswordPlaceholder')}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
                     secureTextEntry
                     error={errors.password?.message}
-                    helperText="Use at least 8 characters"
+                    helperText={t('auth.signUp.helperPassword')}
                   />
                 )}
                 name="password"
@@ -97,13 +97,14 @@ export default function SignUpScreen() {
               <Controller
                 control={control}
                 rules={{
-                  required: 'Please confirm your password',
-                  validate: (value) => value === getValues('password') || 'Passwords do not match',
+                  required: t('auth.validation.confirmPasswordRequired'),
+                  validate: (value) =>
+                    value === getValues('password') || t('auth.validation.passwordsNoMatch'),
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label="Confirm Password"
-                    placeholder="Re-enter your password"
+                    label={t('auth.signUp.confirmPassword')}
+                    placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
@@ -117,7 +118,7 @@ export default function SignUpScreen() {
               {authError && <Text style={styles.errorText}>{authError}</Text>}
 
               <Button
-                title="Create Account"
+                title={t('auth.signUp.createAccount')}
                 onPress={handleSubmit(onSignUpPress)}
                 loading={loading}
                 disabled={loading}
@@ -126,9 +127,9 @@ export default function SignUpScreen() {
               <OAuthButtons />
 
               <View style={styles.footerRow}>
-                <Text style={styles.footerText}>Already have an account?</Text>
+                <Text style={styles.footerText}>{t('auth.signUp.alreadyHave')}</Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-                  <Text style={styles.footerLink}>Sign in</Text>
+                  <Text style={styles.footerLink}>{t('auth.signIn.title')}</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -137,23 +138,23 @@ export default function SignUpScreen() {
               <Controller
                 control={control}
                 rules={{
-                  required: 'Code is required',
+                  required: t('auth.validation.codeRequired'),
                   minLength: {
                     value: 6,
-                    message: 'Code must be 6 digits',
+                    message: t('auth.validation.codeMustBeSix'),
                   },
                   pattern: {
                     value: /^\d{6}$/,
-                    message: 'Code must be 6 digits',
+                    message: t('auth.validation.codeMustBeSix'),
                   },
                 }}
                 render={({ field: { onChange, value } }) => (
                   <OtpInput
-                    label="Verification Code"
+                    label={t('auth.signIn.code')}
                     value={value}
                     onChangeText={onChange}
                     error={errors.code?.message}
-                    helperText="Enter the 6-digit code"
+                    helperText={t('auth.validation.enterSixDigitCode')}
                   />
                 )}
                 name="code"
@@ -162,7 +163,7 @@ export default function SignUpScreen() {
               {authError && <Text style={styles.errorText}>{authError}</Text>}
 
               <Button
-                title="Verify"
+                title={t('common.actions.verify')}
                 onPress={handleSubmit(onPressVerify)}
                 loading={loading}
                 disabled={loading}
@@ -171,7 +172,7 @@ export default function SignUpScreen() {
               <TouchableOpacity
                 onPress={() => router.push('/(auth)/sign-in')}
                 style={styles.inlineLinkContainer}>
-                <Text style={styles.inlineLink}>Back to Sign in</Text>
+                <Text style={styles.inlineLink}>{t('auth.signUp.backToSignIn')}</Text>
               </TouchableOpacity>
             </>
           )}

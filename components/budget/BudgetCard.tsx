@@ -7,6 +7,7 @@ import { IMenuItem } from '@/types/common';
 import { useRouter } from 'expo-router';
 import { Copy, Download, Pencil, Pin, PinOff, RotateCcw, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const BudgetCard = ({
@@ -19,6 +20,7 @@ export const BudgetCard = ({
   onCopyAmount,
   onExportBudget,
 }: IBudgetCardProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
   const totalSpent = getTotalSpent(item.id);
@@ -34,10 +36,10 @@ export const BudgetCard = ({
 
   const statusText =
     budgetState === 'overspent'
-      ? `Overspent by ${formatAmount(Math.abs(remaining))}`
+      ? t('budgetCard.status.overspentBy', { amount: formatAmount(Math.abs(remaining)) })
       : budgetState === 'near-limit'
-        ? 'Near limit'
-        : `${formatAmount(Math.max(remaining, 0))} left`;
+        ? t('budgetCard.status.nearLimit')
+        : t('budgetCard.status.left', { amount: formatAmount(Math.max(remaining, 0)) });
 
   const statusColor =
     budgetState === 'overspent'
@@ -51,7 +53,7 @@ export const BudgetCard = ({
   const menuItems: IMenuItem[] = [
     {
       icon: <Copy size={18} color={Colors.text} />,
-      label: 'Copy Remaining Amount',
+      label: t('budgetCard.menu.copyRemainingAmount'),
       onPress: () => onCopyAmount(item.id),
     },
     {
@@ -60,27 +62,27 @@ export const BudgetCard = ({
       ) : (
         <Pin size={18} color={Colors.text} />
       ),
-      label: item.pinned ? 'Unpin Budget' : 'Pin Budget',
+      label: item.pinned ? t('budgetCard.menu.unpinBudget') : t('budgetCard.menu.pinBudget'),
       onPress: () => handlePinToggle(item.id),
     },
     {
       icon: <RotateCcw size={18} color={Colors.text} />,
-      label: 'Reset period',
+      label: t('budgetCard.menu.resetPeriod'),
       onPress: () => handleResetPeriod(item.id, item.title),
     },
     {
       icon: <Download size={18} color={Colors.text} />,
-      label: 'Export budgets',
+      label: t('budgetCard.menu.exportBudgets'),
       onPress: () => onExportBudget?.(item.id),
     },
     {
       icon: <Pencil size={18} color={Colors.text} />,
-      label: 'Edit Budget',
+      label: t('budgetCard.menu.editBudget'),
       onPress: () => router.push(`/(drawer)/budget/${item.id}/edit`),
     },
     {
       icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete Budget',
+      label: t('budgetCard.menu.deleteBudget'),
       onPress: () => handleDelete(item.id, item.title),
       danger: true,
     },
@@ -97,19 +99,25 @@ export const BudgetCard = ({
           <Text style={styles.budgetTitle} numberOfLines={1}>
             {item.title}
           </Text>
-          {item.archivedAt ? <Text style={styles.archivedBadge}>Archived</Text> : null}
+          {item.archivedAt ? (
+            <Text style={styles.archivedBadge}>{t('budgetCard.labels.archived')}</Text>
+          ) : null}
         </View>
         <Actions menuVisible={menuVisible} setMenuVisible={setMenuVisible} menuItems={menuItems} />
       </View>
 
       <Text style={styles.amountLine}>
-        Net spent <Text style={styles.amountValue}>{formatAmount(totalSpent)}</Text> of{' '}
+        {t('budgetCard.labels.netSpent')}{' '}
+        <Text style={styles.amountValue}>{formatAmount(totalSpent)}</Text>{' '}
+        {t('budgetDetail.overview.of')}{' '}
         <Text style={styles.amountValue}>{formatAmount(item.totalBudget)}</Text>
       </Text>
 
       <View
         style={styles.progressTrack}
-        accessibilityLabel={`Budget usage ${Math.round(shownPercentUsed)} percent`}>
+        accessibilityLabel={t('budgetCard.accessibility.usagePercent', {
+          percent: Math.round(shownPercentUsed),
+        })}>
         <View
           style={[styles.progressFill, { width: `${progress}%`, backgroundColor: progressColor }]}
         />
@@ -118,9 +126,11 @@ export const BudgetCard = ({
       <View style={styles.budgetFooter}>
         <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
         <View style={styles.rightMeta}>
-          <Text style={styles.percentUsed}>{Math.round(shownPercentUsed)}% used</Text>
+          <Text style={styles.percentUsed}>
+            {t('dashboard.budget.percentUsed', { percent: Math.round(shownPercentUsed) })}
+          </Text>
           <Text style={styles.transactionsCount}>
-            {transactionsCount} transaction{transactionsCount === 1 ? '' : 's'}
+            {t('budgetCard.labels.transactionsCount', { count: transactionsCount })}
           </Text>
         </View>
       </View>

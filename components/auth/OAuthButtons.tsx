@@ -2,18 +2,20 @@ import { useOAuthButtons } from '@/hooks/auth/useOAuthButtons';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import * as WebBrowser from 'expo-web-browser';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Preload the browser for Android to improve performance
 WebBrowser.maybeCompleteAuthSession();
 
 export const OAuthButtons = () => {
+  const { t } = useTranslation();
   const { onGoogleSignInPress, loading } = useOAuthButtons();
   return (
     <View style={styles.container}>
       <View style={styles.dividerContainer}>
         <View style={styles.divider} />
-        <Text style={styles.dividerText}>or</Text>
+        <Text style={styles.dividerText}>{t('common.words.or')}</Text>
         <View style={styles.divider} />
       </View>
 
@@ -27,7 +29,7 @@ export const OAuthButtons = () => {
         ) : (
           <View style={styles.buttonContent}>
             <Text style={styles.googleIcon}>G</Text>
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
+            <Text style={styles.googleButtonText}>{t('auth.oauth.continueWithGoogle')}</Text>
           </View>
         )}
       </TouchableOpacity>

@@ -7,8 +7,10 @@ import { IEditTransactionFormData } from '@/types/transaction';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export const useEditTransaction = () => {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const transactionId = safeId(id);
   const router = useRouter();
@@ -54,7 +56,7 @@ export const useEditTransaction = () => {
     try {
       const amountNum = parseFloat(data.amount);
       if (!Number.isFinite(amountNum) || amountNum <= 0) {
-        throw new Error('Invalid amount');
+        throw new Error(t('transactionHooks.errors.invalidAmount'));
       }
 
       const finalAmount = data.isNegative ? -Math.abs(amountNum) : Math.abs(amountNum);
@@ -65,7 +67,7 @@ export const useEditTransaction = () => {
           (budget) => budget.id === nextBudgetId && !budget.deletedAt && !budget.archivedAt,
         );
         if (!budgetExists) {
-          throw new Error('Budget not found');
+          throw new Error(t('budgetForm.errors.notFound'));
         }
       }
 
@@ -104,26 +106,26 @@ export const useEditTransaction = () => {
 
         const linkedItem = upsertItemFromTransaction(updatedTransaction, activeBudgetId);
         if (!linkedItem) {
-          throw new Error('Failed to update budget');
+          throw new Error(t('transactionHooks.errors.updateBudgetFailed'));
         }
 
         await mutate('budget_item', movedBetweenBudgets ? 'create' : 'update', linkedItem);
         await mutate('budget', 'update', { id: activeBudgetId, source: 'transaction' });
       }
 
-      toastSuccess('Transaction updated successfully');
+      toastSuccess(t('transactionHooks.edit.updatedSuccess'));
 
       router.push(`/(drawer)/friend/${transaction.friendId}`);
     } catch (error: any) {
       const message = error?.message;
       if (
-        message === 'Invalid amount' ||
-        message === 'Budget not found' ||
-        message === 'Failed to update budget'
+        message === t('transactionHooks.errors.invalidAmount') ||
+        message === t('budgetForm.errors.notFound') ||
+        message === t('transactionHooks.errors.updateBudgetFailed')
       ) {
         toastError(message);
       } else {
-        toastError('Failed to save transaction');
+        toastError(t('transactionHooks.errors.saveFailed'));
       }
     } finally {
       setLoading(false);

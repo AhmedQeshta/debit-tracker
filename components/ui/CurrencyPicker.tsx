@@ -2,19 +2,26 @@ import { CURRENCIES } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ICurrencyPickerProps } from '@/types/budget';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export const CurrencyPicker = ({ currency, setCurrency }: ICurrencyPickerProps) => {
+  const { t } = useTranslation();
   if (CURRENCIES.length === 0) return null;
   return (
     <>
-      <Text style={styles.label}>Currency</Text>
+      <Text style={styles.label}>{t('budgetDetail.info.currency')}</Text>
       <View style={styles.currencyPicker}>
         {CURRENCIES.map((curr) => (
           <TouchableOpacity
             key={curr.symbol}
             style={[styles.currencyChip, currency === curr.symbol && styles.currencyChipSelected]}
-            onPress={() => setCurrency(curr.symbol)}>
+            onPress={() => setCurrency(curr.symbol)}
+            accessibilityRole="button"
+            accessibilityLabel={t('currencyPicker.accessibility.selectCurrency', {
+              symbol: curr.symbol,
+              label: curr.label,
+            })}>
             <Text
               style={[
                 styles.currencyChipText,

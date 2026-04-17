@@ -10,6 +10,7 @@ import { FriendsFilterBy, FriendsListItem, FriendsSortBy } from '@/types/friend'
 import { useRouter } from 'expo-router';
 import { LayoutGrid, List, Menu, Search, SlidersHorizontal, Users } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FlatList,
   Pressable,
@@ -21,6 +22,7 @@ import {
 } from 'react-native';
 
 export default function FriendsList() {
+  const { t } = useTranslation();
   const {
     friendRows,
     summary,
@@ -63,32 +65,32 @@ export default function FriendsList() {
             onPress={openDrawer}
             style={styles.topBarButton}
             accessibilityRole="button"
-            accessibilityLabel="Open menu">
+            accessibilityLabel={t('friends.accessibility.openMenu')}>
             <Menu color={Colors.text} size={20} />
           </TouchableOpacity>
-          <Text style={styles.title}>Friends</Text>
+          <Text style={styles.title}>{t('friends.title')}</Text>
           <View style={styles.topActions}>
             <View style={styles.topSegmentedToggle}>
               <Pressable
                 style={[styles.topToggleItem, !isGrid && styles.topToggleItemActive]}
                 onPress={() => setIsGrid(false)}
                 accessibilityRole="button"
-                accessibilityLabel="List view"
+                accessibilityLabel={t('friends.accessibility.listView')}
                 accessibilityState={{ selected: !isGrid }}>
                 <List color={!isGrid ? Colors.background : Colors.textSecondary} size={14} />
                 <Text style={[styles.topToggleText, !isGrid && styles.topToggleTextActive]}>
-                  List
+                  {t('friends.viewModes.list')}
                 </Text>
               </Pressable>
               <Pressable
                 style={[styles.topToggleItem, isGrid && styles.topToggleItemActive]}
                 onPress={() => setIsGrid(true)}
                 accessibilityRole="button"
-                accessibilityLabel="Grid view"
+                accessibilityLabel={t('friends.accessibility.gridView')}
                 accessibilityState={{ selected: isGrid }}>
                 <LayoutGrid color={isGrid ? Colors.background : Colors.textSecondary} size={14} />
                 <Text style={[styles.topToggleText, isGrid && styles.topToggleTextActive]}>
-                  Grid
+                  {t('friends.viewModes.grid')}
                 </Text>
               </Pressable>
             </View>
@@ -97,7 +99,7 @@ export default function FriendsList() {
               onPress={() => setShowControls((prev) => !prev)}
               accessibilityRole="button"
               accessibilityState={{ selected: showControls }}
-              accessibilityLabel="Show or hide filters">
+              accessibilityLabel={t('friends.accessibility.toggleFilters')}>
               <SlidersHorizontal color={Colors.textSecondary} size={18} />
             </TouchableOpacity>
           </View>
@@ -110,9 +112,9 @@ export default function FriendsList() {
                 style={styles.searchInput}
                 value={search}
                 onChangeText={setSearch}
-                placeholder="Search by friend name"
+                placeholder={t('friends.search.placeholder')}
                 placeholderTextColor={Colors.textSecondary}
-                accessibilityLabel="Search friends"
+                accessibilityLabel={t('friends.accessibility.searchFriends')}
               />
             </View>
 
@@ -124,10 +126,12 @@ export default function FriendsList() {
                     style={[styles.chip, sortBy === option.key && styles.chipActive]}
                     onPress={() => setSortBy(option.key as FriendsSortBy)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Sort by ${option.label}`}
+                    accessibilityLabel={t('friends.accessibility.sortBy', {
+                      label: t(`friends.sortOptions.${option.key}`),
+                    })}
                     accessibilityState={{ selected: sortBy === option.key }}>
                     <Text style={[styles.chipText, sortBy === option.key && styles.chipTextActive]}>
-                      {option.label}
+                      {t(`friends.sortOptions.${option.key}`)}
                     </Text>
                   </Pressable>
                 ))}
@@ -140,11 +144,13 @@ export default function FriendsList() {
                     style={[styles.chip, filterBy === option.key && styles.chipActive]}
                     onPress={() => setFilterBy(option.key as FriendsFilterBy)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Filter ${option.label}`}
+                    accessibilityLabel={t('friends.accessibility.filterBy', {
+                      label: t(`friends.filterOptions.${option.key}`),
+                    })}
                     accessibilityState={{ selected: filterBy === option.key }}>
                     <Text
                       style={[styles.chipText, filterBy === option.key && styles.chipTextActive]}>
-                      {option.label}
+                      {t(`friends.filterOptions.${option.key}`)}
                     </Text>
                   </Pressable>
                 ))}
@@ -155,39 +161,41 @@ export default function FriendsList() {
 
         <View style={styles.summaryRow}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+            <Text style={styles.summaryHeaderText}>
+              {t('friends.summary.title', { currencyLabel: summaryCurrencyLabel })}
+            </Text>
             <Pressable
               style={styles.currencyButton}
               onPress={handleSummaryCurrencyToggle}
               accessibilityRole="button"
-              accessibilityLabel="Change summary currency"
-              accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+              accessibilityLabel={t('friends.summary.accessibility.changeCurrencyLabel')}
+              accessibilityHint={t('friends.summary.accessibility.changeCurrencyHint')}>
               <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
             </Pressable>
           </View>
           <View style={styles.summaryStatsWrap}>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Friends</Text>
+              <Text style={styles.summaryLabel}>{t('friends.summary.labels.friends')}</Text>
               <Text style={styles.summaryValue}>{summary.totalFriends}</Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>You owe</Text>
+              <Text style={styles.summaryLabel}>{t('money.labels.youOwe')}</Text>
               <Text style={[styles.summaryValue, styles.negative]}>
                 {formatCurrency(summary.youOweTotal, summaryCurrency)}
               </Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Owed to you</Text>
+              <Text style={styles.summaryLabel}>{t('money.labels.owedToYou')}</Text>
               <Text style={[styles.summaryValue, styles.positive]}>
                 {formatCurrency(summary.owedToYouTotal, summaryCurrency)}
               </Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Settled</Text>
+              <Text style={styles.summaryLabel}>{t('friends.summary.labels.settled')}</Text>
               <Text style={styles.summaryValue}>{summary.settledCount}</Text>
             </View>
             <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Net</Text>
+              <Text style={styles.summaryLabel}>{t('friends.summary.labels.net')}</Text>
               <Text style={[styles.summaryValue, netTone]}>
                 {formatCurrency(summary.netBalance, summaryCurrency)}
               </Text>
@@ -227,20 +235,20 @@ export default function FriendsList() {
                 <Users size={40} color={Colors.primary} />
               </View>
               <Text style={styles.emptyTitle}>
-                {search ? 'No matching friends' : 'No friends yet'}
+                {search ? t('friends.empty.searchTitle') : t('friends.empty.defaultTitle')}
               </Text>
               <Text style={styles.emptyText}>
                 {search
-                  ? 'Try another name, filter, or sort option.'
-                  : 'Track who owes who and settle faster'}
+                  ? t('friends.empty.searchDescription')
+                  : t('friends.empty.defaultDescription')}
               </Text>
               {!search && (
                 <Pressable
                   style={styles.emptyCta}
                   onPress={() => router.push('/(drawer)/friend/new')}
                   accessibilityRole="button"
-                  accessibilityLabel="Add your first friend">
-                  <Text style={styles.emptyCtaText}>Add your first friend</Text>
+                  accessibilityLabel={t('friends.empty.addFirstFriend')}>
+                  <Text style={styles.emptyCtaText}>{t('friends.empty.addFirstFriend')}</Text>
                 </Pressable>
               )}
             </View>
@@ -249,7 +257,7 @@ export default function FriendsList() {
 
         {friendRows.length === 0 && !search ? (
           <View style={styles.fabHint} pointerEvents="none">
-            <Text style={styles.fabHintText}>Add friend</Text>
+            <Text style={styles.fabHintText}>{t('friends.actions.addFriend')}</Text>
           </View>
         ) : null}
         <NavigateTo navigatePath="/(drawer)/friend/new" />

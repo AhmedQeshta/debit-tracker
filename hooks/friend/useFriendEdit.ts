@@ -7,8 +7,10 @@ import { IFriendFormData } from '@/types/friend';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 export const useFriendEdit = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const friendId = safeId(id);
@@ -67,10 +69,10 @@ export const useFriendEdit = () => {
       // Trigger sync to push edit to Supabase
       try {
         await syncNow();
-        toastSuccess('Friend updated successfully');
+        toastSuccess(t('friendHooks.edit.successSynced'));
       } catch (error) {
         console.error('[Sync] Failed to sync after edit:', error);
-        toastSuccess('Friend updated locally');
+        toastSuccess(t('friendHooks.edit.successLocal'));
       }
 
       navigateBack();

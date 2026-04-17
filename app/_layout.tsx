@@ -5,11 +5,14 @@ import { Toast } from '@/components/ui/Toast';
 import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
 import { MenuModalProvider } from '@/contexts/MenuModalContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { initI18n } from '@/i18n';
+import { loadSavedLanguage } from '@/i18n/languageService';
 import { AppBootstrap } from '@/lib/syncAuth';
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -35,6 +38,32 @@ const STACK_OPTIONS = {
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
+  const [isI18nReady, setIsI18nReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrapI18n = async () => {
+      await initI18n();
+      await loadSavedLanguage();
+
+      if (isMounted) {
+        setIsI18nReady(true);
+      }
+    };
+
+    bootstrapI18n().catch((error) => {
+      console.warn('[i18n] Failed to initialize language bootstrapping:', error);
+      if (isMounted) {
+        setIsI18nReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   if (!publishableKey) {
     return (
       <ErrorScreen
@@ -42,6 +71,10 @@ export default function RootLayout() {
         message="Missing Publishable Key. Please set CLERK  PUBLISHABLE  KEY in your .env file to continue."
       />
     );
+  }
+
+  if (!isI18nReady) {
+    return null;
   }
 
   return (

@@ -11,6 +11,7 @@ import { Spacing } from '@/theme/spacing';
 import { ArrowLeft, LogOut, Mail, Shield, Trash2, User as UserIcon } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
@@ -24,6 +25,7 @@ import {
 const ACCOUNT_LOAD_TIMEOUT_MS = 10000;
 
 export default function AccountManagement() {
+  const { t } = useTranslation();
   const {
     control,
     handleSubmit,
@@ -71,12 +73,12 @@ export default function AccountManagement() {
   const accountMenuItems = [
     {
       icon: <LogOut size={18} color={Colors.text} />,
-      label: isSigningOut ? 'Signing out...' : 'Sign out',
+      label: isSigningOut ? t('account.actions.signingOut') : t('settings.rows.signOut'),
       onPress: handleAuthAction,
     },
     {
       icon: <Trash2 size={18} color={Colors.error} />,
-      label: 'Delete account',
+      label: t('account.actions.deleteAccount'),
       onPress: requestDeleteAccount,
       danger: true,
     },
@@ -87,7 +89,7 @@ export default function AccountManagement() {
       <ScreenContainer>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading account...</Text>
+          <Text style={styles.loadingText}>{t('settings.descriptions.loadingAccount')}</Text>
         </View>
       </ScreenContainer>
     );
@@ -97,11 +99,9 @@ export default function AccountManagement() {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            Couldn&apos;t load account info. Please check your connection and try again.
-          </Text>
+          <Text style={styles.errorText}>{t('account.errors.loadFailed')}</Text>
           <Button
-            title="Back to Settings"
+            title={t('account.actions.backToSettings')}
             onPress={() => router.push('/(drawer)/(tabs)/settings')}
             variant="primary"
           />
@@ -114,9 +114,9 @@ export default function AccountManagement() {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Please sign in to manage your account.</Text>
+          <Text style={styles.errorText}>{t('account.errors.signInRequired')}</Text>
           <Button
-            title="Go to Login"
+            title={t('account.actions.goToLogin')}
             onPress={() => router.push('/(auth)/sign-in')}
             variant="primary"
           />
@@ -133,13 +133,13 @@ export default function AccountManagement() {
           onPress={() => router.push('/(drawer)/(tabs)/settings')}
           activeOpacity={0.75}
           accessibilityRole="button"
-          accessibilityLabel="Go back to settings">
+          accessibilityLabel={t('account.accessibility.backToSettings')}>
           <Text style={styles.backText}>
             <ArrowLeft size={25} color={Colors.text} />
           </Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Manage account</Text>
+        <Text style={styles.title}>{t('settings.rows.manageAccount')}</Text>
 
         <View style={styles.menuButtonWrap}>
           <Actions menuVisible={false} setMenuVisible={() => {}} menuItems={accountMenuItems} />
@@ -157,26 +157,26 @@ export default function AccountManagement() {
 
         <View style={styles.profileTextWrap}>
           <Text style={styles.profileName} numberOfLines={1}>
-            {user.fullName || user.primaryEmailAddress?.emailAddress || 'User'}
+            {user.fullName || user.primaryEmailAddress?.emailAddress || t('account.fallbacks.user')}
           </Text>
           <Text style={styles.profileEmail} numberOfLines={1}>
-            {user.primaryEmailAddress?.emailAddress || 'No email'}
+            {user.primaryEmailAddress?.emailAddress || t('account.fallbacks.noEmail')}
           </Text>
         </View>
       </View>
 
-      <SettingsSection title="Profile">
+      <SettingsSection title={t('account.sections.profile')}>
         <View style={styles.sectionContent}>
           <Controller
             control={control}
-            rules={{ required: 'First name is required' }}
+            rules={{ required: t('account.validation.firstNameRequired') }}
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="First name"
+                label={t('account.fields.firstNameLabel')}
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
-                placeholder="Enter your first name"
+                placeholder={t('account.fields.firstNamePlaceholder')}
                 error={errors.firstName?.message}
                 autoCapitalize="words"
               />
@@ -186,14 +186,14 @@ export default function AccountManagement() {
 
           <Controller
             control={control}
-            rules={{ required: 'Last name is required' }}
+            rules={{ required: t('account.validation.lastNameRequired') }}
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Last name"
+                label={t('account.fields.lastNameLabel')}
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
-                placeholder="Enter your last name"
+                placeholder={t('account.fields.lastNamePlaceholder')}
                 error={errors.lastName?.message}
                 autoCapitalize="words"
               />
@@ -203,7 +203,7 @@ export default function AccountManagement() {
 
           <View style={styles.saveButtonWrap}>
             <Button
-              title={loading ? 'Saving...' : 'Save changes'}
+              title={loading ? t('account.actions.saving') : t('account.actions.saveChanges')}
               onPress={handleSubmit(updateName)}
               loading={loading}
               disabled={!canSaveProfile}
@@ -213,34 +213,34 @@ export default function AccountManagement() {
         </View>
       </SettingsSection>
 
-      <SettingsSection title="Email">
+      <SettingsSection title={t('account.sections.email')}>
         <SettingsRow
           icon={Mail}
-          title="Email address"
-          subtitle={user.primaryEmailAddress?.emailAddress || 'No email'}
-          value="Change"
+          title={t('account.rows.emailAddress')}
+          subtitle={user.primaryEmailAddress?.emailAddress || t('account.fallbacks.noEmail')}
+          value={t('account.actions.change')}
           onPress={openEmailModal}
-          accessibilityLabel="Change email"
+          accessibilityLabel={t('account.accessibility.changeEmail')}
           showDivider={false}
         />
       </SettingsSection>
 
-      <SettingsSection title="Security">
+      <SettingsSection title={t('account.sections.security')}>
         <SettingsRow
           icon={Shield}
-          title="Change password"
-          subtitle="Update your password"
+          title={t('account.rows.changePassword')}
+          subtitle={t('account.rows.changePasswordSub')}
           onPress={() => router.push('/(drawer)/settings/change-password')}
-          accessibilityLabel="Go to change password"
+          accessibilityLabel={t('account.accessibility.goToChangePassword')}
           showDivider={false}
         />
       </SettingsSection>
 
-      <SettingsSection title="Danger zone">
+      <SettingsSection title={t('settings.sections.danger')}>
         <SettingsRow
           icon={Trash2}
-          title="Delete account"
-          subtitle="Permanently remove your account"
+          title={t('account.actions.deleteAccount')}
+          subtitle={t('account.rows.deleteAccountSub')}
           onPress={requestDeleteAccount}
           destructive
           showDivider={false}
@@ -254,26 +254,26 @@ export default function AccountManagement() {
         onRequestClose={closeEmailModal}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Change email</Text>
-            <Text style={styles.modalSubtitle}>We&apos;ll send a code to confirm your email.</Text>
+            <Text style={styles.modalTitle}>{t('account.modal.changeEmailTitle')}</Text>
+            <Text style={styles.modalSubtitle}>{t('account.modal.changeEmailSubtitle')}</Text>
 
             {emailStep === 'email' ? (
               <View style={styles.modalBody}>
                 <Input
-                  label="New email"
+                  label={t('account.modal.newEmailLabel')}
                   value={newEmail}
                   onChangeText={(text) => {
                     setNewEmail(text);
                     setEmailError('');
                   }}
-                  placeholder="name@example.com"
+                  placeholder={t('account.modal.newEmailPlaceholder')}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   error={emailError || undefined}
                 />
 
                 <Button
-                  title="Send verification"
+                  title={t('account.modal.sendVerification')}
                   onPress={submitNewEmail}
                   loading={emailLoading}
                   disabled={emailLoading}
@@ -283,19 +283,19 @@ export default function AccountManagement() {
             ) : (
               <View style={styles.modalBody}>
                 <Input
-                  label="Verification code"
+                  label={t('account.modal.verificationCodeLabel')}
                   value={verificationCode}
                   onChangeText={(text) => {
                     setVerificationCode(text);
                     setEmailError('');
                   }}
-                  placeholder="Enter verification code"
+                  placeholder={t('account.modal.verificationCodePlaceholder')}
                   keyboardType="numeric"
                   error={emailError || undefined}
                 />
 
                 <Button
-                  title="Verify email"
+                  title={t('account.modal.verifyEmail')}
                   onPress={verifyEmailCode}
                   loading={emailLoading}
                   disabled={emailLoading}
@@ -303,7 +303,7 @@ export default function AccountManagement() {
                 />
 
                 <Button
-                  title="Resend code"
+                  title={t('account.modal.resendCode')}
                   onPress={resendEmailCode}
                   disabled={emailLoading}
                   variant="outline"
@@ -316,7 +316,7 @@ export default function AccountManagement() {
               style={styles.closeAction}
               disabled={emailLoading}
               activeOpacity={0.75}>
-              <Text style={styles.closeActionText}>Cancel</Text>
+              <Text style={styles.closeActionText}>{t('common.actions.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -325,7 +325,7 @@ export default function AccountManagement() {
       {deleteLoading ? (
         <View style={styles.deleteOverlay}>
           <ActivityIndicator size="small" color={Colors.error} />
-          <Text style={styles.deleteOverlayText}>Deleting account...</Text>
+          <Text style={styles.deleteOverlayText}>{t('account.actions.deletingAccount')}</Text>
         </View>
       ) : null}
     </ScreenContainer>

@@ -1,29 +1,29 @@
 import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function Terms() {
-  const { openDrawer } = useDrawerContext();
+  const { t } = useTranslation();
+  const router = useRouter();
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-        <Header openDrawer={openDrawer} title="Terms" subtitle="Terms and conditions" />
+        <Header
+          openDrawer={() => router.push('/(drawer)/(tabs)/settings')}
+          title={t('legal.terms.title')}
+          subtitle={t('legal.terms.subtitle')}
+          isGoBack
+        />
 
         <View style={styles.card}>
-          <Text style={styles.paragraph}>
-            By using Debit Tracker, you agree to use the app responsibly and keep your account
-            credentials secure. You are responsible for the accuracy of the debt, budget, and
-            transaction data you enter.
-          </Text>
-          <Text style={styles.paragraph}>
-            The app is provided as-is without guarantees of uninterrupted availability. For
-            sensitive decisions, always verify financial data before acting.
-          </Text>
-          <Text style={styles.note}>Last updated: March 11, 2026</Text>
+          <Text style={styles.paragraph}>{t('legal.terms.paragraph1')}</Text>
+          <Text style={styles.paragraph}>{t('legal.terms.paragraph2')}</Text>
+          <Text style={styles.note}>{t('legal.lastUpdated')}</Text>
         </View>
       </ScreenContainer>
     </View>

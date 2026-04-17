@@ -14,9 +14,11 @@ import { useSyncStore } from '@/store/syncStore';
 import { BudgetItemType } from '@/types/models';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from 'react-native';
 
 export const useBudgetDetail = () => {
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = useState(false);
   const [showMoreFields, setShowMoreFields] = useState(false);
   const [itemTitle, setItemTitle] = useState('');
@@ -94,7 +96,7 @@ export const useBudgetDetail = () => {
     setItemTitle('');
     setItemAmount('');
     setItemType('expense');
-    toastSuccess('Budget item added successfully');
+    toastSuccess(t('budgetHooks.items.addSuccess'));
 
     // Trigger sync to push addition to Supabase
     try {
@@ -106,11 +108,11 @@ export const useBudgetDetail = () => {
 
   const handleDeleteItem = (itemId: string, title: string): void => {
     showConfirm(
-      'Delete Item',
-      `Are you sure you want to delete "${title}"?`,
+      t('budgetHooks.items.deleteConfirmTitle'),
+      t('budgetHooks.items.deleteConfirmMessage', { title }),
       async () => {
         removeItem(budgetId, itemId);
-        toastSuccess('Budget item deleted successfully');
+        toastSuccess(t('budgetHooks.items.deleteSuccess'));
 
         // Trigger sync to push deletion to Supabase
         try {
@@ -119,7 +121,7 @@ export const useBudgetDetail = () => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -144,11 +146,11 @@ export const useBudgetDetail = () => {
   const handleDeleteBudget = (): void => {
     if (!budget) return;
     showConfirm(
-      'Delete Budget',
-      `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
+      t('budgetHooks.deleteBudget.confirmTitle'),
+      t('budgetHooks.deleteBudget.cannotUndoMessage', { title: budget.title }),
       async () => {
         deleteBudget(budget.id);
-        toastSuccess('Budget deleted successfully');
+        toastSuccess(t('budgetHooks.deleteBudget.success'));
 
         // Trigger sync to push deletion to Supabase
         try {
@@ -159,7 +161,7 @@ export const useBudgetDetail = () => {
 
         navigateToBudgetList();
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -168,7 +170,7 @@ export const useBudgetDetail = () => {
   };
 
   const menuItems = createMenuItems(
-    'Budget',
+    'budget',
     handleEdit,
     handleDeleteBudget,
     budget,

@@ -9,10 +9,12 @@ import { ITransactionFormData } from '@/types/transaction';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useTransactionForm = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const amountInputRef = useRef<TextInput>(null);
   const [showCalculator, setShowCalculator] = useState(false);
@@ -68,7 +70,7 @@ export const useTransactionForm = () => {
     // Amount normalization rule:
     // always start from an absolute magnitude so budget impact is deterministic.
     if (!Number.isFinite(amount) || amount <= 0) {
-      throw new Error('Invalid amount');
+      throw new Error(t('transactionHooks.errors.invalidAmount'));
     }
 
     const absAmount = Math.abs(amount);
@@ -84,7 +86,7 @@ export const useTransactionForm = () => {
         (budget) => budget.id === normalizedBudgetId && !budget.deletedAt && !budget.archivedAt,
       );
       if (!budgetExists) {
-        throw new Error('Budget not found');
+        throw new Error(t('budgetForm.errors.notFound'));
       }
     }
 
@@ -93,7 +95,7 @@ export const useTransactionForm = () => {
 
     const now = Date.now();
     const transactionId = generateId();
-    const transactionTitle = title?.trim() || 'Transaction';
+    const transactionTitle = title?.trim() || t('transactionHooks.defaults.title');
 
     const newTransaction: Transaction = {
       id: transactionId,
@@ -115,7 +117,7 @@ export const useTransactionForm = () => {
       // 1) transaction create, 2) budget_item upsert, 3) budget totals recompute.
       await mutate('transaction', 'create', newTransaction);
     } catch {
-      throw new Error('Failed to save transaction');
+      throw new Error(t('transactionHooks.errors.saveFailed'));
     }
 
     if (!normalizedBudgetId) {
@@ -126,7 +128,7 @@ export const useTransactionForm = () => {
     try {
       const linkedItem = upsertItemFromTransaction(newTransaction, normalizedBudgetId);
       if (!linkedItem) {
-        throw new Error('Failed to update budget');
+        throw new Error(t('transactionHooks.errors.updateBudgetFailed'));
       }
 
       await mutate('budget_item', 'create', linkedItem);
@@ -135,7 +137,7 @@ export const useTransactionForm = () => {
       return { transactionId, budgetId: normalizedBudgetId };
     } catch {
       budgetLinkError = true;
-      throw new Error('Failed to update budget');
+      throw new Error(t('transactionHooks.errors.updateBudgetFailed'));
     } finally {
       // Keep local transaction and mark pending sync on linkage failure.
       if (budgetLinkError) {
@@ -158,11 +160,11 @@ export const useTransactionForm = () => {
         occurredAt: new Date(data.date).toISOString(),
       });
 
-      toastSuccess('Transaction added successfully');
+      toastSuccess(t('transactionHooks.form.addedSuccess'));
 
       router.push(`/(drawer)/friend/${data.friendId}`);
     } catch (error: any) {
-      const message = error?.message || 'Failed to save transaction';
+      const message = error?.message || t('transactionHooks.errors.saveFailed');
       toastError(message);
     } finally {
       setLoading(false);

@@ -7,6 +7,7 @@ import { Spacing } from '@/theme/spacing';
 import { ITransactionItemProps } from '@/types/transaction';
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export const TransactionItem = ({
@@ -16,13 +17,14 @@ export const TransactionItem = ({
   onEdit,
   onCopyAmount,
 }: ITransactionItemProps) => {
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = useState(false);
   const linkedBudget = useBudgetStore((state) =>
     state.budgets.find((budget) => budget.id === transaction.budgetId && !budget.deletedAt),
   );
 
   const menuItems = createMenuItems(
-    'Transaction',
+    t('transactionItem.menu.typeLabel'),
     () => onEdit(transaction.id),
     () => onDelete(transaction.id),
     undefined,
@@ -44,9 +46,14 @@ export const TransactionItem = ({
       <View style={styles.content}>
         <Text style={styles.title}>{transaction.title}</Text>
         <Text style={styles.meta}>
-          {transaction.note || 'No note'} • {new Date(transaction.createdAt).toLocaleDateString()}
+          {transaction.note || t('transactionItem.labels.noNote')} •{' '}
+          {new Date(transaction.createdAt).toLocaleDateString()}
         </Text>
-        {linkedBudget ? <Text style={styles.meta}>Budget: {linkedBudget.title}</Text> : null}
+        {linkedBudget ? (
+          <Text style={styles.meta}>
+            {t('transactionItem.labels.budgetPrefix')}: {linkedBudget.title}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.rightSide}>
         <Text style={[styles.amount, isPositive ? styles.positive : styles.negative]}>
@@ -59,7 +66,9 @@ export const TransactionItem = ({
               styles.statusText,
               transaction.synced ? styles.syncedText : styles.pendingText,
             ]}>
-            {transaction.synced ? 'Synced' : 'Pending sync'}
+            {transaction.synced
+              ? t('transactionItem.status.synced')
+              : t('transactionItem.status.pendingSync')}
           </Text>
         </View>
       </View>

@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { getFreshSupabaseJwt } from '@/services/authSync';
 import { ensureAppUser } from '@/services/userService';
@@ -40,7 +41,7 @@ export const useSignUpScreen = () => {
     if (!isLoaded) return;
 
     if (data.password !== data.confirmPassword) {
-      setAuthError('Passwords do not match');
+      setAuthError(i18n.t('auth.validation.passwordsNoMatch'));
       return;
     }
 
@@ -110,7 +111,7 @@ export const useSignUpScreen = () => {
 
         router.replace('/');
       } else {
-        setAuthError(`Sign up incomplete. Status: ${completeSignUp.status}. Please try again.`);
+        setAuthError(i18n.t('auth.errors.signUpIncomplete', { status: completeSignUp.status }));
         console.error('Unexpected sign up status:', completeSignUp.status);
       }
     } catch (err: any) {

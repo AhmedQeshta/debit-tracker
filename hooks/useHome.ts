@@ -10,10 +10,12 @@ import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { HomeBudgetPreview, HomeSettlePerson, HomeSummaryMetrics } from '@/types/common';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigation } from './useNavigation';
 
 export const useHome = (summaryCurrency: string) => {
+  const { t } = useTranslation();
   const { deleteFriend, pinFriend, unpinFriend } = useFriendsStore();
   const { deleteTransaction } = useTransactionsStore();
   const { navigateToFriendEdit } = useNavigation();
@@ -134,7 +136,11 @@ export const useHome = (summaryCurrency: string) => {
 
     const trend = weekDelta > 0 ? 'up' : weekDelta < 0 ? 'down' : 'flat';
     const trendText =
-      trend === 'up' ? 'Up this week' : trend === 'down' ? 'Down this week' : 'Stable';
+      trend === 'up'
+        ? t('dashboardHooks.trend.upThisWeek')
+        : trend === 'down'
+          ? t('dashboardHooks.trend.downThisWeek')
+          : t('dashboardHooks.trend.stable');
 
     return {
       netBalance,
@@ -221,8 +227,8 @@ export const useHome = (summaryCurrency: string) => {
       const progress = Math.max(0, Math.min(1, progressRatio));
 
       let warningLabel: string | null = null;
-      if (progressRatio >= 1) warningLabel = 'Over limit';
-      else if (progressRatio >= 0.8) warningLabel = 'Near limit';
+      if (progressRatio >= 1) warningLabel = t('homeHooks.budget.warningOverLimit');
+      else if (progressRatio >= 0.8) warningLabel = t('budgetCard.status.nearLimit');
 
       return {
         budget,
@@ -231,7 +237,7 @@ export const useHome = (summaryCurrency: string) => {
         warningLabel,
       };
     });
-  }, [activeBudgets, getBudgetMetrics, getTotalSpent]);
+  }, [activeBudgets, getBudgetMetrics, getTotalSpent, t]);
 
   const isFreshState =
     activeFriends.length === 0 && allTransactions.length === 0 && activeBudgets.length === 0;
@@ -254,11 +260,11 @@ export const useHome = (summaryCurrency: string) => {
 
   const handleBudgetDelete = (budgetId: string, title: string) => {
     showConfirm(
-      'Delete Budget',
-      `Are you sure you want to delete "${title}"?`,
+      t('budgetHooks.deleteBudget.confirmTitle'),
+      t('budgetHooks.deleteBudget.confirmMessage', { title }),
       async () => {
         deleteBudget(budgetId);
-        toastSuccess('Budget deleted successfully');
+        toastSuccess(t('budgetHooks.deleteBudget.success'));
 
         // Trigger sync to push deletion to Supabase
         try {
@@ -267,7 +273,7 @@ export const useHome = (summaryCurrency: string) => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -277,8 +283,8 @@ export const useHome = (summaryCurrency: string) => {
 
   const handleFriendDelete = (friendId: string, friendName: string) => {
     showConfirm(
-      'Delete Friend',
-      `Are you sure you want to delete "${friendName}"? This will also delete all associated transactions.`,
+      t('friendHooks.detail.deleteFriend.confirmTitle'),
+      t('friendHooks.detail.deleteFriend.confirmMessage', { name: friendName }),
       async () => {
         // Delete all transactions for this friend first (get all, including already deleted ones)
         const allFriendTransactions = useTransactionsStore
@@ -294,7 +300,7 @@ export const useHome = (summaryCurrency: string) => {
 
         // Delete the friend (stores handle sync tracking automatically)
         deleteFriend(friendId);
-        toastSuccess('Friend deleted successfully');
+        toastSuccess(t('friendHooks.detail.deleteFriend.success'));
 
         // Trigger sync to push deletions to Supabase
         try {
@@ -303,7 +309,7 @@ export const useHome = (summaryCurrency: string) => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -312,12 +318,12 @@ export const useHome = (summaryCurrency: string) => {
     if (!transaction) return;
 
     showConfirm(
-      'Delete Transaction',
-      `Are you sure you want to delete "${transaction.title}"?`,
+      t('friendHooks.detail.deleteTransaction.confirmTitle'),
+      t('friendHooks.detail.deleteTransaction.confirmMessage', { title: transaction.title }),
       async () => {
         // Delete transaction (store handles sync tracking automatically)
         deleteTransaction(id);
-        toastSuccess('Transaction deleted successfully');
+        toastSuccess(t('friendHooks.detail.deleteTransaction.success'));
 
         // Trigger sync to push deletion to Supabase
         try {
@@ -326,7 +332,7 @@ export const useHome = (summaryCurrency: string) => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -337,10 +343,13 @@ export const useHome = (summaryCurrency: string) => {
     }
 
     showConfirm(
-      'Add a friend first',
-      'You need at least one friend before adding a transaction.',
+      t('transactions.empty.addFriendFirst'),
+      t('transactionHooks.empty.addFriendRequiredMessage'),
       () => navigateToCreateFriend(),
-      { confirmText: 'Add Friend', cancelText: 'Later' },
+      {
+        confirmText: t('transactions.actions.addFriend'),
+        cancelText: t('transactionHooks.actions.later'),
+      },
     );
   };
 

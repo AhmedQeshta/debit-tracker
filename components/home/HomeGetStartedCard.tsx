@@ -3,6 +3,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { HomeGetStartedCardProps } from '@/types/common';
 import { CircleCheckBig } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export const HomeGetStartedCard = ({
@@ -10,32 +11,34 @@ export const HomeGetStartedCard = ({
   onAddTransaction,
   onCreateBudget,
 }: HomeGetStartedCardProps) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <CircleCheckBig size={20} color={Colors.primary} />
-        <Text style={styles.title}>Get Started</Text>
+        <Text style={styles.title}>{t('dashboard.getStarted.title')}</Text>
       </View>
-      <Text style={styles.description}>Set up your tracking in a few quick steps.</Text>
+      <Text style={styles.description}>{t('homeSummary.getStartedDescription')}</Text>
 
       <View style={styles.steps}>
         <StepItem
-          step="Step 1"
-          title="Add Friend"
-          actionLabel="Add Friend"
+          step={t('homeSummary.steps.step1')}
+          title={t('home.actions.addFriend')}
+          actionLabel={t('home.actions.addFriend')}
           onPress={onAddFriend}
           variant="primary"
         />
         <StepItem
-          step="Step 2"
-          title="Add Transaction"
-          actionLabel="Add Transaction"
+          step={t('homeSummary.steps.step2')}
+          title={t('home.actions.addTransaction')}
+          actionLabel={t('home.actions.addTransaction')}
           onPress={onAddTransaction}
         />
         <StepItem
-          step="Step 3 (Optional)"
-          title="Create Budget"
-          actionLabel="Create Budget"
+          step={t('homeSummary.steps.step3Optional')}
+          title={t('home.actions.createBudget')}
+          actionLabel={t('home.actions.createBudget')}
           onPress={onCreateBudget}
         />
       </View>

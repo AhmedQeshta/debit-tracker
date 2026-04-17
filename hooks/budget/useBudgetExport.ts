@@ -4,9 +4,11 @@ import { useSyncStore } from '@/store/syncStore';
 import { BudgetExportScopeMode, ExportFormat, OpenBudgetExportModalOptions } from '@/types/export';
 import { useAuth } from '@clerk/clerk-expo';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 
 export const useBudgetExport = () => {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const { cloudUserId } = useSyncStore();
   const { toastError, toastInfo, toastSuccess } = useToast();
@@ -36,7 +38,7 @@ export const useBudgetExport = () => {
     async (deliveryMode: 'save' | 'share') => {
       try {
         setIsExporting(true);
-        toastInfo('Preparing budget export...');
+        toastInfo(t('budgetHooks.export.preparing'));
 
         const result = await exportAndSaveToDevice({
           format,
@@ -56,34 +58,46 @@ export const useBudgetExport = () => {
 
         result.warnings.forEach((warning) => toastInfo(warning));
 
-        const fileCountText = result.files.length === 1 ? '1 file' : `${result.files.length} files`;
+        const fileCountText = t('budgetHooks.export.fileCount', { count: result.files.length });
 
         if (deliveryMode === 'save') {
           const savedPath = result.files[0]?.uri || 'unknown path';
-          toastSuccess('Export saved');
-          Alert.alert('Export saved', `Saved ${fileCountText}\n${savedPath}`, [
-            {
-              text: 'Share file(s)',
-              onPress: () => {
-                shareSavedExportFiles(result.files).catch((error) => {
-                  console.error('[BudgetExport] Share after save failed:', error);
-                  toastError(`Couldn't export. ${error?.message || 'Unable to share files.'}`);
-                });
+          toastSuccess(t('budgetHooks.export.saved'));
+          Alert.alert(
+            t('budgetHooks.export.saved'),
+            t('budgetHooks.export.savedDetails', { fileCountText, savedPath }),
+            [
+              {
+                text: t('budgetHooks.export.shareFiles'),
+                onPress: () => {
+                  shareSavedExportFiles(result.files).catch((error) => {
+                    console.error('[BudgetExport] Share after save failed:', error);
+                    toastError(
+                      t('budgetHooks.export.shareFailed', {
+                        message: error?.message || t('budgetHooks.export.unableToShareFiles'),
+                      }),
+                    );
+                  });
+                },
               },
-            },
-            {
-              text: 'OK',
-              style: 'cancel',
-            },
-          ]);
+              {
+                text: t('common.actions.ok'),
+                style: 'cancel',
+              },
+            ],
+          );
         } else {
-          toastSuccess(`Export complete: ${fileCountText} shared.`);
+          toastSuccess(t('budgetHooks.export.completeShared', { fileCountText }));
         }
 
         setVisible(false);
       } catch (error: any) {
         console.error('[BudgetExport] Export failed:', error);
-        toastError(`Couldn't export. ${error?.message || 'Unknown error'}`);
+        toastError(
+          t('budgetHooks.export.failed', {
+            message: error?.message || t('budgetHooks.export.unknownError'),
+          }),
+        );
       } finally {
         setIsExporting(false);
       }
@@ -98,6 +112,7 @@ export const useBudgetExport = () => {
       toastError,
       toastInfo,
       toastSuccess,
+      t,
     ],
   );
 
@@ -117,8 +132,11 @@ export const useBudgetExport = () => {
     exportBySharing: () => handleExport('share'),
     selectedBudgetId,
     scopeSubtitle: useMemo(
-      () => (scopeMode === 'selected' ? 'Selected budget only' : 'All budgets'),
-      [scopeMode],
+      () =>
+        scopeMode === 'selected'
+          ? t('budgetHooks.export.scopeSelectedOnly')
+          : t('budgetHooks.export.scopeAllBudgets'),
+      [scopeMode, t],
     ),
   };
 };

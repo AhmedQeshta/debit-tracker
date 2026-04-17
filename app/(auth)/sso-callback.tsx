@@ -4,11 +4,13 @@ import { Spacing } from '@/theme/spacing';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 export default function SsoCallbackScreen() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isSignedIn) {
@@ -21,7 +23,7 @@ export default function SsoCallbackScreen() {
     <ScreenContainer scrollable={false}>
       <View style={styles.container}>
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.text}>Completing sign-in...</Text>
+        <Text style={styles.text}>{t('auth.signIn.Completing')}</Text>
       </View>
     </ScreenContainer>
   );

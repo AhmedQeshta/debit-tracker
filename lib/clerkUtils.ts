@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import NetInfo from '@react-native-community/netinfo';
 
 /**
@@ -6,7 +7,7 @@ import NetInfo from '@react-native-community/netinfo';
  * @returns Formatted error message string
  */
 export const formatClerkError = (error: any): string => {
-  if (!error) return 'An unexpected error occurred';
+  if (!error) return i18n.t('clerkUtils.errors.unexpected');
 
   // Handle Clerk error structure
   if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
@@ -35,7 +36,7 @@ export const formatClerkError = (error: any): string => {
     return errorString;
   }
 
-  return 'An unexpected error occurred. Please try again.';
+  return i18n.t('clerkUtils.errors.unexpectedTryAgain');
 };
 
 /**
@@ -60,6 +61,6 @@ export const isOffline = async (): Promise<boolean> => {
 export const checkOfflineAndThrow = async (): Promise<void> => {
   const offline = await isOffline();
   if (offline) {
-    throw new Error('No internet connection. Please check your network and try again.');
+    throw new Error(i18n.t('clerkUtils.errors.noInternet'));
   }
 };

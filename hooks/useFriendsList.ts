@@ -20,6 +20,7 @@ import {
 } from '@/types/friend';
 import { useAuth } from '@clerk/clerk-expo';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 
 const normalizeCurrency = (currency: unknown): string => {
@@ -29,6 +30,7 @@ const normalizeCurrency = (currency: unknown): string => {
 };
 
 export const useFriendsList = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [isGrid, setIsGrid] = useState(false);
   const [sortBy, setSortBy] = useState<FriendsSortBy>('recent');
@@ -92,7 +94,10 @@ export const useFriendsList = () => {
           directionLabel,
           status,
           subtitle:
-            friend.bio || `Last activity ${formatDateLabel(friend.updatedAt || friend.createdAt)}`,
+            friend.bio ||
+            t('friendsHooks.list.lastActivityWithDate', {
+              date: formatDateLabel(friend.updatedAt || friend.createdAt),
+            }),
         };
       })
       .filter((row) => (filterBy === 'all' ? true : row.status === filterBy));
@@ -111,7 +116,7 @@ export const useFriendsList = () => {
 
       return b.friend.createdAt - a.friend.createdAt;
     });
-  }, [friends, transactions, search, filterBy, sortBy]);
+  }, [friends, transactions, search, filterBy, sortBy, t]);
 
   const summary = useMemo(() => {
     const activeFriends = friends.filter(
@@ -159,14 +164,14 @@ export const useFriendsList = () => {
 
   const handleFriendDelete = (friendId: string, friendName: string): void => {
     showConfirm(
-      'Delete Friend',
-      `Are you sure you want to delete "${friendName}"? This will also delete all associated transactions.`,
+      t('friendHooks.detail.deleteFriend.confirmTitle'),
+      t('friendHooks.detail.deleteFriend.confirmMessage', { name: friendName }),
       async () => {
         const { cloudUserId, syncEnabled } = useSyncStore.getState();
 
         // 1. Check if we can do online delete
         if (syncEnabled && isOnline && cloudUserId) {
-          toastSuccess('Deleting from cloud...'); // Use generic toast for feedback
+          toastSuccess(t('friendsHooks.delete.deletingFromCloud'));
           try {
             const result = await syncService.deleteFriendWithTransactions(
               friendId,
@@ -188,7 +193,7 @@ export const useFriendsList = () => {
               // Remove friend permanently
               useFriendsStore.getState().removeDeletedFriend(friendId);
 
-              toastSuccess('Friend deleted permanently');
+              toastSuccess(t('friendsHooks.delete.deletedPermanently'));
               return;
             } else {
               console.error('Online delete failed, falling back to offline delete', result.error);
@@ -218,9 +223,9 @@ export const useFriendsList = () => {
         deleteFriend(friendId);
 
         if (syncEnabled && isOnline) {
-          toastSuccess('Cloud deletion failed. Deleted locally and queued for sync.');
+          toastSuccess(t('friendsHooks.delete.cloudFailedQueued'));
         } else {
-          toastSuccess('Friend deleted locally (will sync when online)');
+          toastSuccess(t('friendsHooks.delete.deletedLocallyWillSync'));
         }
 
         // Trigger sync to push deletions to Supabase (if online)
@@ -230,7 +235,7 @@ export const useFriendsList = () => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
@@ -250,8 +255,8 @@ export const useFriendsList = () => {
     if (!row) return;
 
     await handleCopyAmount(Math.abs(row.balance), row.friend.currency || '$', {
-      successMessage: `Copied ${row.amountText} to clipboard`,
-      errorMessage: 'Failed to copy amount',
+      successMessage: t('friendsHooks.list.copiedAmount', { amount: row.amountText }),
+      errorMessage: t('copyAmount.error'),
     });
   };
 

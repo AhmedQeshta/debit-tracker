@@ -11,16 +11,8 @@ import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
+import { QueueBlockedReason, SyncQueueFlushSummary } from '@/types/common';
 import { Budget, BudgetItem, Friend, Transaction } from '@/types/models';
-
-type QueueBlockedReason = 'offline' | 'auth' | 'unknown';
-
-export interface SyncQueueFlushSummary {
-  total: number;
-  successCount: number;
-  failedCount: number;
-  blockedReason?: QueueBlockedReason;
-}
 
 // Timeout wrapper for Supabase queries (15 seconds)
 const SYNC_TIMEOUT_MS = 15000;

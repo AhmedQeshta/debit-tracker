@@ -1,8 +1,8 @@
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { HomeSectionHeaderProps } from '@/types/common';
-import { ChevronRight } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { I18nManager, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const HomeSectionHeader = ({
   title,
@@ -15,7 +15,11 @@ export const HomeSectionHeader = ({
       {onSeeAll ? (
         <Pressable style={styles.linkButton} onPress={onSeeAll} hitSlop={8}>
           <Text style={styles.linkLabel}>{seeAllLabel}</Text>
-          <ChevronRight size={16} color={Colors.primary} />
+          {I18nManager.isRTL ? (
+            <ChevronLeft size={16} color={Colors.primary} />
+          ) : (
+            <ChevronRight size={16} color={Colors.primary} />
+          )}
         </Pressable>
       ) : null}
     </View>

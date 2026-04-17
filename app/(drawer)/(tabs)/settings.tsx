@@ -12,6 +12,7 @@ import {
   Cloud,
   Download,
   FileText,
+  Globe,
   Info,
   LogOut,
   Palette,
@@ -43,30 +44,35 @@ export default function Settings() {
     router,
     loadTimedOut,
     showAuthSkeleton,
+    currentLanguage,
+    handleLanguageChange,
+    t,
   } = useSettings();
   const { handleAuthAction, isSigningOut } = useSignOut();
 
   return (
     <View style={styles.wrapper}>
       <ScreenContainer>
-        <Header openDrawer={openDrawer} title="Settings" subtitle="Account & app preferences" />
+        <Header
+          openDrawer={openDrawer}
+          title={t('settings.title')}
+          subtitle={t('settings.subtitle')}
+        />
 
         {showAuthSkeleton ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={Colors.primary} />
-            <Text style={styles.loadingText}>Loading account...</Text>
+            <Text style={styles.loadingText}>{t('settings.descriptions.loadingAccount')}</Text>
           </View>
         ) : null}
 
         {!isLoaded && loadTimedOut ? (
           <View style={styles.warningContainer}>
-            <Text style={styles.warningText}>
-              Couldn&apos;t load account info. You can still use settings.
-            </Text>
+            <Text style={styles.warningText}>{t('settings.descriptions.accountFallback')}</Text>
           </View>
         ) : null}
 
-        <SettingsSection title="Account">
+        <SettingsSection title={t('settings.sections.account')}>
           {showAuthSkeleton ? (
             <View style={styles.placeholderRow}>
               <View style={styles.placeholderAvatar} />
@@ -80,7 +86,7 @@ export default function Settings() {
               style={({ pressed }) => [styles.profileRow, pressed && styles.rowPressed]}
               onPress={() => router.push('/(drawer)/settings/account')}
               accessibilityRole="button"
-              accessibilityLabel="Open account settings">
+              accessibilityLabel={t('settings.rows.manageAccount')}>
               <View style={styles.profileLeft}>
                 {user.imageUrl ? (
                   <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
@@ -101,14 +107,14 @@ export default function Settings() {
                   </Text>
                 </View>
               </View>
-              <StatusPill label="Signed in" tone="success" />
+              <StatusPill label={t('settings.statusValues.signedIn')} tone="success" />
               <View style={styles.divider} />
             </Pressable>
           ) : (
             <SettingsRow
               icon={User}
-              title="Sign in"
-              subtitle="Sign in to manage your account and cloud sync"
+              title={t('settings.rows.signIn')}
+              subtitle={t('settings.descriptions.signInSub')}
               onPress={handleSignIn}
               showDivider={false}
             />
@@ -118,20 +124,24 @@ export default function Settings() {
             <>
               <SettingsRow
                 icon={User}
-                title="Manage account"
-                subtitle="Profile details and email"
+                title={t('settings.rows.manageAccount')}
+                subtitle={t('settings.descriptions.manageAccountSub')}
                 onPress={() => router.push('/(drawer)/settings/account')}
               />
               <SettingsRow
                 icon={Shield}
-                title="Security"
-                subtitle="Change your password"
+                title={t('settings.rows.security')}
+                subtitle={t('settings.descriptions.securitySub')}
                 onPress={() => router.push('/(drawer)/settings/change-password')}
               />
               <SettingsRow
                 icon={LogOut}
-                title="Sign out"
-                subtitle={isSigningOut ? 'Signing out...' : 'Sign out from this device'}
+                title={t('settings.rows.signOut')}
+                subtitle={
+                  isSigningOut
+                    ? t('settings.descriptions.signOutLoading')
+                    : t('settings.descriptions.signOutSub')
+                }
                 onPress={handleAuthAction}
                 disabled={isSigningOut}
                 destructive
@@ -142,12 +152,14 @@ export default function Settings() {
           ) : null}
         </SettingsSection>
 
-        <SettingsSection title="Sync">
+        <SettingsSection title={t('settings.sections.sync')}>
           <SettingsToggleRow
             icon={Cloud}
-            title="Cloud Sync"
+            title={t('settings.rows.cloudSync')}
             subtitle={
-              isSignedIn ? 'Keep data synced across devices' : 'Sign in to enable cloud sync'
+              isSignedIn
+                ? t('settings.descriptions.syncEnabled')
+                : t('settings.descriptions.syncDisabled')
             }
             value={isSignedIn ? syncEnabled : false}
             onValueChange={setSyncEnabled}
@@ -159,28 +171,34 @@ export default function Settings() {
             <>
               <SettingsRow
                 icon={Cloud}
-                title="Status"
+                title={t('settings.rows.status')}
                 value={getSyncStatusText()}
-                subtitle={syncStatus === 'error' ? 'Tap Sync now to retry' : undefined}
+                subtitle={
+                  syncStatus === 'error' ? t('settings.descriptions.syncErrorSub') : undefined
+                }
                 showChevron={false}
                 showDivider
                 rightSlot={
                   syncStatus === 'error' || lastError ? (
-                    <StatusPill label="Error" tone="error" />
+                    <StatusPill label={t('settings.statusValues.error')} tone="error" />
                   ) : undefined
                 }
               />
               <SettingsRow
                 icon={RefreshCw}
-                title="Last synced"
+                title={t('settings.rows.lastSynced')}
                 value={formatLastSync(lastSync)}
                 showChevron={false}
                 showDivider
               />
               <SettingsRow
                 icon={RefreshCw}
-                title="Sync now"
-                subtitle={isSyncing ? 'Sync in progress' : 'Force a sync now'}
+                title={t('settings.rows.syncNow')}
+                subtitle={
+                  isSyncing
+                    ? t('settings.descriptions.syncNowLoading')
+                    : t('settings.descriptions.syncNowSub')
+                }
                 onPress={handleSync}
                 showDivider={false}
               />
@@ -188,47 +206,63 @@ export default function Settings() {
           ) : null}
         </SettingsSection>
 
-        <SettingsSection title="App">
+        <SettingsSection title={t('settings.sections.app')}>
           <SettingsRow
             icon={Download}
-            title="Export data"
-            subtitle="Save or share friends and budgets as CSV or JSON"
+            title={t('settings.rows.exportData')}
+            subtitle={t('settings.descriptions.exportDataSub')}
             onPress={() => router.push('/(drawer)/settings/export-data' as any)}
           />
-          <SettingsRow icon={Info} title="Version" value={appVersion} showChevron={false} />
+          <SettingsRow
+            icon={Info}
+            title={t('settings.rows.version')}
+            value={appVersion}
+            showChevron={false}
+          />
+          <SettingsRow
+            icon={Globe}
+            title={t('settings.rows.language')}
+            value={
+              currentLanguage === 'ar'
+                ? t('settings.languageOptions.arabic')
+                : t('settings.languageOptions.english')
+            }
+            subtitle={t('settings.languageOptions.pickerMessage')}
+            onPress={handleLanguageChange}
+          />
           <SettingsRow
             icon={Palette}
-            title="Theme"
+            title={t('settings.rows.theme')}
             value="Dark"
-            subtitle="Dark mode is currently active"
+            subtitle={t('settings.descriptions.themeSub')}
             showChevron={false}
           />
           <SettingsRow
             icon={Info}
-            title="About"
-            subtitle="App details and developer info"
+            title={t('settings.rows.about')}
+            subtitle={t('settings.descriptions.aboutSub')}
             onPress={() => router.push('/(drawer)/about')}
           />
           <SettingsRow
             icon={Shield}
-            title="Privacy"
-            subtitle="How your data is handled"
+            title={t('settings.rows.privacy')}
+            subtitle={t('settings.descriptions.privacySub')}
             onPress={() => router.push('/(drawer)/privacy')}
           />
           <SettingsRow
             icon={FileText}
-            title="Terms"
-            subtitle="Terms and conditions"
+            title={t('settings.rows.terms')}
+            subtitle={t('settings.descriptions.termsSub')}
             onPress={() => router.push('/(drawer)/terms')}
             showDivider={false}
           />
         </SettingsSection>
 
-        <SettingsSection title="Danger Zone">
+        <SettingsSection title={t('settings.sections.danger')}>
           <SettingsRow
             icon={Trash2}
-            title="Clear local data"
-            subtitle="Remove local budgets, friends, and transactions"
+            title={t('settings.rows.clearLocalData')}
+            subtitle={t('settings.descriptions.clearLocalDataSub')}
             onPress={handleClearLocalData}
             destructive
             showChevron={false}

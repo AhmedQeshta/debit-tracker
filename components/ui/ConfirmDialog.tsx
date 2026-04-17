@@ -1,28 +1,24 @@
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { ConfirmDialogProps } from '@/types/common';
 import { AlertTriangle } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-interface ConfirmDialogProps {
-  visible: boolean;
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   visible,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   onConfirm,
   onCancel,
 }) => {
+  const { t } = useTranslation();
+  const resolvedConfirmText = confirmText || t('common.actions.ok');
+  const resolvedCancelText = cancelText || t('common.actions.cancel');
+
   const handleConfirm = () => {
     // Use requestAnimationFrame to avoid unmount issues
     requestAnimationFrame(() => {
@@ -46,13 +42,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               style={[styles.button, styles.cancelButton]}
               onPress={onCancel}
               activeOpacity={0.7}>
-              <Text style={styles.cancelButtonText}>{cancelText}</Text>
+              <Text style={styles.cancelButtonText}>{resolvedCancelText}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
               onPress={handleConfirm}
               activeOpacity={0.7}>
-              <Text style={styles.confirmButtonText}>{confirmText}</Text>
+              <Text style={styles.confirmButtonText}>{resolvedConfirmText}</Text>
             </TouchableOpacity>
           </View>
         </View>

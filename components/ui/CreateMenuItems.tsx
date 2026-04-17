@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { Colors } from '@/theme/colors';
 import { IMenuItem } from '@/types/common';
 import { Budget, Friend } from '@/types/models';
@@ -12,6 +13,15 @@ export const createMenuItems = (
   onCopyAmount?: () => void,
 ): IMenuItem[] => {
   const menuItems = [];
+  const normalizedType = (type || '').toLowerCase();
+  const typeKey = normalizedType.includes('budget')
+    ? 'budget'
+    : normalizedType.includes('friend')
+      ? 'friend'
+      : normalizedType.includes('transaction')
+        ? 'transaction'
+        : 'item';
+  const typeLabel = i18n.t(`menuItemTypes.${typeKey}`);
 
   if (item && onPinToggle) {
     menuItems.push({
@@ -20,7 +30,9 @@ export const createMenuItems = (
       ) : (
         <Pin size={18} color={Colors.text} />
       ),
-      label: item.pinned ? `Unpin ${type}` : `Pin ${type}`,
+      label: item.pinned
+        ? i18n.t('menuActions.unpinItem', { type: typeLabel })
+        : i18n.t('menuActions.pinItem', { type: typeLabel }),
       onPress: onPinToggle,
     });
   }
@@ -28,7 +40,7 @@ export const createMenuItems = (
   if (onCopyAmount) {
     menuItems.push({
       icon: <Copy size={18} color={Colors.text} />,
-      label: `Copy ${type} amount`,
+      label: i18n.t('menuActions.copyItemAmount', { type: typeLabel }),
       onPress: onCopyAmount,
     });
   }
@@ -36,7 +48,7 @@ export const createMenuItems = (
   if (onEdit) {
     menuItems.push({
       icon: <Pencil size={18} color={Colors.text} />,
-      label: `Edit ${type}`,
+      label: i18n.t('menuActions.editItem', { type: typeLabel }),
       onPress: onEdit,
     });
   }
@@ -44,7 +56,7 @@ export const createMenuItems = (
   if (onDelete) {
     menuItems.push({
       icon: <Trash2 size={18} color={Colors.error} />,
-      label: `Delete ${type}`,
+      label: i18n.t('menuActions.deleteItem', { type: typeLabel }),
       onPress: onDelete,
       danger: true,
     });

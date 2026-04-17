@@ -2,8 +2,10 @@ import { useCloudSync } from '@/hooks/sync/useCloudSync';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { useBudgetStore } from '@/store/budgetStore';
+import { useTranslation } from 'react-i18next';
 
 export const useBudgetPeriod = () => {
+  const { t } = useTranslation();
   const { showConfirm } = useConfirmDialog();
   const { toastSuccess } = useToast();
   const { removeItem } = useBudgetStore();
@@ -11,8 +13,8 @@ export const useBudgetPeriod = () => {
 
   const handleBudgetResetPeriod = (budgetId: string, title: string) => {
     showConfirm(
-      'Reset Budget Period',
-      `Clear all transactions from "${title}" and start a new period?`,
+      t('budgetHooks.resetPeriod.confirmTitle'),
+      t('budgetHooks.resetPeriod.confirmMessage', { title }),
       async () => {
         const budget = useBudgetStore
           .getState()
@@ -24,7 +26,7 @@ export const useBudgetPeriod = () => {
           removeItem(budgetId, entry.id);
         });
 
-        toastSuccess('Budget period has been reset');
+        toastSuccess(t('budgetHooks.resetPeriod.success'));
 
         try {
           await syncNow();
@@ -32,7 +34,7 @@ export const useBudgetPeriod = () => {
           console.error('[Sync] Failed to sync after period reset:', error);
         }
       },
-      { confirmText: 'Reset' },
+      { confirmText: t('budgetHooks.resetPeriod.confirmAction') },
     );
   };
 

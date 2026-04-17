@@ -9,9 +9,11 @@ import { useBudgetStore } from '@/store/budgetStore';
 import { BudgetSortKey } from '@/types/budget';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useBudgetList = () => {
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [sortKey, setSortKey] = useState<BudgetSortKey>('recent');
   const [hydrated, setHydrated] = useState(useBudgetStore.persist.hasHydrated());
@@ -47,11 +49,11 @@ export const useBudgetList = () => {
 
   const handleDelete = (budgetId: string, title: string): void => {
     showConfirm(
-      'Delete Budget',
-      `Are you sure you want to delete "${title}"?`,
+      t('budgetHooks.deleteBudget.confirmTitle'),
+      t('budgetHooks.deleteBudget.confirmMessage', { title }),
       async () => {
         deleteBudget(budgetId);
-        toastSuccess('Budget deleted successfully');
+        toastSuccess(t('budgetHooks.deleteBudget.success'));
 
         // Trigger sync to push deletion to Supabase
         try {
@@ -60,14 +62,14 @@ export const useBudgetList = () => {
           console.error('[Sync] Failed to sync after delete:', error);
         }
       },
-      { confirmText: 'Delete' },
+      { confirmText: t('common.actions.delete') },
     );
   };
 
   const handleResetPeriod = (budgetId: string, title: string): void => {
     showConfirm(
-      'Reset Budget Period',
-      `Clear all transactions from "${title}" and start a new period?`,
+      t('budgetHooks.resetPeriod.confirmTitle'),
+      t('budgetHooks.resetPeriod.confirmMessage', { title }),
       async () => {
         const budget = budgets.find((b) => b.id === budgetId);
         if (!budget) return;
@@ -77,7 +79,7 @@ export const useBudgetList = () => {
           removeItem(budgetId, entry.id);
         });
 
-        toastSuccess('Budget period has been reset');
+        toastSuccess(t('budgetHooks.resetPeriod.success'));
 
         try {
           await syncNow();
@@ -85,7 +87,7 @@ export const useBudgetList = () => {
           console.error('[Sync] Failed to sync after period reset:', error);
         }
       },
-      { confirmText: 'Reset' },
+      { confirmText: t('budgetHooks.resetPeriod.confirmAction') },
     );
   };
 
@@ -95,11 +97,11 @@ export const useBudgetList = () => {
       await syncNow();
     } catch (error) {
       console.error('[Sync] Failed to refresh budgets:', error);
-      toastError('Could not refresh budgets right now');
+      toastError(t('budgetHooks.refresh.error'));
     } finally {
       setRefreshing(false);
     }
-  }, [syncNow, toastError]);
+  }, [syncNow, t, toastError]);
 
   useEffect(() => {
     const unsubscribe = useBudgetStore.persist.onFinishHydration(() => {

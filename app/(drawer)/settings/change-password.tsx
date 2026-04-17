@@ -7,9 +7,11 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { AlertCircle, Check, Shield } from 'lucide-react-native';
 import { Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Switch, Text, View } from 'react-native';
 
 export default function ChangePasswordScreen() {
+  const { t } = useTranslation();
   const {
     control,
     handleSubmit,
@@ -32,12 +34,19 @@ export default function ChangePasswordScreen() {
     hasUppercase,
   } = useChangePassword();
 
+  const strengthText =
+    strength === 'Weak'
+      ? t('changePassword.strength.weak')
+      : strength === 'OK'
+        ? t('changePassword.strength.ok')
+        : t('changePassword.strength.strong');
+
   if (!isLoaded) {
     return (
       <ScreenContainer>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.states.loading')}</Text>
         </View>
       </ScreenContainer>
     );
@@ -47,9 +56,9 @@ export default function ChangePasswordScreen() {
     return (
       <ScreenContainer>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Please sign in to change your password.</Text>
+          <Text style={styles.errorText}>{t('changePassword.errors.signInRequired')}</Text>
           <Button
-            title="Go to Sign In"
+            title={t('changePassword.actions.goToSignIn')}
             onPress={() => router.push('/(auth)/sign-in')}
             variant="primary"
           />
@@ -62,8 +71,8 @@ export default function ChangePasswordScreen() {
     <ScreenContainer>
       <View style={styles.container}>
         <Header
-          title="Change password"
-          subtitle="Use a strong password you don't reuse."
+          title={t('changePassword.title')}
+          subtitle={t('changePassword.subtitle')}
           isGoBack
           openDrawer={() => router.push('/(drawer)/(tabs)/settings')}
         />
@@ -71,11 +80,11 @@ export default function ChangePasswordScreen() {
         <View style={styles.formCard}>
           <Controller
             control={control}
-            rules={{ required: 'Current password is required' }}
+            rules={{ required: t('changePassword.validation.currentPasswordRequired') }}
             render={({ field: { onChange, onBlur, value } }) => (
               <PasswordInput
-                label="Current password"
-                placeholder="Enter your current password"
+                label={t('changePassword.fields.currentPasswordLabel')}
+                placeholder={t('changePassword.fields.currentPasswordPlaceholder')}
                 onBlur={onBlur}
                 onChangeText={(text) => {
                   setAuthError(null);
@@ -96,26 +105,26 @@ export default function ChangePasswordScreen() {
           <Controller
             control={control}
             rules={{
-              required: 'New password is required',
+              required: t('changePassword.validation.newPasswordRequired'),
               minLength: {
                 value: 8,
-                message: 'Password must be at least 8 characters',
+                message: t('auth.validation.passwordMin'),
               },
               validate: {
                 hasNumberOrSymbol: (value: string) =>
-                  /[0-9\W_]/.test(value) || 'Password must include at least one number or symbol',
+                  /[0-9\W_]/.test(value) || t('changePassword.validation.numberOrSymbolRequired'),
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <PasswordInput
                 inputRef={newPasswordRef}
-                label="New password"
-                placeholder="Create a new password"
+                label={t('changePassword.fields.newPasswordLabel')}
+                placeholder={t('changePassword.fields.newPasswordPlaceholder')}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
                 error={errors.newPassword?.message}
-                helperText="At least 8 characters. One number or symbol is required."
+                helperText={t('changePassword.fields.newPasswordHelper')}
                 returnKeyType="next"
                 autoComplete="new-password"
                 textContentType="newPassword"
@@ -127,12 +136,12 @@ export default function ChangePasswordScreen() {
           />
 
           <View style={styles.rulesBlock}>
-            <RuleItem label="At least 8 characters" isMet={hasMinLength} />
-            <RuleItem label="One number or symbol" isMet={hasNumberOrSymbol} />
-            <RuleItem label="Uppercase letter (recommended)" isMet={hasUppercase} />
+            <RuleItem label={t('changePassword.rules.minLength')} isMet={hasMinLength} />
+            <RuleItem label={t('changePassword.rules.numberOrSymbol')} isMet={hasNumberOrSymbol} />
+            <RuleItem label={t('changePassword.rules.uppercaseRecommended')} isMet={hasUppercase} />
 
             <View style={styles.strengthRow}>
-              <Text style={styles.strengthLabel}>Strength</Text>
+              <Text style={styles.strengthLabel}>{t('changePassword.strength.label')}</Text>
               <View style={styles.strengthTrack}>
                 <View
                   style={[
@@ -153,17 +162,17 @@ export default function ChangePasswordScreen() {
                   ]}
                 />
               </View>
-              <Text style={styles.strengthValue}>{strength}</Text>
+              <Text style={styles.strengthValue}>{strengthText}</Text>
             </View>
           </View>
 
           <Controller
             control={control}
             rules={{
-              required: 'Please confirm your new password',
+              required: t('auth.validation.confirmPasswordRequired'),
               validate: (value, formValues) => {
                 if (value !== formValues.newPassword) {
-                  return 'Passwords do not match';
+                  return t('auth.validation.passwordsNoMatch');
                 }
                 return true;
               },
@@ -171,8 +180,8 @@ export default function ChangePasswordScreen() {
             render={({ field: { onChange, onBlur, value } }) => (
               <PasswordInput
                 inputRef={confirmPasswordRef}
-                label="Confirm new password"
-                placeholder="Re-enter new password"
+                label={t('changePassword.fields.confirmPasswordLabel')}
+                placeholder={t('changePassword.fields.confirmPasswordPlaceholder')}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
@@ -190,10 +199,10 @@ export default function ChangePasswordScreen() {
             <View style={styles.sessionCopyWrap}>
               <View style={styles.sessionLabelRow}>
                 <Shield size={16} color={Colors.primary} />
-                <Text style={styles.sessionTitle}>Log out other devices</Text>
+                <Text style={styles.sessionTitle}>{t('changePassword.signOutOthers.title')}</Text>
               </View>
               <Text style={styles.sessionSubtitle}>
-                Recommended when changing a password on a shared device.
+                {t('changePassword.signOutOthers.subtitle')}
               </Text>
             </View>
             <Switch
@@ -202,7 +211,7 @@ export default function ChangePasswordScreen() {
               disabled={loading}
               trackColor={{ false: Colors.border, true: Colors.primary }}
               thumbColor={Colors.text}
-              accessibilityLabel="Log out other devices"
+              accessibilityLabel={t('changePassword.signOutOthers.title')}
             />
           </View>
         </View>
@@ -216,7 +225,11 @@ export default function ChangePasswordScreen() {
 
         <View style={styles.buttonContainer}>
           <Button
-            title={loading ? 'Updating password...' : 'Update password'}
+            title={
+              loading
+                ? t('changePassword.actions.updating')
+                : t('changePassword.actions.updatePassword')
+            }
             onPress={handleSubmit(onChangePassword)}
             disabled={loading || !isFormReady}
             loading={loading}

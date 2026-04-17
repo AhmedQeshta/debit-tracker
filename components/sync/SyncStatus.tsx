@@ -5,10 +5,12 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { AlertCircle, Cloud, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { OfflineBanner } from './OfflineBanner';
 
 export const SyncStatus = () => {
+  const { t } = useTranslation();
   const {
     isLoggedIn,
     syncEnabled,
@@ -39,7 +41,7 @@ export const SyncStatus = () => {
 
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>Cloud Sync</Text>
+            <Text style={styles.title}>{t('settings.rows.cloudSync')}</Text>
             <Switch
               value={syncEnabled}
               onValueChange={setSyncEnabled}
@@ -56,6 +58,7 @@ export const SyncStatus = () => {
               <TouchableOpacity onPress={handleSync} disabled={!isOnline || isNetworkWeak}>
                 <RefreshCw
                   size={16}
+                  accessibilityLabel={t('settings.rows.syncNow')}
                   color={isOnline && !isNetworkWeak ? Colors.primary : Colors.textSecondary}
                 />
               </TouchableOpacity>
@@ -68,7 +71,7 @@ export const SyncStatus = () => {
             {isNetworkWeak && syncStatus !== 'error' && (
               <View style={styles.networkWarning}>
                 <WifiOff size={14} color={Colors.error} />
-                <Text style={styles.networkWarningText}>Internet is weak. Sync may fail.</Text>
+                <Text style={styles.networkWarningText}>{t('sync.status.internetWeak')}</Text>
               </View>
             )}
 
@@ -83,16 +86,14 @@ export const SyncStatus = () => {
             {syncStatus === 'needs_config' && (
               <View style={styles.statusMessage}>
                 <AlertCircle size={14} color={Colors.error} />
-                <Text style={styles.statusMessageText}>JWT template missing. Check setup.</Text>
+                <Text style={styles.statusMessageText}>{t('sync.status.needsConfig')}</Text>
               </View>
             )}
 
             {syncStatus === 'needs_login' && (
               <View style={styles.statusMessage}>
                 <AlertCircle size={14} color={Colors.error} />
-                <Text style={styles.statusMessageText}>
-                  Authentication expired. Please log in again.
-                </Text>
+                <Text style={styles.statusMessageText}>{t('sync.status.needsLogin')}</Text>
               </View>
             )}
 
@@ -102,8 +103,8 @@ export const SyncStatus = () => {
                 <View style={styles.errorContent}>
                   <Text style={styles.statusMessageText}>
                     {isTimeoutError
-                      ? 'Network timeout. Check your connection and retry.'
-                      : lastError.message || 'Sync error occurred. Please try again.'}
+                      ? t('sync.status.timeoutError')
+                      : lastError.message || t('sync.status.genericError')}
                   </Text>
                   <TouchableOpacity
                     style={styles.retryButton}
@@ -114,7 +115,7 @@ export const SyncStatus = () => {
                         styles.retryButtonText,
                         (!isOnline || isNetworkWeak) && styles.retryButtonTextDisabled,
                       ]}>
-                      Retry
+                      {t('sync.actions.retry')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -125,7 +126,7 @@ export const SyncStatus = () => {
             {syncStatus === 'success' && (
               <View style={styles.successMessage}>
                 <Cloud size={14} color={Colors.success} />
-                <Text style={styles.successText}>Sync complete</Text>
+                <Text style={styles.successText}>{t('sync.status.complete')}</Text>
               </View>
             )}
 
@@ -140,23 +141,25 @@ export const SyncStatus = () => {
                       <WifiOff size={14} stroke="#fff" />
                     )}
                     <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
-                      {isOnline ? 'Online' : 'Offline'}
+                      {isOnline ? t('sync.status.online') : t('settings.statusValues.offline')}
                     </Text>
                   </View>
 
                   <View style={[styles.badge, styles.activeBadge]}>
                     <Cloud size={14} stroke="#000" />
-                    <Text style={styles.badgeText}>Active</Text>
+                    <Text style={styles.badgeText}>{t('sync.status.active')}</Text>
                   </View>
                 </View>
 
                 <View style={styles.details}>
                   <Text style={styles.detailText}>
-                    {pendingCount === 0 ? 'All changes synced' : `${pendingCount} changes pending`}
+                    {pendingCount === 0
+                      ? t('sync.status.allChangesSynced')
+                      : t('sync.status.changesPending', { count: pendingCount })}
                   </Text>
                   {lastSync && (
                     <Text style={styles.detailText}>
-                      Last Sync: {new Date(lastSync).toLocaleTimeString()}
+                      {t('sync.status.lastSync')}: {new Date(lastSync).toLocaleTimeString()}
                     </Text>
                   )}
                 </View>

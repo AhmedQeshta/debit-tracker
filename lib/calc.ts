@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { CalcFailure, CalcSuccess } from '@/types/common';
 
 export const OPERATORS = new Set(['+', '-', '*', '/']);
@@ -118,21 +119,21 @@ const evaluateRpn = (rpn: string[]): CalcSuccess | CalcFailure => {
     if (!isOperatorToken(token)) {
       const value = Number(token);
       if (!Number.isFinite(value)) {
-        return { ok: false, error: 'Invalid expression' };
+        return { ok: false, error: i18n.t('calc.errors.invalidExpression') };
       }
       stack.push(value);
       continue;
     }
 
     if (stack.length < 2) {
-      return { ok: false, error: 'Invalid expression' };
+      return { ok: false, error: i18n.t('calc.errors.invalidExpression') };
     }
 
     const right = stack.pop() as number;
     const left = stack.pop() as number;
 
     if (token === '/' && right === 0) {
-      return { ok: false, error: 'Cannot divide by zero' };
+      return { ok: false, error: i18n.t('calc.errors.cannotDivideByZero') };
     }
 
     let result = 0;
@@ -145,7 +146,7 @@ const evaluateRpn = (rpn: string[]): CalcSuccess | CalcFailure => {
   }
 
   if (stack.length !== 1 || !Number.isFinite(stack[0])) {
-    return { ok: false, error: 'Invalid expression' };
+    return { ok: false, error: i18n.t('calc.errors.invalidExpression') };
   }
 
   return { ok: true, value: stack[0] };
@@ -154,7 +155,7 @@ const evaluateRpn = (rpn: string[]): CalcSuccess | CalcFailure => {
 export const safeEvaluate = (rawExpr: string): CalcSuccess | CalcFailure => {
   const expr = normalizeLeadingDecimals(rawExpr.replace(/\s+/g, ''));
   if (!isValidExpression(expr)) {
-    return { ok: false, error: 'Invalid expression' };
+    return { ok: false, error: i18n.t('calc.errors.invalidExpression') };
   }
 
   const tokens = tokenize(expr);

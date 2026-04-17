@@ -6,9 +6,11 @@ import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const {
     step,
     email,
@@ -33,7 +35,7 @@ export default function ForgotPasswordScreen() {
       <ScreenContainer>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.states.loading')}</Text>
         </View>
       </ScreenContainer>
     );
@@ -45,12 +47,14 @@ export default function ForgotPasswordScreen() {
         <View style={styles.header}>
           <View style={styles.headerTextBlock}>
             <Text style={styles.title}>
-              {step === 'code' ? 'Reset Password' : 'Forgot Password'}
+              {step === 'code'
+                ? t('auth.forgotPassword.resetTitle')
+                : t('auth.forgotPassword.title')}
             </Text>
             <Text style={styles.subtitle}>
               {step === 'code'
-                ? 'Enter the reset code and your new password'
-                : 'We’ll email you a reset code'}
+                ? t('auth.forgotPassword.resetSubtitle')
+                : t('auth.forgotPassword.subtitle')}
             </Text>
           </View>
           <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
@@ -62,7 +66,7 @@ export default function ForgotPasswordScreen() {
           {step === 'email' ? (
             <>
               <Input
-                label="Email"
+                label={t('auth.signIn.email')}
                 placeholder="you@example.com"
                 onChangeText={setEmail}
                 value={email}
@@ -73,7 +77,7 @@ export default function ForgotPasswordScreen() {
               {error && <Text style={styles.errorText}>{error}</Text>}
 
               <Button
-                title="Send reset code"
+                title={t('auth.forgotPassword.sendResetCode')}
                 onPress={requestResetCode}
                 loading={loading}
                 disabled={loading}
@@ -82,29 +86,29 @@ export default function ForgotPasswordScreen() {
               <TouchableOpacity
                 onPress={() => router.push('/(auth)/sign-in')}
                 style={styles.inlineLinkContainer}>
-                <Text style={styles.inlineLink}>Back to Sign in</Text>
+                <Text style={styles.inlineLink}>{t('auth.forgotPassword.backToSignIn')}</Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
               <OtpInput
-                label="Reset Code"
+                label={t('auth.forgotPassword.resetCode')}
                 value={code}
                 onChangeText={setCode}
-                helperText="Enter the 6-digit code"
+                helperText={t('auth.validation.enterSixDigitCode')}
               />
 
               <Input
-                label="New Password"
+                label={t('auth.forgotPassword.newPassword')}
                 placeholder="Create a new password"
                 onChangeText={setNewPassword}
                 value={newPassword}
                 secureTextEntry
-                helperText="Use at least 8 characters"
+                helperText={t('auth.signUp.helperPassword')}
               />
 
               <Input
-                label="Confirm Password"
+                label={t('auth.forgotPassword.confirmPassword')}
                 placeholder="Confirm your new password"
                 onChangeText={setConfirmPassword}
                 value={confirmPassword}
@@ -113,10 +117,15 @@ export default function ForgotPasswordScreen() {
 
               {error && <Text style={styles.errorText}>{error}</Text>}
 
-              <Button title="Verify" onPress={submitReset} loading={loading} disabled={loading} />
+              <Button
+                title={t('common.actions.verify')}
+                onPress={submitReset}
+                loading={loading}
+                disabled={loading}
+              />
 
               <TouchableOpacity onPress={resetFlow} style={styles.inlineLinkContainer}>
-                <Text style={styles.inlineLink}>Change email</Text>
+                <Text style={styles.inlineLink}>{t('auth.signIn.changeEmail')}</Text>
               </TouchableOpacity>
             </>
           )}

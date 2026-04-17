@@ -8,9 +8,11 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Database, FileSpreadsheet, FileText, Users, Wallet } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function ExportDataScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     format,
@@ -32,41 +34,41 @@ export default function ExportDataScreen() {
     <ScreenContainer>
       <Header
         openDrawer={() => router.push('/(drawer)/(tabs)/settings')}
-        title="Export Data"
-        subtitle="Save or share friends and budgets as CSV or JSON"
+        title={t('settingsExport.title')}
+        subtitle={t('settingsExport.subtitle')}
         isGoBack
       />
 
       <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>What to export</Text>
+        <Text style={styles.sectionTitle}>{t('settingsExport.sections.whatToExport')}</Text>
         <View style={styles.scopeRow}>
           <SelectChip
-            label="Friends"
+            label={t('navigation.tabs.friends')}
             active={friendsSelected}
             onPress={() => setFriendsSelected((prev) => !prev)}
           />
           <SelectChip
-            label="Budgets"
+            label={t('navigation.tabs.budgets')}
             active={budgetsSelected}
             onPress={() => setBudgetsSelected((prev) => !prev)}
           />
         </View>
         <Text style={styles.scopeSummary}>{summaryText}</Text>
         {scopedFriendId ? (
-          <Text style={styles.scopeHint}>Friend-scoped export is active.</Text>
+          <Text style={styles.scopeHint}>{t('settingsExport.friendScopedHint')}</Text>
         ) : null}
       </View>
 
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeadingRow}>
           <FileSpreadsheet size={18} color={Colors.textSecondary} />
-          <Text style={styles.sectionTitle}>Format</Text>
+          <Text style={styles.sectionTitle}>{t('settingsExport.sections.format')}</Text>
         </View>
         <View style={styles.scopeRow}>
           {formatOptions.map((option) => (
             <SelectChip
               key={option.value}
-              label={option.label}
+              label={t(`settingsExport.formatOptions.${option.value}`)}
               active={format === option.value}
               onPress={() => setFormat(option.value)}
             />
@@ -77,7 +79,7 @@ export default function ExportDataScreen() {
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeadingRow}>
           <FileText size={18} color={Colors.textSecondary} />
-          <Text style={styles.sectionTitle}>Detail level</Text>
+          <Text style={styles.sectionTitle}>{t('settingsExport.sections.detailLevel')}</Text>
         </View>
         {detailOptions.map((option) => (
           <Pressable
@@ -88,8 +90,12 @@ export default function ExportDataScreen() {
               pressed && styles.optionRowPressed,
             ]}
             onPress={() => setDetailLevel(option.value)}>
-            <Text style={styles.optionTitle}>{option.label}</Text>
-            <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+            <Text style={styles.optionTitle}>
+              {t(`settingsExport.detailOptions.${option.value}.label`)}
+            </Text>
+            <Text style={styles.optionSubtitle}>
+              {t(`settingsExport.detailOptions.${option.value}.subtitle`)}
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -97,7 +103,7 @@ export default function ExportDataScreen() {
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeadingRow}>
           <Database size={18} color={Colors.textSecondary} />
-          <Text style={styles.sectionTitle}>Data source</Text>
+          <Text style={styles.sectionTitle}>{t('settingsExport.sections.dataSource')}</Text>
         </View>
         {sourceOptions.map((option) => (
           <Pressable
@@ -108,8 +114,12 @@ export default function ExportDataScreen() {
               pressed && styles.optionRowPressed,
             ]}
             onPress={() => setSource(option.value)}>
-            <Text style={styles.optionTitle}>{option.label}</Text>
-            <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+            <Text style={styles.optionTitle}>
+              {t(`settingsExport.sourceOptions.${option.value}.label`)}
+            </Text>
+            <Text style={styles.optionSubtitle}>
+              {t(`settingsExport.sourceOptions.${option.value}.subtitle`)}
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -117,20 +127,20 @@ export default function ExportDataScreen() {
       <View style={styles.quickFactsCard}>
         <View style={styles.quickFactRow}>
           <Users size={16} color={Colors.textSecondary} />
-          <Text style={styles.quickFactText}>
-            Friends include balance, you owe, owed to you, and sync state.
-          </Text>
+          <Text style={styles.quickFactText}>{t('settingsExport.quickFacts.friends')}</Text>
         </View>
         <View style={styles.quickFactRow}>
           <Wallet size={16} color={Colors.textSecondary} />
-          <Text style={styles.quickFactText}>
-            Budgets include spent, remaining, progress, and optional item rows.
-          </Text>
+          <Text style={styles.quickFactText}>{t('settingsExport.quickFacts.budgets')}</Text>
         </View>
       </View>
 
       <Button
-        title={isExporting ? 'Exporting...' : 'Export data'}
+        title={
+          isExporting
+            ? t('settingsExport.actions.exporting')
+            : t('settingsExport.actions.exportData')
+        }
         onPress={handleExport}
         loading={isExporting}
         disabled={isExporting}

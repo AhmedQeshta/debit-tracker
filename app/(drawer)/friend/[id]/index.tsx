@@ -6,6 +6,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { Copy, Filter, Pencil, Pin, PinOff, Search, Trash2 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,20 +15,17 @@ import Header from '@/components/ui/Header';
 import { useFriendDetail } from '@/hooks/friend/useFriendDetail';
 import { useCopyAmount } from '@/hooks/useCopyAmount';
 import { useToast } from '@/hooks/useToast';
-import {
-  formatAbsoluteCurrency,
-  getBalanceDirectionText,
-  getBalanceDirectionTone,
-} from '@/lib/utils';
+import { formatAbsoluteCurrency, getBalanceDirectionTone } from '@/lib/utils';
 
 type TransactionsFilter = 'all' | 'you-paid' | 'they-paid' | 'pending';
 const TransactionsTaps = [
-  { key: 'all', label: 'All' },
-  { key: 'you-paid', label: 'You paid' },
-  { key: 'they-paid', label: 'They paid' },
-  { key: 'pending', label: 'Pending' },
+  { key: 'all' },
+  { key: 'you-paid' },
+  { key: 'they-paid' },
+  { key: 'pending' },
 ];
 export default function FriendDetails() {
+  const { t } = useTranslation();
   const {
     friend,
     transactions,
@@ -58,13 +56,19 @@ export default function FriendDetails() {
     if (!friend) return;
 
     await handleCopyAmount(balance, friend.currency || '$', {
-      successMessage: 'Balance copied to clipboard',
-      errorMessage: 'Failed to copy balance',
+      successMessage: t('friendDetail.toasts.balanceCopied'),
+      errorMessage: t('friendDetail.toasts.balanceCopyFailed'),
     });
   };
   const isLoading = !!id && !friend;
 
   const tone = getBalanceDirectionTone(balance);
+  const balanceDirectionText =
+    balance > 0
+      ? t('friendDetail.balance.directionOwesYou', { name: friend?.name ?? '' })
+      : balance < 0
+        ? t('friendDetail.balance.directionYouOwe', { name: friend?.name ?? '' })
+        : t('friendDetail.balance.directionSettled');
 
   const filteredTransactions = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -106,8 +110,8 @@ export default function FriendDetails() {
   if (!friend) {
     return (
       <EmptySection
-        title={'Friend Not Found'}
-        description={'The friend you are looking for does not exist'}
+        title={t('friendDetail.errors.notFoundTitle')}
+        description={t('friendDetail.errors.notFoundDescription')}
         icon={'users'}
       />
     );
@@ -133,22 +137,24 @@ export default function FriendDetails() {
                 ) : (
                   <Pin size={18} color={Colors.text} />
                 ),
-                label: friend.pinned ? 'Unpin Friend' : 'Pin Friend',
+                label: friend.pinned
+                  ? t('friendDetail.menu.unpinFriend')
+                  : t('friendDetail.menu.pinFriend'),
                 onPress: handlePinToggle,
               },
               {
                 icon: <Copy size={18} color={Colors.text} />,
-                label: 'Copy Balance',
+                label: t('friendDetail.menu.copyBalance'),
                 onPress: handleCopyBalance,
               },
               {
                 icon: <Pencil size={18} color={Colors.text} />,
-                label: 'Edit Friend',
+                label: t('friendDetail.menu.editFriend'),
                 onPress: handleEditFriend,
               },
               {
                 icon: <Filter size={18} color={Colors.text} />,
-                label: 'Export',
+                label: t('friendDetail.menu.export'),
                 onPress: () =>
                   router.push({
                     pathname: '/(drawer)/settings/export-data' as any,
@@ -157,7 +163,7 @@ export default function FriendDetails() {
               },
               {
                 icon: <Trash2 size={18} color={Colors.error} />,
-                label: 'Delete Friend',
+                label: t('friendDetail.menu.deleteFriend'),
                 onPress: handleDeleteFriend,
                 danger: true,
               },
@@ -182,7 +188,9 @@ export default function FriendDetails() {
           <View style={styles.nameRow}>
             <Text style={styles.name}>{friend.name}</Text>
             <View style={styles.statusChip}>
-              <Text style={styles.statusChipText}>{friend.synced ? 'Synced' : 'Active'}</Text>
+              <Text style={styles.statusChipText}>
+                {friend.synced ? t('friendDetail.status.synced') : t('friendDetail.status.active')}
+              </Text>
             </View>
           </View>
           {!!friend.bio && <Text style={styles.bio}>{friend.bio}</Text>}
@@ -191,10 +199,10 @@ export default function FriendDetails() {
 
       <View style={styles.balanceCard}>
         <View style={styles.balanceTopRow}>
-          <Text style={styles.balanceLabel}>Balance</Text>
+          <Text style={styles.balanceLabel}>{t('friendDetail.balance.title')}</Text>
           {pendingCount > 0 ? (
             <View style={styles.pendingBadge}>
-              <Text style={styles.pendingBadgeText}>Pending sync</Text>
+              <Text style={styles.pendingBadgeText}>{t('friendDetail.balance.pendingSync')}</Text>
             </View>
           ) : null}
         </View>
@@ -215,35 +223,39 @@ export default function FriendDetails() {
           </View>
           <Pressable style={styles.copyBalanceButton} onPress={handleCopyBalance}>
             <Copy size={16} color={Colors.text} />
-            <Text style={styles.copyBalanceButtonText}>Copy</Text>
+            <Text style={styles.copyBalanceButtonText}>{t('friendDetail.actions.copy')}</Text>
           </Pressable>
         </View>
-        <Text style={styles.balanceStatus}>{getBalanceDirectionText(balance, friend.name)}</Text>
+        <Text style={styles.balanceStatus}>{balanceDirectionText}</Text>
         <View style={styles.breakdownRow}>
-          <Text style={styles.breakdownLabel}>You owe:</Text>
+          <Text style={styles.breakdownLabel}>{t('friendDetail.balance.youOwe')}</Text>
           <Text style={styles.breakdownValue}>
             {formatAbsoluteCurrency(breakdown.youOwe, friend.currency || '$')}
           </Text>
         </View>
         <View style={styles.breakdownRow}>
-          <Text style={styles.breakdownLabel}>Owed to you:</Text>
+          <Text style={styles.breakdownLabel}>{t('friendDetail.balance.owedToYou')}</Text>
           <Text style={styles.breakdownValue}>
             {formatAbsoluteCurrency(breakdown.owedToYou, friend.currency || '$')}
           </Text>
         </View>
         <Text style={styles.lastActivity}>
-          Last activity:{' '}
-          {lastActivity ? new Date(lastActivity).toLocaleDateString() : 'No activity yet'}
+          {t('friendDetail.balance.lastActivity')}{' '}
+          {lastActivity
+            ? new Date(lastActivity).toLocaleDateString()
+            : t('friendDetail.balance.noActivityYet')}
         </Text>
       </View>
 
       <View style={styles.primaryActionsRow}>
         <View style={styles.actionColumn}>
-          <Button title="Add transaction" onPress={handleNewTransaction} />
+          <Button title={t('friendDetail.actions.addTransaction')} onPress={handleNewTransaction} />
         </View>
         <View style={styles.actionColumn}>
           <Button
-            title={canSettle ? 'Settle up' : 'Settled'}
+            title={
+              canSettle ? t('friendDetail.actions.settleUp') : t('friendDetail.actions.settled')
+            }
             onPress={handleSettleUp}
             variant="outline"
             loading={isSettling}
@@ -253,7 +265,7 @@ export default function FriendDetails() {
       </View>
 
       <View style={styles.historyHeader}>
-        <Text style={styles.historyTitle}>Transactions</Text>
+        <Text style={styles.historyTitle}>{t('friendDetail.history.title')}</Text>
         <View style={styles.historyActions}>
           <Pressable
             style={styles.headerIconButton}
@@ -262,7 +274,7 @@ export default function FriendDetails() {
           </Pressable>
           <Pressable
             style={styles.headerIconButton}
-            onPress={() => toastInfo('Use tabs below to filter transactions')}>
+            onPress={() => toastInfo(t('friendDetail.toasts.filterHint'))}>
             <Filter size={18} color={Colors.text} />
           </Pressable>
         </View>
@@ -270,7 +282,7 @@ export default function FriendDetails() {
 
       {searchVisible ? (
         <TextInput
-          placeholder="Search transactions"
+          placeholder={t('friendDetail.history.searchPlaceholder')}
           placeholderTextColor={Colors.textSecondary}
           style={styles.searchInput}
           value={searchQuery}
@@ -286,7 +298,9 @@ export default function FriendDetails() {
               key={tab.key}
               style={[styles.tabItem, selected && styles.tabItemActive]}
               onPress={() => setActiveFilter(tab.key as TransactionsFilter)}>
-              <Text style={[styles.tabText, selected && styles.tabTextActive]}>{tab.label}</Text>
+              <Text style={[styles.tabText, selected && styles.tabTextActive]}>
+                {t(`friendDetail.filters.${tab.key}`)}
+              </Text>
             </Pressable>
           );
         })}
@@ -295,10 +309,13 @@ export default function FriendDetails() {
       <View style={[styles.list, { paddingBottom: insets.bottom + Spacing.md }]}>
         {filteredTransactions.length === 0 ? (
           <View style={styles.emptyTransactionsState}>
-            <Text style={styles.emptyTitle}>No transactions yet</Text>
-            <Text style={styles.emptyText}>Add a transaction to start tracking this balance.</Text>
+            <Text style={styles.emptyTitle}>{t('friendDetail.history.emptyTitle')}</Text>
+            <Text style={styles.emptyText}>{t('friendDetail.history.emptyDescription')}</Text>
             <View style={styles.emptyCta}>
-              <Button title="Add transaction" onPress={handleNewTransaction} />
+              <Button
+                title={t('friendDetail.actions.addTransaction')}
+                onPress={handleNewTransaction}
+              />
             </View>
           </View>
         ) : (
@@ -311,8 +328,8 @@ export default function FriendDetails() {
               onDelete={handleDeleteTransaction}
               onCopyAmount={() =>
                 void handleCopyAmount(item.amount, friend.currency || '$', {
-                  successMessage: 'Transaction amount copied to clipboard',
-                  errorMessage: 'Failed to copy amount',
+                  successMessage: t('friendDetail.toasts.transactionAmountCopied'),
+                  errorMessage: t('friendDetail.toasts.amountCopyFailed'),
                 })
               }
             />

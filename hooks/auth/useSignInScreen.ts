@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { checkOfflineAndThrow, formatClerkError } from '@/lib/clerkUtils';
 import { useSignIn } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -45,12 +46,12 @@ export const useSignInScreen = () => {
 
     switch (code) {
       case 'form_code_incorrect':
-        return 'The verification code is incorrect. Please try again.';
+        return i18n.t('auth.errors.verificationIncorrect');
       case 'form_code_expired':
-        return 'That verification code has expired. Please request a new one.';
+        return i18n.t('auth.errors.verificationExpired');
       case 'rate_limit_exceeded':
       case 'too_many_requests':
-        return 'Too many attempts. Please wait a moment and try again.';
+        return i18n.t('auth.errors.tooManyAttempts');
       default:
         return fallback ?? formatClerkError(err);
     }
@@ -93,7 +94,7 @@ export const useSignInScreen = () => {
           setNeedsFirstFactor(true);
           // Clerk should automatically send the code
         } else {
-          setAuthError('Email verification is required but not available. Please contact support.');
+          setAuthError(i18n.t('auth.errors.verificationUnavailable'));
         }
         return;
       }
@@ -104,9 +105,7 @@ export const useSignInScreen = () => {
         const emailStrategy = getEmailCodeFactor(supportedStrategies);
 
         if (!emailStrategy?.emailAddressId) {
-          setAuthError(
-            'Two-factor authentication is required but email verification is not available.',
-          );
+          setAuthError(i18n.t('auth.errors.twoFactorUnavailable'));
           return;
         }
 
@@ -126,7 +125,7 @@ export const useSignInScreen = () => {
       }
 
       // Other statuses
-      setAuthError(`Sign in incomplete. Status: ${signInAttempt.status}. Please try again.`);
+      setAuthError(i18n.t('auth.errors.signInIncomplete', { status: signInAttempt.status }));
       console.error('Unexpected sign in status:', signInAttempt.status);
     } catch (err: any) {
       setAuthError(err?.message ?? getAuthErrorMessage(err));
@@ -159,9 +158,7 @@ export const useSignInScreen = () => {
         const supportedStrategies = verification.supportedSecondFactors || [];
         const emailStrategy = getEmailCodeFactor(supportedStrategies);
         if (!emailStrategy?.emailAddressId) {
-          setAuthError(
-            'Two-factor authentication is required but email verification is not available.',
-          );
+          setAuthError(i18n.t('auth.errors.twoFactorUnavailable'));
           return;
         }
 
@@ -178,7 +175,7 @@ export const useSignInScreen = () => {
           setAuthError(getAuthErrorMessage(err));
         }
       } else {
-        setAuthError('Verification incomplete. Please try again.');
+        setAuthError(i18n.t('auth.errors.verificationIncomplete'));
       }
     } catch (err: any) {
       setAuthError(err?.message ?? getAuthErrorMessage(err));
@@ -210,7 +207,7 @@ export const useSignInScreen = () => {
         await setActive({ session: verification.createdSessionId });
         router.replace('/');
       } else {
-        setAuthError('Verification incomplete. Please try again.');
+        setAuthError(i18n.t('auth.errors.verificationIncomplete'));
       }
     } catch (err: any) {
       setAuthError(err?.message ?? getAuthErrorMessage(err));
@@ -234,7 +231,7 @@ export const useSignInScreen = () => {
       });
       setResendCooldown(30);
     } catch (err: any) {
-      setAuthError(getAuthErrorMessage(err, 'Unable to resend code. Please try again.'));
+      setAuthError(getAuthErrorMessage(err, i18n.t('auth.errors.resendFailed')));
     } finally {
       setLoading(false);
     }

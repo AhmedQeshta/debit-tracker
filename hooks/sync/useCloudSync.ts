@@ -8,8 +8,10 @@ import { useTransactionsStore } from '@/store/transactionsStore';
 import { useAuth } from '@clerk/clerk-expo';
 import NetInfo from '@react-native-community/netinfo';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const useCloudSync = () => {
+  const { t } = useTranslation();
   const { syncEnabled, setSyncEnabled, isSyncing, setSyncing, lastSync } = useSyncStore();
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
@@ -71,7 +73,7 @@ export const useCloudSync = () => {
       } catch (error: any) {
         console.error('[Sync] Pull failed:', error);
         useSyncStore.getState().setLastError({
-          message: error?.message || 'Pull failed',
+          message: error?.message || t('cloudSyncHooks.errors.pullFailed'),
           at: Date.now(),
         });
 
@@ -83,7 +85,7 @@ export const useCloudSync = () => {
         useSyncStore.getState().setPullProgress(undefined);
       }
     },
-    [getToken],
+    [getToken, t],
   );
 
   const syncNow = useCallback(async () => {
@@ -168,8 +170,8 @@ export const useCloudSync = () => {
           useSyncStore.getState().setSyncStatus('error');
           useSyncStore.getState().setLastError({
             message: summary.blockedReason
-              ? `Sync blocked: ${summary.blockedReason}`
-              : 'Some changes failed to sync',
+              ? t('cloudSyncHooks.errors.syncBlocked', { reason: summary.blockedReason })
+              : t('cloudSyncHooks.errors.someChangesFailed'),
             at: Date.now(),
           });
         }
@@ -179,7 +181,7 @@ export const useCloudSync = () => {
         useSyncStore.getState().setIsSyncRunning(false);
       }
     },
-    [getToken, isLoaded, isOnline, isSignedIn, setSyncing, userId],
+    [getToken, isLoaded, isOnline, isSignedIn, setSyncing, t, userId],
   );
 
   const hasPendingChanges = selectPendingCount() > 0;

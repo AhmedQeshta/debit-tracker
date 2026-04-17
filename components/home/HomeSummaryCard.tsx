@@ -2,6 +2,7 @@ import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { HomeSummaryCardProps } from '@/types/common';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export const HomeSummaryCard = ({
@@ -12,8 +13,9 @@ export const HomeSummaryCard = ({
   owedToYouText,
   trend,
   trendText,
-  updatedText = 'Updated just now',
+  updatedText,
 }: HomeSummaryCardProps) => {
+  const { t } = useTranslation();
   const TrendIcon = trend === 'up' ? ArrowUpRight : trend === 'down' ? ArrowDownRight : Minus;
   const trendColor =
     trend === 'up' ? Colors.success : trend === 'down' ? Colors.error : Colors.textSecondary;
@@ -23,11 +25,12 @@ export const HomeSummaryCard = ({
       : netBalanceTone === 'negative'
         ? Colors.error
         : Colors.text;
+  const resolvedUpdatedText = updatedText || t('homeSummary.updatedJustNow');
 
   return (
     <View style={styles.card}>
       <View style={styles.topRow}>
-        <Text style={styles.kicker}>Net Balance</Text>
+        <Text style={styles.kicker}>{t('homeSummary.netBalance')}</Text>
         <View style={styles.trendPill}>
           <TrendIcon size={14} color={trendColor} />
           <Text style={[styles.trendText, { color: trendColor }]}>{trendText}</Text>
@@ -36,20 +39,20 @@ export const HomeSummaryCard = ({
 
       <Text style={[styles.netBalanceValue, { color: netBalanceColor }]}>{netBalanceText}</Text>
       <Text style={styles.directionText}>{netBalanceDirectionText}</Text>
-      <Text style={styles.updatedText}>{updatedText}</Text>
+      <Text style={styles.updatedText}>{resolvedUpdatedText}</Text>
 
       <View style={styles.divider} />
 
       <View style={styles.bottomRow}>
         <View style={styles.metricCell}>
-          <Text style={styles.metricLabel}>You owe</Text>
+          <Text style={styles.metricLabel}>{t('money.labels.youOwe')}</Text>
           <Text style={[styles.metricValue, { color: Colors.error }]}>{youOweText}</Text>
         </View>
 
         <View style={styles.metricSeparator} />
 
         <View style={styles.metricCell}>
-          <Text style={styles.metricLabel}>Owed to you</Text>
+          <Text style={styles.metricLabel}>{t('money.labels.owedToYou')}</Text>
           <Text style={[styles.metricValue, { color: Colors.success }]}>{owedToYouText}</Text>
         </View>
       </View>

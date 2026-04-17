@@ -9,6 +9,7 @@ import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Search, SlidersHorizontal } from 'lucide-react-native';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pressable,
   RefreshControl,
@@ -21,6 +22,7 @@ import {
 } from 'react-native';
 
 export default function TransactionsScreen() {
+  const { t } = useTranslation();
   const {
     openDrawer,
     groupedSections,
@@ -53,11 +55,11 @@ export default function TransactionsScreen() {
           onPress={openDrawer}
           style={styles.topBarButton}
           accessibilityRole="button"
-          accessibilityLabel="Open menu">
+          accessibilityLabel={t('transactions.accessibility.openMenu')}>
           <Menu color={Colors.text} size={20} />
         </TouchableOpacity>
         <View style={styles.titleWrap}>
-          <Text style={styles.title}>Transactions</Text>
+          <Text style={styles.title}>{t('transactions.title')}</Text>
           <Text style={styles.monthLabel}>{monthLabel}</Text>
         </View>
         <TouchableOpacity
@@ -65,7 +67,7 @@ export default function TransactionsScreen() {
           onPress={() => setShowControls((prev) => !prev)}
           accessibilityRole="button"
           accessibilityState={{ selected: showControls }}
-          accessibilityLabel="Show or hide filters">
+          accessibilityLabel={t('transactions.accessibility.toggleFilters')}>
           <SlidersHorizontal color={Colors.textSecondary} size={18} />
         </TouchableOpacity>
       </View>
@@ -78,10 +80,10 @@ export default function TransactionsScreen() {
               ref={searchInputRef}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search transactions..."
+              placeholder={t('transactions.search.placeholder')}
               placeholderTextColor={Colors.textSecondary}
               style={styles.searchInput}
-              accessibilityLabel="Search transactions"
+              accessibilityLabel={t('transactions.accessibility.searchTransactions')}
             />
           </View>
         </>
@@ -89,31 +91,35 @@ export default function TransactionsScreen() {
 
       <View style={styles.summaryStrip}>
         <View style={styles.summaryHeader}>
-          <Text style={styles.summaryHeaderText}>Summary ({summaryCurrencyLabel})</Text>
+          <Text style={styles.summaryHeaderText}>
+            {t('transactions.summary.title', { currencyLabel: summaryCurrencyLabel })}
+          </Text>
           <Pressable
             style={styles.currencyButton}
             onPress={handleSummaryCurrencyToggle}
             accessibilityRole="button"
-            accessibilityLabel="Change summary currency"
-            accessibilityHint="Cycles through USD, ILS, and EUR currencies">
+            accessibilityLabel={t('transactions.summary.accessibility.changeCurrencyLabel')}
+            accessibilityHint={t('transactions.summary.accessibility.changeCurrencyHint')}>
             <Text style={styles.currencyButtonText}>{summaryCurrency}</Text>
           </Pressable>
         </View>
         <View style={styles.summaryStatsWrap}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Total this month</Text>
+            <Text style={styles.summaryLabel}>
+              {t('transactions.summary.labels.totalThisMonth')}
+            </Text>
             <Text style={styles.summaryValue}>
               {formatCurrency(summary.totalThisMonth, summaryCurrency)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>You paid</Text>
+            <Text style={styles.summaryLabel}>{t('transactions.summary.labels.youPaid')}</Text>
             <Text style={[styles.summaryValue, styles.negative]}>
               {formatCurrency(summary.youPaid, summaryCurrency)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>You received</Text>
+            <Text style={styles.summaryLabel}>{t('transactions.summary.labels.youReceived')}</Text>
             <Text style={[styles.summaryValue, styles.positive]}>
               {formatCurrency(summary.youReceived, summaryCurrency)}
             </Text>
@@ -121,7 +127,7 @@ export default function TransactionsScreen() {
         </View>
       </View>
 
-      <Text style={styles.statusLegend}>Status: Pending sync • Failed</Text>
+      <Text style={styles.statusLegend}>{t('transactions.statusLegend')}</Text>
 
       {isLoading ? (
         <RenderSkeleton />
@@ -155,11 +161,11 @@ export default function TransactionsScreen() {
           contentContainerStyle={[styles.listContent, !hasData && styles.emptyListContent]}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>No transactions yet</Text>
+              <Text style={styles.emptyTitle}>{t('transactions.empty.title')}</Text>
               <Text style={styles.emptyText}>
                 {friends.length === 0
-                  ? 'Add a friend first'
-                  : 'Add your first transaction to start tracking balances'}
+                  ? t('transactions.empty.addFriendFirst')
+                  : t('transactions.empty.addFirstTransaction')}
               </Text>
               <Pressable
                 style={styles.emptyButton}
@@ -169,9 +175,15 @@ export default function TransactionsScreen() {
                     : handleNavigateToNewTransaction()
                 }
                 accessibilityRole="button"
-                accessibilityLabel={friends.length === 0 ? 'Add friend' : 'Add transaction'}>
+                accessibilityLabel={
+                  friends.length === 0
+                    ? t('transactions.actions.addFriend')
+                    : t('transactions.actions.addTransaction')
+                }>
                 <Text style={styles.emptyButtonText}>
-                  {friends.length === 0 ? 'Add friend' : 'Add transaction'}
+                  {friends.length === 0
+                    ? t('transactions.actions.addFriend')
+                    : t('transactions.actions.addTransaction')}
                 </Text>
               </Pressable>
             </View>

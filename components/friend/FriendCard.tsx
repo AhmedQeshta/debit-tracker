@@ -5,6 +5,7 @@ import { Spacing } from '@/theme/spacing';
 import { IFriendCardProps } from '@/types/friend';
 import { CircleDollarSign, Copy, Pencil, Pin, PinOff, Trash2 } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
@@ -17,6 +18,7 @@ export const FriendCard = ({
   onCopyAmount,
   onSettle,
 }: IFriendCardProps) => {
+  const { t } = useTranslation();
   const { navigateToFriend, navigateToFriendEdit } = useNavigation();
   const [menuVisible, setMenuVisible] = useState(false);
   const swipeableRef = useRef<Swipeable>(null);
@@ -45,33 +47,39 @@ export const FriendCard = ({
         style={styles.swipeActionButton}
         onPress={() => closeSwipeAndRun(() => onCopyAmount(row.friend.id))}
         accessibilityRole="button"
-        accessibilityLabel={`copy transaction amount ${row.friend.name}`}>
+        accessibilityLabel={t('friendCard.accessibility.copyTransactionAmount', {
+          name: row.friend.name,
+        })}>
         <Copy size={16} color={Colors.text} />
-        <Text style={styles.swipeActionText}>Copy</Text>
+        <Text style={styles.swipeActionText}>{t('friendDetail.actions.copy')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.swipeActionButton}
         onPress={() => closeSwipeAndRun(() => onSettle(row.friend.id))}
         accessibilityRole="button"
-        accessibilityLabel={`Settle balance with ${row.friend.name}`}>
+        accessibilityLabel={t('friendCard.accessibility.settleBalanceWith', {
+          name: row.friend.name,
+        })}>
         <CircleDollarSign size={16} color={Colors.text} />
-        <Text style={styles.swipeActionText}>Settle</Text>
+        <Text style={styles.swipeActionText}>{t('dashboard.actions.settle')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.swipeActionButton}
         onPress={() => closeSwipeAndRun(() => navigateToFriendEdit(row.friend.id))}
         accessibilityRole="button"
-        accessibilityLabel={`Edit ${row.friend.name}`}>
+        accessibilityLabel={t('friendCard.accessibility.edit', { name: row.friend.name })}>
         <Pencil size={16} color={Colors.text} />
-        <Text style={styles.swipeActionText}>Edit</Text>
+        <Text style={styles.swipeActionText}>{t('common.actions.edit')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.swipeActionButton, styles.swipeActionDelete]}
         onPress={() => closeSwipeAndRun(() => handleFriendDelete(row.friend.id, row.friend.name))}
         accessibilityRole="button"
-        accessibilityLabel={`Delete ${row.friend.name}`}>
+        accessibilityLabel={t('friendCard.accessibility.delete', { name: row.friend.name })}>
         <Trash2 size={16} color={Colors.error} />
-        <Text style={[styles.swipeActionText, styles.swipeActionDeleteText]}>Delete</Text>
+        <Text style={[styles.swipeActionText, styles.swipeActionDeleteText]}>
+          {t('common.actions.delete')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -87,7 +95,11 @@ export const FriendCard = ({
         <Pressable
           onPress={() => navigateToFriend(row.friend.id)}
           accessibilityRole="button"
-          accessibilityLabel={`${row.friend.name}, ${row.directionLabel} ${row.amountText}`}>
+          accessibilityLabel={t('friendCard.accessibility.openFriend', {
+            name: row.friend.name,
+            direction: row.directionLabel,
+            amount: row.amountText,
+          })}>
           <View style={styles.container}>
             <View style={styles.imageContainer}>
               {row.friend.imageUri ? (
