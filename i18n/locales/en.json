@@ -459,6 +459,21 @@
       "addFirstItem": "Add your first item",
       "fromTransaction": "From transaction"
     },
+    "editItem": {
+      "title": "Edit budget item",
+      "updated": "Item updated",
+      "saveFailed": "Failed to update item",
+      "linkedBlocked": "This item is linked to a transaction. Edit the transaction instead.",
+      "fields": {
+        "title": "Title",
+        "amount": "Amount",
+        "type": "Type"
+      },
+      "placeholders": {
+        "title": "Item title",
+        "amount": "0.00"
+      }
+    },
     "sync": {
       "pending": "Pending sync",
       "failedRetry": "Sync failed • Retry",
@@ -641,7 +656,9 @@
     },
     "edit": {
       "successSynced": "Friend updated successfully",
-      "successLocal": "Friend updated locally"
+      "successLocal": "Friend updated locally",
+      "currencyUpdated": "Currency updated",
+      "currencyUpdateFailed": "Failed to update currency"
     },
     "detail": {
       "deleteFriend": {

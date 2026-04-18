@@ -264,6 +264,36 @@ export const useBudgetStore = create<IBudgetState>()(
           ),
         }));
       },
+      updateItem: (budgetId: string, itemId: string, updates) => {
+        const now = Date.now();
+        set((state) => ({
+          budgets: state.budgets.map((budget) => {
+            if (budget.id !== budgetId) {
+              return budget;
+            }
+
+            return {
+              ...budget,
+              items: budget.items.map((item) =>
+                item.id === itemId
+                  ? {
+                      ...item,
+                      ...updates,
+                      amount:
+                        updates.amount !== undefined
+                          ? Math.abs(updates.amount)
+                          : Math.abs(item.amount),
+                      synced: false,
+                      updatedAt: now,
+                    }
+                  : item,
+              ),
+              synced: false,
+              updatedAt: now,
+            };
+          }),
+        }));
+      },
       upsertItemFromTransaction: (transaction: Transaction, budgetId?: string) => {
         const targetBudgetId = budgetId ?? transaction.budgetId;
         if (!targetBudgetId) return null;

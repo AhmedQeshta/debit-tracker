@@ -611,6 +611,21 @@
       "pending": "معلّق"
     },
     "toasts": {
+      "editItem": {
+        "title": "تعديل عنصر الميزانية",
+        "updated": "تم تحديث العنصر",
+        "saveFailed": "فشل تحديث العنصر",
+        "linkedBlocked": "هذا العنصر مرتبط بمعاملة. عدّل المعاملة بدلاً من ذلك.",
+        "fields": {
+          "title": "العنوان",
+          "amount": "المبلغ",
+          "type": "النوع"
+        },
+        "placeholders": {
+          "title": "عنوان العنصر",
+          "amount": "0.00"
+        }
+      },
       "filterHint": "استخدم التبويبات أدناه لتصفية المعاملات",
       "balanceCopied": "تم نسخ الرصيد إلى الحافظة",
       "balanceCopyFailed": "فشل نسخ الرصيد",
@@ -641,7 +656,9 @@
     },
     "edit": {
       "successSynced": "تم تحديث الصديق بنجاح",
-      "successLocal": "تم تحديث الصديق محلياً"
+      "successLocal": "تم تحديث الصديق محلياً",
+      "currencyUpdated": "تم تحديث العملة",
+      "currencyUpdateFailed": "فشل تحديث العملة"
     },
     "detail": {
       "deleteFriend": {

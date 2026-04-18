@@ -1,3 +1,4 @@
+import { EditBudgetItemModal } from '@/components/budget/EditBudgetItemModal';
 import { CalculatorModal } from '@/components/calculator/CalculatorModal';
 import { BudgetExportModal } from '@/components/export/BudgetExportModal';
 import { Actions } from '@/components/ui/Actions';
@@ -72,6 +73,20 @@ export default function BudgetDetail() {
     handleRetrySync,
     showCalculator,
     setShowCalculator,
+    editModalVisible,
+    openEditItemModal,
+    closeEditItemModal,
+    editItemTitle,
+    setEditItemTitle,
+    editItemAmount,
+    setEditItemAmount,
+    editItemType,
+    setEditItemType,
+    editItemError,
+    isSavingEditItem,
+    canSaveEditItem,
+    isEditItemLinked,
+    handleSaveEditedItem,
   } = useBudgetDetail();
 
   const {
@@ -445,17 +460,27 @@ export default function BudgetDetail() {
                   <Swipeable
                     key={item.id}
                     renderRightActions={() => (
-                      <TouchableOpacity
-                        style={styles.swipeDeleteAction}
-                        onPress={() => handleDeleteItem(item.id, item.title)}
-                        activeOpacity={0.8}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('budgetDetail.accessibility.deleteItem', {
-                          title: item.title,
-                        })}>
-                        <Trash2 size={16} color={Colors.error} />
-                        <Text style={styles.swipeDeleteText}>{t('common.actions.delete')}</Text>
-                      </TouchableOpacity>
+                      <View style={styles.swipeActionsWrap}>
+                        <TouchableOpacity
+                          style={styles.swipeEditAction}
+                          onPress={() => openEditItemModal(item)}
+                          activeOpacity={0.8}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.actions.edit')}>
+                          <Text style={styles.swipeEditText}>{t('common.actions.edit')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.swipeDeleteAction}
+                          onPress={() => handleDeleteItem(item.id, item.title)}
+                          activeOpacity={0.8}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('budgetDetail.accessibility.deleteItem', {
+                            title: item.title,
+                          })}>
+                          <Trash2 size={16} color={Colors.error} />
+                          <Text style={styles.swipeDeleteText}>{t('common.actions.delete')}</Text>
+                        </TouchableOpacity>
+                      </View>
                     )}
                     overshootRight={false}
                     rightThreshold={28}>
@@ -464,11 +489,7 @@ export default function BudgetDetail() {
                         styles.spendingRow,
                         pressed && styles.spendingRowPressed,
                       ]}
-                      onPress={() =>
-                        item.transactionId
-                          ? router.push(`/(drawer)/transaction/${item.transactionId}/edit`)
-                          : undefined
-                      }
+                      onPress={() => openEditItemModal(item)}
                       accessibilityRole="button"
                       accessibilityLabel={`${item.title}, ${formatCurrency(item.amount, budget.currency)}`}>
                       <View style={styles.rowDotWrap}>
@@ -551,6 +572,22 @@ export default function BudgetDetail() {
             setItemAmountError('');
             requestAnimationFrame(() => amountInputRef.current?.focus());
           }}
+        />
+
+        <EditBudgetItemModal
+          visible={editModalVisible}
+          title={editItemTitle}
+          amount={editItemAmount}
+          type={editItemType}
+          saving={isSavingEditItem}
+          errorText={editItemError}
+          isLinkedToTransaction={isEditItemLinked}
+          canSave={canSaveEditItem}
+          onClose={closeEditItemModal}
+          onTitleChange={setEditItemTitle}
+          onAmountChange={setEditItemAmount}
+          onTypeChange={setEditItemType}
+          onSave={handleSaveEditedItem}
         />
       </ScreenContainer>
     </View>
@@ -928,7 +965,7 @@ const styles = StyleSheet.create({
   },
   swipeDeleteAction: {
     marginVertical: 2,
-    marginLeft: Spacing.sm,
+    marginLeft: Spacing.xs,
     borderRadius: Spacing.borderRadius.md,
     borderWidth: 1,
     borderColor: Colors.error,
@@ -940,6 +977,26 @@ const styles = StyleSheet.create({
   },
   swipeDeleteText: {
     color: Colors.error,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  swipeActionsWrap: {
+    flexDirection: 'row',
+    marginLeft: Spacing.sm,
+    marginVertical: 2,
+  },
+  swipeEditAction: {
+    borderRadius: Spacing.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    minWidth: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.xs,
+  },
+  swipeEditText: {
+    color: Colors.primary,
     fontSize: 12,
     fontWeight: '700',
   },
