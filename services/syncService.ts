@@ -82,6 +82,59 @@ export const syncService = {
           if (rpcResult.error) {
             throw rpcResult.error;
           }
+        } else if (item.operation === 'FRIEND_CURRENCY_UPDATE') {
+          const friendId = item.payload?.friendId;
+          const currency = item.payload?.currency;
+
+          if (!friendId || typeof currency !== 'string') {
+            useSyncStore.getState().removeFromQueue(item.id);
+            continue;
+          }
+
+          const updatedFriend = await syncService.updateFriendCurrency(friendId, currency, {
+            cloudUserId,
+            clerkUserId,
+            getToken,
+          });
+
+          const friendsState = useFriendsStore.getState();
+          friendsState.setFriends(
+            friendsState.friends.map((friend) =>
+              friend.id === friendId
+                ? {
+                    ...friend,
+                    currency: updatedFriend.currency,
+                    updatedAt: updatedFriend.updatedAt,
+                    synced: true,
+                  }
+                : friend,
+            ),
+          );
+        } else if (item.operation === 'BUDGET_ITEM_UPDATE') {
+          const itemId = item.payload?.itemId;
+          const budgetId = item.payload?.budgetId;
+          const title = item.payload?.title;
+          const amount = item.payload?.amount;
+          const type = item.payload?.type;
+
+          if (
+            !itemId ||
+            !budgetId ||
+            typeof title !== 'string' ||
+            typeof amount !== 'number' ||
+            (type !== 'expense' && type !== 'income')
+          ) {
+            useSyncStore.getState().removeFromQueue(item.id);
+            continue;
+          }
+
+          await syncService.updateBudgetItem(itemId, budgetId, title, amount, type, {
+            cloudUserId,
+            clerkUserId,
+            getToken,
+          });
+
+          useBudgetStore.getState().markItemAsSynced(budgetId, itemId);
         } else if (
           item.operation === 'BUDGET_UPDATE_TOTAL' ||
           item.operation === 'FRIEND_PIN_TOGGLE' ||
@@ -494,18 +547,7 @@ export const syncService = {
     );
     if (friends && !friendsError) {
       // Map DB format to local format
-      const mappedFriends = friends.map((f: any) => ({
-        id: f.id,
-        name: f.name,
-        email: undefined, // Friends don't have email in new schema
-        bio: f.bio || '',
-        imageUri: null, // Not in new schema
-        currency: normalizeCurrency(f.currency),
-        createdAt: safeDateToTimestamp(f.created_at),
-        updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
-        synced: true,
-        pinned: Boolean(f.pinned),
-      }));
+      const mappedFriends = friends.map((f: any) => mapFriendFromDb(f));
       console.warn(
         '[Sync] Pulled friends with currency:',
         mappedFriends.map((friend) => ({ id: friend.id, currency: friend.currency })),
@@ -542,11 +584,12 @@ export const syncService = {
         id: b.id,
         friendId: '', // Not used in new schema (budgets owned by app_user, not friend)
         title: b.title,
-        currency: b.currency || '$',
+        currency: normalizeCurrency(b.currency),
         totalBudget: Number(b.total_budget) || 0,
         items: (b.items || []).map((item: any) => ({
           id: item.id,
           budgetId: item.budget_id,
+          transactionId: item.transaction_id || undefined,
           title: item.title,
           amount: Number(item.amount) || 0,
           type: item.type === 'income' ? 'income' : 'expense',
@@ -629,6 +672,140 @@ export const syncService = {
       }
       // Don't throw - let caller handle gracefully
     }
+  },
+
+  updateFriendCurrency: async (
+    friendId: string,
+    currency: string,
+    options?: {
+      cloudUserId?: string | null;
+      clerkUserId?: string;
+      getToken?: GetTokenFunction;
+    },
+  ): Promise<Friend> => {
+    if (typeof currency !== 'string' || currency.trim().length === 0) {
+      throw new Error('Currency must be non-empty');
+    }
+
+    const normalizedCurrency = currency.trim();
+
+    const ownerId = options?.cloudUserId ?? useSyncStore.getState().cloudUserId;
+    if (!ownerId) {
+      throw new Error('Missing cloud user id for friend currency update');
+    }
+
+    const updateQuery = async () =>
+      await supabase
+        .from('friends')
+        .update({
+          currency: normalizedCurrency,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', friendId)
+        .eq('owner_id', ownerId)
+        .select('id, owner_id, user_id, name, bio, currency, pinned, created_at, updated_at')
+        .single();
+
+    const { data, error } = options?.getToken
+      ? await retryOnceOnJwtExpired(updateQuery, options.getToken)
+      : await updateQuery();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Friend not found');
+    }
+
+    return mapFriendFromDb(data);
+  },
+
+  updateBudgetItem: async (
+    itemId: string,
+    budgetId: string,
+    title: string,
+    amount: number,
+    type: 'expense' | 'income',
+    options?: {
+      cloudUserId?: string | null;
+      clerkUserId?: string;
+      getToken?: GetTokenFunction;
+    },
+  ): Promise<BudgetItem> => {
+    const ownerId = options?.cloudUserId ?? useSyncStore.getState().cloudUserId;
+    if (!ownerId) {
+      throw new Error('Missing cloud user id for budget item update');
+    }
+
+    const clerkUserId = options?.clerkUserId;
+    if (!clerkUserId) {
+      throw new Error('Missing clerk user id for budget totals recompute');
+    }
+
+    const safeTitle = title.trim();
+    if (!safeTitle) {
+      throw new Error('Title is required');
+    }
+
+    const safeAmount = Math.abs(amount);
+    if (!Number.isFinite(safeAmount) || safeAmount <= 0) {
+      throw new Error('Amount must be greater than zero');
+    }
+
+    const updateQuery = async () =>
+      await supabase
+        .from('budget_items')
+        .update({
+          title: safeTitle,
+          amount: safeAmount,
+          type,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', itemId)
+        .eq('owner_id', ownerId)
+        .select(
+          'id, owner_id, user_id, budget_id, transaction_id, title, amount, type, created_at, updated_at',
+        )
+        .single();
+
+    const { data, error } = options?.getToken
+      ? await retryOnceOnJwtExpired(updateQuery, options.getToken)
+      : await updateQuery();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Budget item not found');
+    }
+
+    const rpcQuery = async () =>
+      await supabase.rpc('recompute_budget_totals', {
+        p_budget_id: budgetId,
+        p_user_id: clerkUserId,
+      });
+
+    const rpcResult = options?.getToken
+      ? await retryOnceOnJwtExpired(rpcQuery, options.getToken)
+      : await rpcQuery();
+
+    if (rpcResult.error) {
+      throw rpcResult.error;
+    }
+
+    return {
+      id: data.id,
+      budgetId: data.budget_id,
+      transactionId: data.transaction_id || undefined,
+      title: data.title,
+      amount: Number(data.amount) || 0,
+      type: data.type === 'income' ? 'income' : 'expense',
+      createdAt: safeDateToTimestamp(data.created_at),
+      updatedAt: data.updated_at ? safeDateToTimestamp(data.updated_at) : undefined,
+      synced: true,
+    };
   },
 
   ensureUserRecord: async (
@@ -771,18 +948,7 @@ export const syncService = {
       }
 
       if (friends) {
-        result.friends = friends.map((f: any) => ({
-          id: f.id,
-          name: f.name,
-          email: undefined,
-          bio: f.bio || '',
-          imageUri: null,
-          currency: normalizeCurrency(f.currency),
-          createdAt: safeDateToTimestamp(f.created_at),
-          updatedAt: f.updated_at ? safeDateToTimestamp(f.updated_at) : undefined,
-          synced: true,
-          pinned: Boolean(f.pinned),
-        }));
+        result.friends = friends.map((f: any) => mapFriendFromDb(f));
         console.warn(
           '[Sync] Pulled friends for hydration:',
           result.friends.map((friend) => ({ id: friend.id, currency: friend.currency })),
@@ -856,7 +1022,7 @@ export const syncService = {
           id: b.id,
           friendId: '',
           title: b.title,
-          currency: b.currency || '$',
+          currency: normalizeCurrency(b.currency),
           totalBudget: Number(b.total_budget) || 0,
           items: (b.items || []).map((item: any) => ({
             id: item.id,
@@ -926,6 +1092,19 @@ const safeDateToTimestamp = (dateValue: string | null | undefined): number => {
   return date.getTime();
 };
 
+const mapFriendFromDb = (row: any): Friend => ({
+  id: row.id,
+  name: row.name,
+  email: undefined,
+  bio: row.bio || '',
+  imageUri: null,
+  currency: normalizeCurrency(row.currency),
+  createdAt: safeDateToTimestamp(row.created_at),
+  updatedAt: row.updated_at ? safeDateToTimestamp(row.updated_at) : undefined,
+  synced: true,
+  pinned: Boolean(row.pinned),
+});
+
 // Helpers to clean up data before sending to DB (e.g. remove 'items' from budget object)
 const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) => {
   return {
@@ -937,7 +1116,7 @@ const mapFriendToDb = (f: Friend, cloudUserId: string, clerkUserId: string) => {
     currency: normalizeCurrency(f.currency),
     pinned: f.pinned,
     created_at: safeTimestampToISO(f.createdAt),
-    updated_at: new Date().toISOString(),
+    updated_at: safeTimestampToISO(f.updatedAt),
   };
 };
 
@@ -951,7 +1130,7 @@ const mapTransactionToDb = (t: Transaction, cloudUserId: string, clerkUserId: st
   description: t.title || t.note || null, // Use title as description
   sign: t.sign === -1 ? -1 : 1,
   created_at: safeTimestampToISO(t.createdAt),
-  updated_at: new Date().toISOString(),
+  updated_at: safeTimestampToISO(t.updatedAt),
 });
 
 const mapBudgetToDb = (b: Budget, cloudUserId: string, clerkUserId: string) => {
@@ -964,7 +1143,7 @@ const mapBudgetToDb = (b: Budget, cloudUserId: string, clerkUserId: string) => {
     total_budget: b.totalBudget,
     pinned: b.pinned,
     created_at: safeTimestampToISO(b.createdAt),
-    updated_at: new Date().toISOString(),
+    updated_at: safeTimestampToISO(b.updatedAt),
   };
 };
 
@@ -978,5 +1157,5 @@ const mapBudgetItemToDb = (bi: BudgetItem, cloudUserId: string, clerkUserId: str
   amount: Math.abs(bi.amount),
   type: getBudgetItemType(bi),
   created_at: safeTimestampToISO(bi.createdAt),
-  updated_at: new Date().toISOString(),
+  updated_at: safeTimestampToISO(bi.updatedAt),
 });

@@ -42,12 +42,14 @@ export interface SyncQueueItem {
   action: 'create' | 'update' | 'delete' | 'settle';
   operation?:
     | 'FRIEND_UPSERT'
+    | 'FRIEND_CURRENCY_UPDATE'
     | 'FRIEND_PIN_TOGGLE'
     | 'TX_UPSERT'
     | 'TX_DELETE'
     | 'BUDGET_UPSERT'
     | 'BUDGET_UPDATE_TOTAL'
     | 'BUDGET_PIN_TOGGLE'
+    | 'BUDGET_ITEM_UPDATE'
     | 'BUDGET_ITEM_UPSERT'
     | 'BUDGET_ITEM_DELETE'
     | 'BUDGET_RECALC'

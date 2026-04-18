@@ -8,10 +8,18 @@ import { useNavigation } from '@/hooks/useNavigation';
 import { useOperations } from '@/hooks/useOperations';
 import { useToast } from '@/hooks/useToast';
 import { clampNetSpentForDisplay } from '@/lib/budgetMath';
-import { calculateBudgetMetrics, safeId, validateAmount, validateTitle } from '@/lib/utils';
+import {
+  calculateBudgetMetrics,
+  getBudgetItemType,
+  safeId,
+  validateAmount,
+  validateTitle,
+} from '@/lib/utils';
+import { syncService } from '@/services/syncService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useSyncStore } from '@/store/syncStore';
-import { BudgetItemType } from '@/types/models';
+import { BudgetItem, BudgetItemType } from '@/types/models';
+import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +34,14 @@ export const useBudgetDetail = () => {
   const [itemType, setItemType] = useState<BudgetItemType>('expense');
   const [itemTitleError, setItemTitleError] = useState('');
   const [itemAmountError, setItemAmountError] = useState('');
+
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingItemId, setEditingItemId] = useState('');
+  const [editItemTitle, setEditItemTitle] = useState('');
+  const [editItemAmount, setEditItemAmount] = useState('');
+  const [editItemType, setEditItemType] = useState<BudgetItemType>('expense');
+  const [editItemError, setEditItemError] = useState('');
+  const [isSavingEditItem, setIsSavingEditItem] = useState(false);
 
   const [showCalculator, setShowCalculator] = useState(false);
 
@@ -48,15 +64,24 @@ export const useBudgetDetail = () => {
       items: rawBudget.items.filter((item) => !item.deletedAt),
     };
   }, [rawBudget]);
-  const { addItem, removeItem, getTotalSpent, getRemainingBudget, deleteBudget } = useBudgetStore();
+  const {
+    addItem,
+    updateItem,
+    markItemAsSynced,
+    removeItem,
+    getTotalSpent,
+    getRemainingBudget,
+    deleteBudget,
+  } = useBudgetStore();
 
   const { navigateToBudgetEdit, navigateToBudgetList } = useNavigation();
   const { handleBudgetPinToggle: togglePin } = useOperations();
   const { showConfirm } = useConfirmDialog();
-  const { toastSuccess } = useToast();
+  const { toastSuccess, toastError } = useToast();
   const { handleBudgetAmountCopy } = useBudgetAmount();
-  const { syncNow } = useCloudSync();
+  const { syncNow, isOnline, isLoggedIn } = useCloudSync();
   const { mutate } = useSyncMutation();
+  const { getToken, userId } = useAuth();
   const syncStatus = useSyncStore((state) => state.syncStatus);
   const { handleBudgetResetPeriod } = useBudgetPeriod();
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
@@ -123,6 +148,150 @@ export const useBudgetDetail = () => {
       },
       { confirmText: t('common.actions.delete') },
     );
+  };
+
+  const selectedEditItem = useMemo<BudgetItem | null>(() => {
+    if (!budget || !editingItemId) return null;
+    return budget.items.find((item) => item.id === editingItemId) || null;
+  }, [budget, editingItemId]);
+
+  const openEditItemModal = (item: BudgetItem): void => {
+    if (item.transactionId) {
+      toastError(t('budgetDetail.editItem.linkedBlocked'));
+      return;
+    }
+
+    setEditingItemId(item.id);
+    setEditItemTitle(item.title);
+    setEditItemAmount(String(Math.abs(item.amount)));
+    setEditItemType(getBudgetItemType(item));
+    setEditItemError('');
+    setEditModalVisible(true);
+  };
+
+  const closeEditItemModal = (): void => {
+    if (isSavingEditItem) return;
+    setEditModalVisible(false);
+    setEditingItemId('');
+    setEditItemError('');
+  };
+
+  const isEditItemLinked = selectedEditItem?.transactionId !== undefined;
+  const hasEditItemChanges =
+    !!selectedEditItem &&
+    (selectedEditItem.title.trim() !== editItemTitle.trim() ||
+      Math.abs(selectedEditItem.amount) !== Math.abs(parseFloat(editItemAmount || '0')) ||
+      getBudgetItemType(selectedEditItem) !== editItemType);
+  const canSaveEditItem =
+    !isEditItemLinked &&
+    hasEditItemChanges &&
+    !validateTitle(editItemTitle.trim()) &&
+    !validateAmount(editItemAmount, 1);
+
+  const handleSaveEditedItem = async (): Promise<void> => {
+    if (!budget || !selectedEditItem) return;
+
+    if (selectedEditItem.transactionId) {
+      setEditItemError(t('budgetDetail.editItem.linkedBlocked'));
+      return;
+    }
+
+    const titleError = validateTitle(editItemTitle.trim());
+    if (titleError) {
+      setEditItemError(titleError);
+      return;
+    }
+
+    const amountError = validateAmount(editItemAmount, 1);
+    if (amountError) {
+      setEditItemError(amountError);
+      return;
+    }
+
+    if (!hasEditItemChanges) {
+      return;
+    }
+
+    const safeTitle = editItemTitle.trim();
+    const safeAmount = Math.abs(parseFloat(editItemAmount));
+    const now = Date.now();
+
+    setIsSavingEditItem(true);
+    setEditItemError('');
+
+    try {
+      updateItem(budget.id, selectedEditItem.id, {
+        title: safeTitle,
+        amount: safeAmount,
+        type: editItemType,
+      });
+
+      const queuePayload = {
+        itemId: selectedEditItem.id,
+        budgetId: budget.id,
+        title: safeTitle,
+        amount: safeAmount,
+        type: editItemType,
+        updatedAt: now,
+      };
+
+      if (isOnline && isLoggedIn && userId) {
+        try {
+          await syncService.updateBudgetItem(
+            selectedEditItem.id,
+            budget.id,
+            safeTitle,
+            safeAmount,
+            editItemType,
+            {
+              clerkUserId: userId,
+              getToken,
+            },
+          );
+          markItemAsSynced(budget.id, selectedEditItem.id);
+        } catch (error: any) {
+          console.error('[Sync] Failed to update budget item:', error?.message || error);
+
+          await mutate('budget_item', 'update', queuePayload, {
+            operation: 'BUDGET_ITEM_UPDATE',
+            entityId: selectedEditItem.id,
+          });
+
+          await mutate(
+            'budget_item',
+            'update',
+            { budgetId: budget.id, updatedAt: now },
+            {
+              operation: 'BUDGET_RECALC',
+              entityId: budget.id,
+            },
+          );
+        }
+      } else {
+        await mutate('budget_item', 'update', queuePayload, {
+          operation: 'BUDGET_ITEM_UPDATE',
+          entityId: selectedEditItem.id,
+        });
+
+        await mutate(
+          'budget_item',
+          'update',
+          { budgetId: budget.id, updatedAt: now },
+          {
+            operation: 'BUDGET_RECALC',
+            entityId: budget.id,
+          },
+        );
+      }
+
+      toastSuccess(t('budgetDetail.editItem.updated'));
+      closeEditItemModal();
+    } catch (error: any) {
+      console.error('[Budget] Failed to save edited item:', error?.message || error);
+      setEditItemError(t('budgetDetail.editItem.saveFailed'));
+    } finally {
+      setIsSavingEditItem(false);
+    }
   };
 
   const handleRetrySync = async (): Promise<void> => {
@@ -226,5 +395,19 @@ export const useBudgetDetail = () => {
     handleRetrySync,
     showCalculator,
     setShowCalculator,
+    editModalVisible,
+    openEditItemModal,
+    closeEditItemModal,
+    editItemTitle,
+    setEditItemTitle,
+    editItemAmount,
+    setEditItemAmount,
+    editItemType,
+    setEditItemType,
+    editItemError,
+    isSavingEditItem,
+    canSaveEditItem,
+    isEditItemLinked,
+    handleSaveEditedItem,
   };
 };

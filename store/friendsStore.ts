@@ -30,6 +30,19 @@ export const useFriendsStore = create<IFriendsState>()(
               : f,
           ),
         })),
+      setCurrency: (id: string, currency: string) =>
+        set((state) => ({
+          friends: state.friends.map((f) =>
+            f.id === id
+              ? {
+                  ...f,
+                  currency: normalizeCurrency(currency),
+                  synced: false,
+                  updatedAt: Date.now(),
+                }
+              : f,
+          ),
+        })),
       deleteFriend: (id) =>
         set((state) => ({
           friends: state.friends.map((f) =>
@@ -71,11 +84,20 @@ export const useFriendsStore = create<IFriendsState>()(
               // Conflict resolution: use the one with newer updatedAt
               const remoteUpdatedAt = remote.updatedAt || 0;
               const localUpdatedAt = local.updatedAt || 0;
+              const localPending = local.synced !== true && local.deletedAt === undefined;
               const remoteCurrency = hasRemoteCurrency(remote.currency)
                 ? normalizeCurrency(remote.currency)
                 : null;
               const localCurrency = normalizeCurrency(local.currency);
-              if (remoteUpdatedAt > localUpdatedAt) {
+
+              // Keep local pending edits until they are synced.
+              if (localPending) {
+                localMap.set(remote.id, {
+                  ...local,
+                  currency: localCurrency,
+                  synced: false,
+                });
+              } else if (remoteUpdatedAt > localUpdatedAt) {
                 // Remote is newer -> use remote (clear any local deletion)
                 localMap.set(remote.id, {
                   ...remote,
@@ -87,7 +109,7 @@ export const useFriendsStore = create<IFriendsState>()(
                 localMap.set(remote.id, {
                   ...local,
                   currency: remoteCurrency ?? localCurrency,
-                  synced: true,
+                  synced: local.synced !== false,
                 });
               }
             }

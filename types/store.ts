@@ -89,6 +89,7 @@ export interface IFriendsState {
   friends: Friend[];
   addFriend: (friend: Friend) => void;
   updateFriend: (friend: Friend) => void;
+  setCurrency: (id: string, currency: string) => void;
   deleteFriend: (id: string) => void;
   setFriends: (friends: Friend[]) => void;
   mergeFriends: (friends: Friend[]) => void;
@@ -113,6 +114,11 @@ export interface IBudgetState {
   setCurrency: (id: string, currency: string) => void;
   setTotalBudget: (id: string, amount: number) => void;
   addItem: (budgetId: string, title: string, amount: number, type?: BudgetItemType) => void;
+  updateItem: (
+    budgetId: string,
+    itemId: string,
+    updates: Partial<Pick<BudgetItem, 'title' | 'amount' | 'type'>>,
+  ) => void;
   upsertItemFromTransaction: (transaction: Transaction, budgetId?: string) => BudgetItem | null;
   removeItemByTransactionId: (transactionId: string) => BudgetItem | null;
   removeItem: (budgetId: string, itemId: string) => void;
