@@ -124,9 +124,17 @@ export const useSignOut = (closeDrawer?: () => void) => {
         const reasonText =
           summary.blockedReason === 'offline'
             ? "You're offline. Connect and try again."
-            : summary.blockedReason === 'auth'
-              ? 'Authentication expired. Please sign in again to sync.'
-              : 'Some changes failed to sync.';
+            : summary.blockedReason === 'timeout'
+              ? 'Sync timed out. Please retry.'
+              : summary.blockedReason === 'rate_limited'
+                ? 'Too many requests. Please retry in a few seconds.'
+                : summary.blockedReason === 'auth'
+                  ? 'Authentication expired. Please sign in again to sync.'
+                  : summary.blockedReason === 'server'
+                    ? 'Server error while syncing. Please retry.'
+                    : summary.blockedReason === 'validation/conflict'
+                      ? 'Some data failed validation and needs review before syncing.'
+                      : 'Some changes failed to sync.';
 
         toastError(`Sync failed: ${reasonText}`);
 

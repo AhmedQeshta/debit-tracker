@@ -1,8 +1,8 @@
+import { getNetworkSnapshot, isNetworkReachable } from '@/services/net';
 import { syncService } from '@/services/syncService';
 import { useSyncStore } from '@/store/syncStore';
 import { SyncQueueItem } from '@/types/models';
 import { useAuth } from '@clerk/clerk-expo';
-import NetInfo from '@react-native-community/netinfo';
 
 export const useSyncMutation = () => {
   const { syncEnabled, addToQueue } = useSyncStore();
@@ -55,8 +55,8 @@ export const useSyncMutation = () => {
     });
 
     // Check environment
-    const state = await NetInfo.fetch();
-    const isOnline = !!state.isConnected;
+    const state = await getNetworkSnapshot();
+    const isOnline = isNetworkReachable(state);
 
     if (isOnline && isSignedIn && userId) {
       try {
@@ -87,8 +87,8 @@ export const useSyncMutation = () => {
       payload: { friendId, createdAt },
     });
 
-    const state = await NetInfo.fetch();
-    const isOnline = !!state.isConnected;
+    const state = await getNetworkSnapshot();
+    const isOnline = isNetworkReachable(state);
 
     if (isOnline && isSignedIn && userId) {
       try {

@@ -1,5 +1,7 @@
 import { selectPendingCount } from '@/lib/dashboardSelectors';
 import { getFreshSupabaseJwt } from '@/services/authSync';
+import { getNetworkSnapshot, isNetworkReachable, pingSupabase } from '@/services/net';
+import { getSyncErrorCode } from '@/services/syncErrors';
 import { syncService } from '@/services/syncService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -17,14 +19,70 @@ export const useCloudSync = () => {
   const [isOnline, setIsOnline] = useState(false);
   const retryAttemptsRef = useRef(0);
 
+  const syncErrorMessageFromReason = useCallback(
+    (reason?: string) => {
+      if (reason === 'offline') return t('sync.status.noInternet');
+      if (reason === 'timeout') return t('sync.status.timeoutRetry');
+      if (reason === 'rate_limited') return t('sync.status.rateLimitedRetry');
+      if (reason === 'auth') return t('sync.status.needsLogin');
+      if (reason === 'server') return t('sync.status.serverRetry');
+      if (reason === 'validation/conflict') return t('sync.status.validationConflict');
+      return t('cloudSyncHooks.errors.someChangesFailed');
+    },
+    [t],
+  );
+
+  const evaluateConnectivity = useCallback(async () => {
+    const net = await getNetworkSnapshot();
+
+    useSyncStore.getState().setNetworkState({
+      isConnected: net.isConnected,
+      isInternetReachable: net.isInternetReachable,
+      type: net.type,
+    });
+
+    if (!isNetworkReachable(net)) {
+      setIsOnline(false);
+      return { ok: false as const, reason: 'offline' as const };
+    }
+
+    const ping = await pingSupabase();
+    if (!ping.ok && ping.errorType === 'network') {
+      setIsOnline(false);
+      return { ok: false as const, reason: 'offline' as const };
+    }
+
+    setIsOnline(true);
+    return { ok: true as const };
+  }, []);
+
   // Monitor network status (passive listener - ok to keep here for state update)
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
-      setIsOnline(!!state.isConnected);
+      const reachable =
+        typeof state.isInternetReachable === 'boolean'
+          ? state.isInternetReachable
+          : !!state.isConnected;
+
+      useSyncStore.getState().setNetworkState({
+        isConnected: !!state.isConnected,
+        isInternetReachable:
+          typeof state.isInternetReachable === 'boolean' ? state.isInternetReachable : undefined,
+        type: state.type,
+      });
+
+      setIsOnline(reachable);
     });
-    NetInfo.fetch().then((state) => {
-      setIsOnline(!!state.isConnected);
+
+    void getNetworkSnapshot().then((snapshot) => {
+      useSyncStore.getState().setNetworkState({
+        isConnected: snapshot.isConnected,
+        isInternetReachable: snapshot.isInternetReachable,
+        type: snapshot.type,
+      });
+      setIsOnline(isNetworkReachable(snapshot));
     });
+
     return unsubscribe;
   }, []);
 
@@ -56,6 +114,18 @@ export const useCloudSync = () => {
         useSyncStore.getState().setSyncStatus('pulling');
       }
 
+      const connectivity = await evaluateConnectivity();
+      if (!connectivity.ok) {
+        useSyncStore.getState().setSyncStatus('error');
+        useSyncStore.getState().setLastError({
+          code: 'OFFLINE',
+          message: t('sync.status.noInternet'),
+          at: Date.now(),
+        });
+        useSyncStore.getState().setIsSyncRunning(false);
+        return;
+      }
+
       try {
         const result = await syncService.pullAllDataForUser(cloudUserId, getToken);
 
@@ -85,7 +155,7 @@ export const useCloudSync = () => {
         useSyncStore.getState().setPullProgress(undefined);
       }
     },
-    [getToken, t],
+    [evaluateConnectivity, getToken, t],
   );
 
   const syncNow = useCallback(async () => {
@@ -95,12 +165,22 @@ export const useCloudSync = () => {
     const { isSyncRunning, isSyncing } = useSyncStore.getState();
     if (isSyncRunning) return;
 
-    if (isSyncing || !userId || !isOnline || !isLoaded || !isSignedIn) {
+    if (isSyncing || !userId || !isLoaded || !isSignedIn) {
+      return;
+    }
+
+    const connectivity = await evaluateConnectivity();
+    if (!connectivity.ok) {
+      useSyncStore.getState().setSyncStatus('error');
+      useSyncStore.getState().setLastError({
+        code: 'OFFLINE',
+        message: t('sync.status.noInternet'),
+        at: Date.now(),
+      });
       return;
     }
 
     // Preflight auth check (fresh Clerk token)
-    if (!isOnline) return;
     try {
       const result = await getFreshSupabaseJwt(getToken);
       if (!result.token) {
@@ -130,11 +210,18 @@ export const useCloudSync = () => {
       useSyncStore.getState().setLastError(null);
     } catch (e) {
       console.error('[Sync] Sync failed:', e);
+      useSyncStore.getState().setSyncStatus('error');
+      useSyncStore.getState().setLastError({
+        code: 'SYNC_FAILED',
+        message: t('sync.status.genericError'),
+        details: e,
+        at: Date.now(),
+      });
     } finally {
       setSyncing(false);
       useSyncStore.getState().setIsSyncRunning(false);
     }
-  }, [userId, isOnline, isLoaded, isSignedIn, getToken, setSyncing]);
+  }, [evaluateConnectivity, getToken, isLoaded, isSignedIn, setSyncing, t, userId]);
 
   const syncQueueNow = useCallback(
     async (options?: {
@@ -145,43 +232,64 @@ export const useCloudSync = () => {
       }
 
       const { isSyncRunning, isSyncing, cloudUserId } = useSyncStore.getState();
-      if (
-        isSyncRunning ||
-        isSyncing ||
-        !cloudUserId ||
-        !userId ||
-        !isOnline ||
-        !isLoaded ||
-        !isSignedIn
-      ) {
+      if (isSyncRunning || isSyncing || !cloudUserId || !userId || !isLoaded || !isSignedIn) {
+        return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' as const };
+      }
+
+      const connectivity = await evaluateConnectivity();
+      if (!connectivity.ok) {
+        useSyncStore.getState().setSyncStatus('error');
+        useSyncStore.getState().setLastError({
+          code: 'OFFLINE',
+          message: t('sync.status.noInternet'),
+          at: Date.now(),
+        });
         return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'offline' as const };
       }
 
       setSyncing(true);
       useSyncStore.getState().setIsSyncRunning(true);
       useSyncStore.getState().setSyncStatus('pushing');
+      useSyncStore.getState().setPullProgress('syncing 0 of 0');
 
       try {
-        const summary = await syncService.syncQueueFlush(cloudUserId, userId, getToken, options);
+        const summary = await syncService.syncQueueFlush(cloudUserId, userId, getToken, {
+          chunkSize: 30,
+          concurrency: 2,
+          onProgress: (processed, total, itemId) => {
+            useSyncStore.getState().setPullProgress(`syncing ${processed} of ${total}`);
+            options?.onProgress?.(processed, total, itemId);
+          },
+        });
+
         if (summary.failedCount === 0 && !summary.blockedReason) {
           useSyncStore.getState().setSyncStatus('success');
           useSyncStore.getState().setLastError(null);
         } else {
           useSyncStore.getState().setSyncStatus('error');
           useSyncStore.getState().setLastError({
-            message: summary.blockedReason
-              ? t('cloudSyncHooks.errors.syncBlocked', { reason: summary.blockedReason })
-              : t('cloudSyncHooks.errors.someChangesFailed'),
+            code: summary.lastErrorCode || getSyncErrorCode(summary.blockedReason || 'unknown'),
+            message: summary.lastErrorMessage || syncErrorMessageFromReason(summary.blockedReason),
             at: Date.now(),
           });
         }
         return summary;
       } finally {
+        useSyncStore.getState().setPullProgress(undefined);
         setSyncing(false);
         useSyncStore.getState().setIsSyncRunning(false);
       }
     },
-    [getToken, isLoaded, isOnline, isSignedIn, setSyncing, t, userId],
+    [
+      evaluateConnectivity,
+      getToken,
+      isLoaded,
+      isSignedIn,
+      setSyncing,
+      syncErrorMessageFromReason,
+      t,
+      userId,
+    ],
   );
 
   const hasPendingChanges = selectPendingCount() > 0;
