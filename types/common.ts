@@ -342,13 +342,22 @@ export interface UnsyncedCounts {
   syncQueue: number;
 }
 
-export type QueueBlockedReason = 'offline' | 'auth' | 'unknown';
+export type QueueBlockedReason =
+  | 'offline'
+  | 'timeout'
+  | 'rate_limited'
+  | 'auth'
+  | 'server'
+  | 'validation/conflict'
+  | 'unknown';
 
 export interface SyncQueueFlushSummary {
   total: number;
   successCount: number;
   failedCount: number;
   blockedReason?: QueueBlockedReason;
+  lastErrorCode?: string;
+  lastErrorMessage?: string;
 }
 
 export interface HeaderProps {

@@ -34,6 +34,9 @@ export const useSyncStatus = () => {
 
   const isNetworkWeak = network.isConnected === false || network.isInternetReachable === false;
   const isTimeoutError = lastError?.code === 'TIMEOUT';
+  const isOfflineError = lastError?.code === 'OFFLINE';
+  const isRateLimitedError = lastError?.code === 'RATE_LIMITED';
+  const isServerError = lastError?.code === 'SERVER';
 
   return {
     syncEnabled,
@@ -47,6 +50,9 @@ export const useSyncStatus = () => {
     handleRetry,
     lastError,
     isTimeoutError,
+    isOfflineError,
+    isRateLimitedError,
+    isServerError,
     lastSync,
     isLoggedIn,
   };

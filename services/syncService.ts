@@ -6,6 +6,7 @@ import {
   isJwtExpiredError,
   retryOnceOnJwtExpired,
 } from '@/services/authSync';
+import { classifySyncError, getSyncErrorCode, isRetryableSyncError } from '@/services/syncErrors';
 import { ensureAppUser } from '@/services/userService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
@@ -35,12 +36,99 @@ const normalizeCurrency = (currency: unknown): string => {
   return trimmed.length > 0 ? trimmed : '$';
 };
 
+const DEFAULT_SYNC_CHUNK_SIZE = 30;
+const DEFAULT_SYNC_CONCURRENCY = 2;
+const MAX_SYNC_RETRIES = 4;
+const MAX_SYNC_BACKOFF_MS = 30000;
+
+const waitMs = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const mapCategoryToBlockedReason = (
+  category: ReturnType<typeof classifySyncError>,
+): QueueBlockedReason => {
+  if (category === 'validation/conflict') {
+    return 'validation/conflict';
+  }
+
+  if (category === 'offline') return 'offline';
+  if (category === 'timeout') return 'timeout';
+  if (category === 'rate_limited') return 'rate_limited';
+  if (category === 'auth') return 'auth';
+  if (category === 'server') return 'server';
+  return 'unknown';
+};
+
+const computeBackoffMs = (attempt: number, category: ReturnType<typeof classifySyncError>) => {
+  const exponential = Math.min(1000 * 2 ** attempt, MAX_SYNC_BACKOFF_MS);
+  if (category === 'rate_limited') {
+    return Math.max(5000, exponential);
+  }
+  return exponential;
+};
+
+const runWithRetry = async <T>(
+  execute: () => Promise<T>,
+  onRetry?: (attempt: number, maxRetries: number, delayMs: number, error: unknown) => void,
+): Promise<T> => {
+  let attempt = 0;
+
+  while (true) {
+    try {
+      return await execute();
+    } catch (error: any) {
+      const category = classifySyncError(error);
+      const retryable = isRetryableSyncError(category);
+
+      if (!retryable || attempt >= MAX_SYNC_RETRIES) {
+        if (error && typeof error === 'object') {
+          (error as any).syncCategory = category;
+        }
+        throw error;
+      }
+
+      const delayMs = computeBackoffMs(attempt, category);
+      onRetry?.(attempt + 1, MAX_SYNC_RETRIES, delayMs, error);
+      await waitMs(delayMs);
+      attempt += 1;
+    }
+  }
+};
+
+const mapWithConcurrency = async <T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>,
+) => {
+  let index = 0;
+  const safeConcurrency = Math.max(1, concurrency);
+
+  const runWorker = async () => {
+    while (index < items.length) {
+      const currentIndex = index;
+      index += 1;
+      await worker(items[currentIndex]);
+    }
+  };
+
+  const workers = Array.from({ length: Math.min(safeConcurrency, items.length) }, () =>
+    runWorker(),
+  );
+  await Promise.all(workers);
+};
+
 export const syncService = {
   syncQueueFlush: async (
     cloudUserId: string,
     clerkUserId: string,
     getToken: GetTokenFunction,
-    options?: { onProgress?: (processed: number, total: number, itemId: string) => void },
+    options?: {
+      onProgress?: (processed: number, total: number, itemId: string) => void;
+      chunkSize?: number;
+      concurrency?: number;
+    },
   ): Promise<SyncQueueFlushSummary> => {
     const { syncEnabled, queue } = useSyncStore.getState();
 
@@ -51,148 +139,292 @@ export const syncService = {
     const sortedQueue = [...queue].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     const total = sortedQueue.length;
 
-    if (total === 0) {
-      try {
-        await syncService.pushChanges(getToken, clerkUserId);
-        return { total: 0, successCount: 0, failedCount: 0 };
-      } catch {
-        return { total: 0, successCount: 0, failedCount: 0, blockedReason: 'unknown' };
-      }
-    }
+    const chunkSize = Math.max(1, options?.chunkSize ?? DEFAULT_SYNC_CHUNK_SIZE);
+    const concurrency = Math.max(1, Math.min(options?.concurrency ?? DEFAULT_SYNC_CONCURRENCY, 3));
 
     let successCount = 0;
     let failedCount = 0;
+    let processedCount = 0;
     let blockedReason: QueueBlockedReason | undefined;
+    let lastErrorCode: string | undefined;
+    let lastErrorMessage: string | undefined;
 
-    for (let i = 0; i < sortedQueue.length; i++) {
-      const item = sortedQueue[i];
-      options?.onProgress?.(i + 1, total, item.id);
+    const advanceProgress = (itemId: string) => {
+      processedCount += 1;
+      options?.onProgress?.(processedCount, total, itemId);
+    };
 
-      try {
-        if (item.operation === 'BUDGET_RECALC' && item.entityId) {
-          const rpcResult = await retryOnceOnJwtExpired(
-            async () =>
-              await supabase.rpc('recompute_budget_totals', {
-                p_budget_id: item.entityId,
-                p_user_id: clerkUserId,
-              }),
-            getToken,
-          );
+    const directOperations = new Set([
+      'BUDGET_RECALC',
+      'FRIEND_CURRENCY_UPDATE',
+      'BUDGET_ITEM_UPDATE',
+      'SETTLE_FRIEND',
+    ]);
 
-          if (rpcResult.error) {
-            throw rpcResult.error;
-          }
-        } else if (item.operation === 'FRIEND_CURRENCY_UPDATE') {
-          const friendId = item.payload?.friendId;
-          const currency = item.payload?.currency;
+    const processDirectItem = async (item: (typeof sortedQueue)[number]) => {
+      if (item.operation === 'BUDGET_RECALC' && item.entityId) {
+        const rpcResult = await retryOnceOnJwtExpired(
+          async () =>
+            await supabase.rpc('recompute_budget_totals', {
+              p_budget_id: item.entityId,
+              p_user_id: clerkUserId,
+            }),
+          getToken,
+        );
 
-          if (!friendId || typeof currency !== 'string') {
-            useSyncStore.getState().removeFromQueue(item.id);
-            continue;
-          }
+        if (rpcResult.error) {
+          throw rpcResult.error;
+        }
+        return;
+      }
 
-          const updatedFriend = await syncService.updateFriendCurrency(friendId, currency, {
-            cloudUserId,
-            clerkUserId,
-            getToken,
-          });
+      if (item.operation === 'FRIEND_CURRENCY_UPDATE') {
+        const friendId = item.payload?.friendId;
+        const currency = item.payload?.currency;
 
-          const friendsState = useFriendsStore.getState();
-          friendsState.setFriends(
-            friendsState.friends.map((friend) =>
-              friend.id === friendId
-                ? {
-                    ...friend,
-                    currency: updatedFriend.currency,
-                    updatedAt: updatedFriend.updatedAt,
-                    synced: true,
-                  }
-                : friend,
-            ),
-          );
-        } else if (item.operation === 'BUDGET_ITEM_UPDATE') {
-          const itemId = item.payload?.itemId;
-          const budgetId = item.payload?.budgetId;
-          const title = item.payload?.title;
-          const amount = item.payload?.amount;
-          const type = item.payload?.type;
-
-          if (
-            !itemId ||
-            !budgetId ||
-            typeof title !== 'string' ||
-            typeof amount !== 'number' ||
-            (type !== 'expense' && type !== 'income')
-          ) {
-            useSyncStore.getState().removeFromQueue(item.id);
-            continue;
-          }
-
-          await syncService.updateBudgetItem(itemId, budgetId, title, amount, type, {
-            cloudUserId,
-            clerkUserId,
-            getToken,
-          });
-
-          useBudgetStore.getState().markItemAsSynced(budgetId, itemId);
-        } else if (
-          item.operation === 'BUDGET_UPDATE_TOTAL' ||
-          item.operation === 'FRIEND_PIN_TOGGLE' ||
-          item.operation === 'BUDGET_PIN_TOGGLE'
-        ) {
-          // Explicit budget total/pin toggles are persisted by pushChanges via dirty entities.
-          await syncService.pushChanges(getToken, clerkUserId);
-        } else if (item.operation === 'SETTLE_FRIEND') {
-          const friendId = item.payload?.friendId;
-          if (!friendId) {
-            useSyncStore.getState().removeFromQueue(item.id);
-            continue;
-          }
-
-          const result = await retryOnceOnJwtExpired(
-            async () =>
-              await supabase
-                .from('transactions')
-                .delete()
-                .eq('owner_id', cloudUserId)
-                .eq('friend_id', friendId),
-            getToken,
-          );
-
-          if (result.error) {
-            throw result.error;
-          }
-        } else {
-          // Existing pushChanges already handles FK-safe ordering and local synced flags.
-          await syncService.pushChanges(getToken, clerkUserId);
+        if (!friendId || typeof currency !== 'string') {
+          useSyncStore.getState().removeFromQueue(item.id);
+          return;
         }
 
-        useSyncStore.getState().removeFromQueue(item.id);
-        successCount += 1;
-      } catch (error: any) {
-        failedCount += 1;
-        const message = error?.message || 'Unknown queue sync error';
-
-        useSyncStore.getState().updateQueueItem(item.id, {
-          attempts: (item.attempts || 0) + 1,
-          lastError: message,
-          status: 'failed',
+        const updatedFriend = await syncService.updateFriendCurrency(friendId, currency, {
+          cloudUserId,
+          clerkUserId,
+          getToken,
         });
 
-        if (isJwtExpiredError(error)) {
-          useSyncStore.getState().setSyncStatus('needs_login');
-          blockedReason = 'auth';
-          break;
+        const friendsState = useFriendsStore.getState();
+        friendsState.setFriends(
+          friendsState.friends.map((friend) =>
+            friend.id === friendId
+              ? {
+                  ...friend,
+                  currency: updatedFriend.currency,
+                  updatedAt: updatedFriend.updatedAt,
+                  synced: true,
+                }
+              : friend,
+          ),
+        );
+        return;
+      }
+
+      if (item.operation === 'BUDGET_ITEM_UPDATE') {
+        const itemId = item.payload?.itemId;
+        const budgetId = item.payload?.budgetId;
+        const title = item.payload?.title;
+        const amount = item.payload?.amount;
+        const type = item.payload?.type;
+
+        if (
+          !itemId ||
+          !budgetId ||
+          typeof title !== 'string' ||
+          typeof amount !== 'number' ||
+          (type !== 'expense' && type !== 'income')
+        ) {
+          useSyncStore.getState().removeFromQueue(item.id);
+          return;
         }
 
-        if (/network|offline|timeout/i.test(message)) {
-          blockedReason = 'offline';
+        await syncService.updateBudgetItem(itemId, budgetId, title, amount, type, {
+          cloudUserId,
+          clerkUserId,
+          getToken,
+        });
+
+        useBudgetStore.getState().markItemAsSynced(budgetId, itemId);
+        return;
+      }
+
+      if (item.operation === 'SETTLE_FRIEND') {
+        const friendId = item.payload?.friendId;
+        if (!friendId) {
+          useSyncStore.getState().removeFromQueue(item.id);
+          return;
+        }
+
+        const result = await retryOnceOnJwtExpired(
+          async () =>
+            await supabase
+              .from('transactions')
+              .delete()
+              .eq('owner_id', cloudUserId)
+              .eq('friend_id', friendId),
+          getToken,
+        );
+
+        if (result.error) {
+          throw result.error;
+        }
+      }
+    };
+
+    if (total === 0) {
+      try {
+        await runWithRetry(() => syncService.pushChanges(getToken, clerkUserId));
+        return { total: 0, successCount: 0, failedCount: 0 };
+      } catch (error: any) {
+        const category =
+          (error?.syncCategory as ReturnType<typeof classifySyncError>) || classifySyncError(error);
+        return {
+          total: 0,
+          successCount: 0,
+          failedCount: 0,
+          blockedReason: mapCategoryToBlockedReason(category),
+          lastErrorCode: getSyncErrorCode(category),
+          lastErrorMessage: error?.message || 'Sync failed',
+        };
+      }
+    }
+
+    for (let i = 0; i < sortedQueue.length; i += chunkSize) {
+      const chunk = sortedQueue.slice(i, i + chunkSize);
+
+      const directItems = chunk.filter(
+        (item) => item.operation && directOperations.has(item.operation),
+      );
+      const pushItems = chunk.filter(
+        (item) => !item.operation || !directOperations.has(item.operation),
+      );
+
+      if (directItems.length > 0) {
+        await mapWithConcurrency(directItems, concurrency, async (item) => {
+          if (blockedReason) {
+            return;
+          }
+
+          useSyncStore.getState().updateQueueItem(item.id, { status: 'processing' });
+
+          try {
+            await runWithRetry(
+              () => processDirectItem(item),
+              (_, __, delayMs, error) => {
+                const category = classifySyncError(error);
+                useSyncStore.getState().setLastError({
+                  code: getSyncErrorCode(category),
+                  message:
+                    category === 'rate_limited'
+                      ? `Too many requests. Retrying in ${Math.ceil(delayMs / 1000)}s...`
+                      : `Sync retrying in ${Math.ceil(delayMs / 1000)}s...`,
+                  details: error,
+                  at: Date.now(),
+                });
+              },
+            );
+
+            useSyncStore.getState().updateQueueItem(item.id, { status: 'synced' });
+            useSyncStore.getState().removeFromQueue(item.id);
+            successCount += 1;
+          } catch (error: any) {
+            failedCount += 1;
+            const category =
+              (error?.syncCategory as ReturnType<typeof classifySyncError>) ||
+              classifySyncError(error);
+            const message = error?.message || 'Unknown queue sync error';
+
+            useSyncStore.getState().updateQueueItem(item.id, {
+              attempts: (item.attempts || 0) + 1,
+              lastError: message,
+              status: 'failed',
+            });
+
+            blockedReason = mapCategoryToBlockedReason(category);
+            lastErrorCode = getSyncErrorCode(category);
+            lastErrorMessage = message;
+
+            useSyncStore.getState().setLastError({
+              code: lastErrorCode,
+              message,
+              details: error,
+              at: Date.now(),
+            });
+
+            if (category === 'auth' || isJwtExpiredError(error)) {
+              useSyncStore.getState().setSyncStatus('needs_login');
+            }
+          } finally {
+            advanceProgress(item.id);
+          }
+        });
+      }
+
+      if (blockedReason) {
+        break;
+      }
+
+      if (pushItems.length > 0) {
+        pushItems.forEach((item) => {
+          useSyncStore.getState().updateQueueItem(item.id, { status: 'processing' });
+        });
+
+        try {
+          await runWithRetry(
+            () => syncService.pushChanges(getToken, clerkUserId),
+            (_, __, delayMs, error) => {
+              const category = classifySyncError(error);
+              useSyncStore.getState().setLastError({
+                code: getSyncErrorCode(category),
+                message:
+                  category === 'rate_limited'
+                    ? `Too many requests. Retrying in ${Math.ceil(delayMs / 1000)}s...`
+                    : `Sync retrying in ${Math.ceil(delayMs / 1000)}s...`,
+                details: error,
+                at: Date.now(),
+              });
+            },
+          );
+
+          for (const item of pushItems) {
+            useSyncStore.getState().updateQueueItem(item.id, { status: 'synced' });
+            useSyncStore.getState().removeFromQueue(item.id);
+            successCount += 1;
+            advanceProgress(item.id);
+          }
+        } catch (error: any) {
+          const category =
+            (error?.syncCategory as ReturnType<typeof classifySyncError>) ||
+            classifySyncError(error);
+          const message = error?.message || 'Sync batch failed';
+
+          for (const item of pushItems) {
+            useSyncStore.getState().updateQueueItem(item.id, {
+              attempts: (item.attempts || 0) + 1,
+              lastError: message,
+              status: 'failed',
+            });
+            failedCount += 1;
+            advanceProgress(item.id);
+          }
+
+          blockedReason = mapCategoryToBlockedReason(category);
+          lastErrorCode = getSyncErrorCode(category);
+          lastErrorMessage = message;
+
+          useSyncStore.getState().setLastError({
+            code: lastErrorCode,
+            message,
+            details: error,
+            at: Date.now(),
+          });
+
+          if (category === 'auth' || isJwtExpiredError(error)) {
+            useSyncStore.getState().setSyncStatus('needs_login');
+          }
+
           break;
         }
       }
     }
 
-    return { total, successCount, failedCount, blockedReason };
+    return {
+      total,
+      successCount,
+      failedCount,
+      blockedReason,
+      lastErrorCode,
+      lastErrorMessage,
+    };
   },
 
   pushChanges: async (getToken: GetTokenFunction, clerkUserId: string) => {

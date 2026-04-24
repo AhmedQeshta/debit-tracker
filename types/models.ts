@@ -60,7 +60,7 @@ export interface SyncQueueItem {
   createdAt?: number;
   attempts?: number;
   lastError?: string;
-  status?: 'pending' | 'failed';
+  status?: 'pending' | 'processing' | 'synced' | 'failed';
   payload: any;
 }
 

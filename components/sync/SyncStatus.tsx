@@ -4,7 +4,6 @@ import { getProgressText } from '@/lib/utils';
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { AlertCircle, Cloud, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { OfflineBanner } from './OfflineBanner';
@@ -24,151 +23,162 @@ export const SyncStatus = () => {
     handleRetry,
     lastError,
     isTimeoutError,
+    isOfflineError,
+    isRateLimitedError,
+    isServerError,
     lastSync,
   } = useSyncStatus();
   const pendingCount = selectPendingCount();
   if (!isLoggedIn) return null;
 
   return (
-    <>
-      <View style={styles.container}>
-        {/* Show offline banner prominently when offline */}
-        {!isOnline && (
-          <View style={styles.offlineBannerContainer}>
-            <OfflineBanner />
-          </View>
-        )}
+    <View style={styles.container}>
+      {/* Show offline banner prominently when offline */}
+      {!isOnline && (
+        <View style={styles.offlineBannerContainer}>
+          <OfflineBanner />
+        </View>
+      )}
 
-        <View style={styles.header}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>{t('settings.rows.cloudSync')}</Text>
-            <Switch
-              value={syncEnabled}
-              onValueChange={setSyncEnabled}
-              trackColor={{ false: Colors.border, true: Colors.primary }}
-              thumbColor="#fff"
-              style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
-            />
-          </View>
-
-          {syncEnabled &&
-            (isSyncing || syncStatus === 'pulling' || syncStatus === 'pushing' ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
-            ) : (
-              <TouchableOpacity onPress={handleSync} disabled={!isOnline || isNetworkWeak}>
-                <RefreshCw
-                  size={16}
-                  accessibilityLabel={t('settings.rows.syncNow')}
-                  color={isOnline && !isNetworkWeak ? Colors.primary : Colors.textSecondary}
-                />
-              </TouchableOpacity>
-            ))}
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{t('settings.rows.cloudSync')}</Text>
+          <Switch
+            value={syncEnabled}
+            onValueChange={setSyncEnabled}
+            trackColor={{ false: Colors.border, true: Colors.primary }}
+            thumbColor="#fff"
+            style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+          />
         </View>
 
-        {syncEnabled && (
-          <>
-            {/* Show network warning if weak/slow */}
-            {isNetworkWeak && syncStatus !== 'error' && (
-              <View style={styles.networkWarning}>
-                <WifiOff size={14} color={Colors.error} />
-                <Text style={styles.networkWarningText}>{t('sync.status.internetWeak')}</Text>
-              </View>
-            )}
-
-            {/* Show pull progress */}
-            {syncStatus === 'pulling' && pullProgress && (
-              <View style={styles.progressMessage}>
-                <Text style={styles.progressText}>{getProgressText(pullProgress)}</Text>
-              </View>
-            )}
-
-            {/* Show sync status messages if there's an error */}
-            {syncStatus === 'needs_config' && (
-              <View style={styles.statusMessage}>
-                <AlertCircle size={14} color={Colors.error} />
-                <Text style={styles.statusMessageText}>{t('sync.status.needsConfig')}</Text>
-              </View>
-            )}
-
-            {syncStatus === 'needs_login' && (
-              <View style={styles.statusMessage}>
-                <AlertCircle size={14} color={Colors.error} />
-                <Text style={styles.statusMessageText}>{t('sync.status.needsLogin')}</Text>
-              </View>
-            )}
-
-            {syncStatus === 'error' && lastError && (
-              <View style={styles.statusMessage}>
-                <AlertCircle size={14} color={Colors.error} />
-                <View style={styles.errorContent}>
-                  <Text style={styles.statusMessageText}>
-                    {isTimeoutError
-                      ? t('sync.status.timeoutError')
-                      : lastError.message || t('sync.status.genericError')}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.retryButton}
-                    onPress={handleRetry}
-                    disabled={!isOnline || isNetworkWeak}>
-                    <Text
-                      style={[
-                        styles.retryButtonText,
-                        (!isOnline || isNetworkWeak) && styles.retryButtonTextDisabled,
-                      ]}>
-                      {t('sync.actions.retry')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            {/* Show success message */}
-            {syncStatus === 'success' && (
-              <View style={styles.successMessage}>
-                <Cloud size={14} color={Colors.success} />
-                <Text style={styles.successText}>{t('sync.status.complete')}</Text>
-              </View>
-            )}
-
-            {/* Only show normal status if no error status */}
-            {!syncStatus && (
-              <>
-                <View style={styles.row}>
-                  <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
-                    {isOnline ? (
-                      <Wifi size={14} stroke="#000" />
-                    ) : (
-                      <WifiOff size={14} stroke="#fff" />
-                    )}
-                    <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
-                      {isOnline ? t('sync.status.online') : t('settings.statusValues.offline')}
-                    </Text>
-                  </View>
-
-                  <View style={[styles.badge, styles.activeBadge]}>
-                    <Cloud size={14} stroke="#000" />
-                    <Text style={styles.badgeText}>{t('sync.status.active')}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.details}>
-                  <Text style={styles.detailText}>
-                    {pendingCount === 0
-                      ? t('sync.status.allChangesSynced')
-                      : t('sync.status.changesPending', { count: pendingCount })}
-                  </Text>
-                  {lastSync && (
-                    <Text style={styles.detailText}>
-                      {t('sync.status.lastSync')}: {new Date(lastSync).toLocaleTimeString()}
-                    </Text>
-                  )}
-                </View>
-              </>
-            )}
-          </>
-        )}
+        {syncEnabled &&
+          (isSyncing || syncStatus === 'pulling' || syncStatus === 'pushing' ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <TouchableOpacity onPress={handleSync} disabled={!isOnline || isNetworkWeak}>
+              <RefreshCw
+                size={16}
+                accessibilityLabel={t('settings.rows.syncNow')}
+                color={isOnline && !isNetworkWeak ? Colors.primary : Colors.textSecondary}
+              />
+            </TouchableOpacity>
+          ))}
       </View>
-    </>
+
+      {syncEnabled && (
+        <>
+          {/* Show network warning if weak/slow */}
+          {isNetworkWeak && syncStatus !== 'error' && (
+            <View style={styles.networkWarning}>
+              <WifiOff size={14} color={Colors.error} />
+              <Text style={styles.networkWarningText}>{t('sync.status.internetWeak')}</Text>
+            </View>
+          )}
+
+          {/* Show pull/push progress */}
+          {(syncStatus === 'pulling' || syncStatus === 'pushing') && pullProgress && (
+            <View style={styles.progressMessage}>
+              <Text style={styles.progressText}>{getProgressText(pullProgress)}</Text>
+            </View>
+          )}
+
+          {/* Show sync status messages if there's an error */}
+          {syncStatus === 'needs_config' && (
+            <View style={styles.statusMessage}>
+              <AlertCircle size={14} color={Colors.error} />
+              <Text style={styles.statusMessageText}>{t('sync.status.needsConfig')}</Text>
+            </View>
+          )}
+
+          {syncStatus === 'needs_login' && (
+            <View style={styles.statusMessage}>
+              <AlertCircle size={14} color={Colors.error} />
+              <Text style={styles.statusMessageText}>{t('sync.status.needsLogin')}</Text>
+            </View>
+          )}
+
+          {syncStatus === 'error' && lastError && (
+            <View style={styles.statusMessage}>
+              <AlertCircle size={14} color={Colors.error} />
+              <View style={styles.errorContent}>
+                <Text style={styles.statusMessageText}>
+                  {isOfflineError
+                    ? t('sync.status.noInternet')
+                    : isTimeoutError
+                      ? t('sync.status.timeoutRetry')
+                      : isRateLimitedError
+                        ? t('sync.status.rateLimitedRetry')
+                        : isServerError
+                          ? t('sync.status.serverRetry')
+                          : lastError?.message || t('sync.status.genericError')}
+                </Text>
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={handleRetry}
+                  disabled={!isOnline && !isTimeoutError && !isRateLimitedError && !isServerError}>
+                  <Text
+                    style={[
+                      styles.retryButtonText,
+                      !isOnline &&
+                        !isTimeoutError &&
+                        !isRateLimitedError &&
+                        !isServerError &&
+                        styles.retryButtonTextDisabled,
+                    ]}>
+                    {t('sync.actions.retry')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Show success message */}
+          {syncStatus === 'success' && (
+            <View style={styles.successMessage}>
+              <Cloud size={14} color={Colors.success} />
+              <Text style={styles.successText}>{t('sync.status.complete')}</Text>
+            </View>
+          )}
+
+          {/* Only show normal status if no error status */}
+          {!syncStatus && (
+            <>
+              <View style={styles.row}>
+                <View style={[styles.badge, isOnline ? styles.onlineBadge : styles.offlineBadge]}>
+                  {isOnline ? (
+                    <Wifi size={14} stroke="#000" />
+                  ) : (
+                    <WifiOff size={14} stroke="#fff" />
+                  )}
+                  <Text style={[styles.badgeText, isOnline ? {} : { color: '#fff' }]}>
+                    {isOnline ? t('sync.status.online') : t('settings.statusValues.offline')}
+                  </Text>
+                </View>
+
+                <View style={[styles.badge, styles.activeBadge]}>
+                  <Cloud size={14} stroke="#000" />
+                  <Text style={styles.badgeText}>{t('sync.status.active')}</Text>
+                </View>
+              </View>
+
+              <View style={styles.details}>
+                <Text style={styles.detailText}>
+                  {pendingCount === 0
+                    ? t('sync.status.allChangesSynced')
+                    : t('sync.status.changesPending', { count: pendingCount })}
+                </Text>
+                {lastSync && (
+                  <Text style={styles.detailText}>
+                    {t('sync.status.lastSync')}: {new Date(lastSync).toLocaleTimeString()}
+                  </Text>
+                )}
+              </View>
+            </>
+          )}
+        </>
+      )}
+    </View>
   );
 };
 
