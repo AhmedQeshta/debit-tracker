@@ -1,4 +1,4 @@
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { SettingsRowProps } from '@/types/common';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -18,6 +18,8 @@ export const SettingsRow: FC<SettingsRowProps> = ({
   rightSlot,
   accessibilityLabel,
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const isPressable = Boolean(onPress) && !disabled;
 
   return (
@@ -33,7 +35,7 @@ export const SettingsRow: FC<SettingsRowProps> = ({
       ]}>
       <View style={styles.leftGroup}>
         <View style={[styles.iconWrap, destructive && styles.iconWrapDestructive]}>
-          <Icon size={18} color={destructive ? Colors.error : Colors.primary} />
+          <Icon size={18} color={destructive ? colors.error : colors.primary} />
         </View>
         <View style={styles.textWrap}>
           <Text style={[styles.title, destructive && styles.titleDestructive]}>{title}</Text>
@@ -50,9 +52,9 @@ export const SettingsRow: FC<SettingsRowProps> = ({
         {rightSlot}
         {(showChevron ?? isPressable) ? (
           I18nManager.isRTL ? (
-            <ChevronLeft size={16} color={destructive ? Colors.error : Colors.textSecondary} />
+            <ChevronLeft size={16} color={destructive ? colors.error : colors.textSecondary} />
           ) : (
-            <ChevronRight size={16} color={destructive ? Colors.error : Colors.textSecondary} />
+            <ChevronRight size={16} color={destructive ? colors.error : colors.textSecondary} />
           )
         ) : null}
       </View>
@@ -62,80 +64,88 @@ export const SettingsRow: FC<SettingsRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    minHeight: 52,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowPressed: {
-    backgroundColor: Colors.surface,
-  },
-  rowDisabled: {
-    opacity: 0.55,
-  },
-  leftGroup: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingEnd: Spacing.md,
-    gap: Spacing.sm + 2,
-  },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapDestructive: {
-    borderColor: Colors.error,
-  },
-  textWrap: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  titleDestructive: {
-    color: Colors.error,
-  },
-  subtitle: {
-    marginTop: 2,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  rightGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  rightGroupLtr: {
-    marginStart: 'auto',
-  },
-  rightGroupRtl: {
-    marginStart: 'auto',
-  },
-  value: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-    flexShrink: 1,
-  },
-  divider: {
-    position: 'absolute',
-    left: Spacing.md,
-    right: Spacing.md,
-    bottom: 0,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-});
+const createStyles = (colors: {
+  error: string;
+  primary: string;
+  surface: string;
+  border: string;
+  text: string;
+  textSecondary: string;
+}) =>
+  StyleSheet.create({
+    row: {
+      minHeight: 52,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm + 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowPressed: {
+      backgroundColor: colors.surface,
+    },
+    rowDisabled: {
+      opacity: 0.55,
+    },
+    leftGroup: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingEnd: Spacing.md,
+      gap: Spacing.sm + 2,
+    },
+    iconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: Spacing.borderRadius.round,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconWrapDestructive: {
+      borderColor: colors.error,
+    },
+    textWrap: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    titleDestructive: {
+      color: colors.error,
+    },
+    subtitle: {
+      marginTop: 2,
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    rightGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    rightGroupLtr: {
+      marginStart: 'auto',
+    },
+    rightGroupRtl: {
+      marginStart: 'auto',
+    },
+    value: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontWeight: '500',
+      flexShrink: 1,
+    },
+    divider: {
+      position: 'absolute',
+      left: Spacing.md,
+      right: Spacing.md,
+      bottom: 0,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+  });

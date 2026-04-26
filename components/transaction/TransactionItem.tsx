@@ -1,8 +1,8 @@
 import { Actions } from '@/components/ui/Actions';
 import { createMenuItems } from '@/components/ui/CreateMenuItems';
+import { useTheme } from '@/contexts/ThemeContext';
 import { formatAbsoluteCurrency } from '@/lib/utils';
 import { useBudgetStore } from '@/store/budgetStore';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { ITransactionItemProps } from '@/types/transaction';
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
@@ -18,6 +18,8 @@ export const TransactionItem = ({
   onCopyAmount,
 }: ITransactionItemProps) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [menuVisible, setMenuVisible] = useState(false);
   const linkedBudget = useBudgetStore((state) =>
     state.budgets.find((budget) => budget.id === transaction.budgetId && !budget.deletedAt),
@@ -38,9 +40,9 @@ export const TransactionItem = ({
     <View style={styles.container}>
       <View style={[styles.iconBadge, isPositive ? styles.iconPositive : styles.iconNegative]}>
         {isPositive ? (
-          <ArrowUpRight size={14} color={Colors.success} />
+          <ArrowUpRight size={14} color={colors.success} />
         ) : (
-          <ArrowDownLeft size={14} color={Colors.error} />
+          <ArrowDownLeft size={14} color={colors.danger} />
         )}
       </View>
       <View style={styles.content}>
@@ -85,84 +87,94 @@ export const TransactionItem = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: Colors.card,
-    padding: Spacing.md,
-    borderRadius: Spacing.borderRadius.lg,
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  iconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: Spacing.borderRadius.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.sm,
-  },
-  iconPositive: {
-    backgroundColor: Colors.surface,
-  },
-  iconNegative: {
-    backgroundColor: Colors.surface,
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  meta: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  rightSide: {
-    alignItems: 'flex-end',
-    marginRight: Spacing.sm,
-  },
-  amount: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  positive: {
-    color: Colors.success,
-  },
-  negative: {
-    color: Colors.error,
-  },
-  statusPill: {
-    marginTop: Spacing.xs,
-    borderRadius: Spacing.borderRadius.round,
-    borderWidth: 1,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-  },
-  pendingPill: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.surface,
-  },
-  syncedPill: {
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  pendingText: {
-    color: Colors.primary,
-  },
-  syncedText: {
-    color: Colors.textSecondary,
-  },
-  actions: {
-    alignItems: 'center',
-  },
-});
+const createStyles = (colors: {
+  card: string;
+  border: string;
+  surface2: string;
+  text: string;
+  textMuted: string;
+  success: string;
+  danger: string;
+  accent: string;
+}) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      backgroundColor: colors.card,
+      padding: Spacing.md,
+      borderRadius: Spacing.borderRadius.lg,
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    iconBadge: {
+      width: 32,
+      height: 32,
+      borderRadius: Spacing.borderRadius.round,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: Spacing.sm,
+    },
+    iconPositive: {
+      backgroundColor: colors.surface2,
+    },
+    iconNegative: {
+      backgroundColor: colors.surface2,
+    },
+    content: {
+      flex: 1,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    meta: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    rightSide: {
+      alignItems: 'flex-end',
+      marginRight: Spacing.sm,
+    },
+    amount: {
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    positive: {
+      color: colors.success,
+    },
+    negative: {
+      color: colors.danger,
+    },
+    statusPill: {
+      marginTop: Spacing.xs,
+      borderRadius: Spacing.borderRadius.round,
+      borderWidth: 1,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.xs,
+    },
+    pendingPill: {
+      borderColor: colors.accent,
+      backgroundColor: colors.surface2,
+    },
+    syncedPill: {
+      borderColor: colors.border,
+      backgroundColor: colors.surface2,
+    },
+    statusText: {
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    pendingText: {
+      color: colors.accent,
+    },
+    syncedText: {
+      color: colors.textMuted,
+    },
+    actions: {
+      alignItems: 'center',
+    },
+  });

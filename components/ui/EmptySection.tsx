@@ -1,20 +1,22 @@
 import React from 'react';
 import { View, Text,StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Users as UsersIcon, Receipt, Info, Calculator } from 'lucide-react-native';
 import { Spacing } from '@/theme/spacing';
 import { IEmptySectionProps } from '@/types/common';
 
 
 export const EmptySection = ({title,description,icon}:IEmptySectionProps)=>{
+const { colors } = useTheme();
+const styles = createStyles(colors);
 const getIcons = (icon:string)=>{
   const iconMap: Record<string, React.ReactElement> = {
-    'users': <UsersIcon size={64} color={Colors.primary} strokeWidth={1.5} />,
-    'transactions': <Receipt size={64} color={Colors.primary} strokeWidth={1.5} />,
-    'budgets': <Calculator size={64} color={Colors.primary} strokeWidth={1.5} />,
+    'users': <UsersIcon size={64} color={colors.accent} strokeWidth={1.5} />,
+    'transactions': <Receipt size={64} color={colors.accent} strokeWidth={1.5} />,
+    'budgets': <Calculator size={64} color={colors.accent} strokeWidth={1.5} />,
   };
   
-  return iconMap[icon] || <Info size={64} color={Colors.primary} strokeWidth={1.5} />;
+  return iconMap[icon] || <Info size={64} color={colors.accent} strokeWidth={1.5} />;
 }
 
   return <View style={styles.emptyState}>
@@ -27,7 +29,7 @@ const getIcons = (icon:string)=>{
 }
 
 
-const styles = StyleSheet.create({
+const createStyles = (colors: { surface2: string; border: string; text: string; textMuted: string }) => StyleSheet.create({
 
   emptyState: {
     alignItems: 'center',
@@ -39,21 +41,21 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.card,
+    backgroundColor: colors.surface2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.lg,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.text,
+    color: colors.text,
     marginBottom: Spacing.sm,
   },
   emptyText: {
-    color: Colors.textSecondary,
+    color: colors.textMuted,
     textAlign: 'center',
     fontSize: 14,
     lineHeight: 20,

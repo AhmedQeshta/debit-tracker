@@ -1,39 +1,14 @@
-import { SyncLoadingOverlay } from '@/components/sync/SyncLoadingOverlay';
 import { ErrorScreen } from '@/components/ui/ErrorScreen';
-import { GlobalMenuModal } from '@/components/ui/GlobalMenuModal';
-import { Toast } from '@/components/ui/Toast';
-import { ConfirmDialogProvider } from '@/contexts/ConfirmDialogContext';
-import { MenuModalProvider } from '@/contexts/MenuModalContext';
-import { ToastProvider } from '@/contexts/ToastContext';
+import { ThemedRoot } from '@/components/ui/ThemedRoot';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { initI18n } from '@/i18n';
 import { loadSavedLanguage } from '@/i18n/languageService';
-import { AppBootstrap } from '@/lib/syncAuth';
-import { ClerkProvider } from '@clerk/clerk-expo';
-import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Colors } from '../theme/colors';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
-
-const STACK_OPTIONS = {
-  headerStyle: {
-    backgroundColor: Colors.background,
-  },
-  headerTintColor: Colors.text,
-  headerTitleStyle: {
-    fontWeight: '700' as const,
-  },
-  contentStyle: {
-    backgroundColor: Colors.background,
-  },
-  headerShown: false,
-};
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -78,25 +53,8 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <ToastProvider>
-        <ConfirmDialogProvider>
-          <MenuModalProvider>
-            <AppBootstrap />
-            <SyncLoadingOverlay />
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <SafeAreaProvider>
-                <Stack screenOptions={STACK_OPTIONS}>
-                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                  <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-                </Stack>
-              </SafeAreaProvider>
-            </GestureHandlerRootView>
-            <GlobalMenuModal />
-            <Toast />
-          </MenuModalProvider>
-        </ConfirmDialogProvider>
-      </ToastProvider>
-    </ClerkProvider>
+    <ThemeProvider>
+      <ThemedRoot publishableKey={publishableKey} />
+    </ThemeProvider>
   );
 }

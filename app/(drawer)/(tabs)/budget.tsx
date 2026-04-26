@@ -1,13 +1,14 @@
 import { BudgetCard } from '@/components/budget/BudgetCard';
 import { RenderBudgetSkeleton } from '@/components/budget/RenderBudgetSkeleton';
 import { BudgetExportModal } from '@/components/export/BudgetExportModal';
+import { AppCard } from '@/components/ui/AppCard';
 import { EmptySection } from '@/components/ui/EmptySection';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useBudgetExport } from '@/hooks/budget/useBudgetExport';
 import { useBudgetList } from '@/hooks/budget/useBudgetList';
-import { getNextSortKey, WARNING_COLOR } from '@/lib/utils';
-import { Colors } from '@/theme/colors';
+import { getNextSortKey } from '@/lib/utils';
 import { Spacing } from '@/theme/spacing';
 import { Menu, SlidersHorizontal } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,8 @@ import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } fr
 
 export default function BudgetTab() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const {
     handlePinToggle,
     handleDelete,
@@ -58,7 +61,7 @@ export default function BudgetTab() {
             style={styles.topBarButton}
             accessibilityRole="button"
             accessibilityLabel={t('budget.accessibility.openMenu')}>
-            <Menu color={Colors.text} size={20} />
+            <Menu color={colors.text} size={20} />
           </TouchableOpacity>
 
           <View style={styles.titleWrap}>
@@ -70,7 +73,7 @@ export default function BudgetTab() {
             style={styles.topBarButton}
             accessibilityRole="button"
             accessibilityLabel={t('budget.accessibility.changeSorting')}>
-            <SlidersHorizontal color={Colors.textSecondary} size={18} />
+            <SlidersHorizontal color={colors.textMuted} size={18} />
           </TouchableOpacity>
         </View>
 
@@ -83,7 +86,7 @@ export default function BudgetTab() {
           </Text>
         </View>
 
-        <View style={styles.summaryStrip}>
+        <AppCard style={styles.summaryStrip}>
           <View style={styles.summaryHeader}>
             <Text style={styles.summaryTitle}>{t('budget.summary.overview')}</Text>
             <Text style={styles.summaryUsed}>
@@ -126,7 +129,7 @@ export default function BudgetTab() {
               </View>
             ) : null}
           </View>
-        </View>
+        </AppCard>
 
         {!hydrated ? (
           <RenderBudgetSkeleton />
@@ -152,7 +155,7 @@ export default function BudgetTab() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
-                tintColor={Colors.primary}
+                tintColor={colors.accent}
               />
             }
             contentContainerStyle={styles.listContent}
@@ -188,142 +191,148 @@ export default function BudgetTab() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.sm,
-  },
-  topBarButton: {
-    width: 44,
-    height: 44,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  titleWrap: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-  },
-  monthChip: {
-    minHeight: 36,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Spacing.borderRadius.round,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    justifyContent: 'center',
-  },
-  monthChipText: {
-    color: Colors.text,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  sortLabel: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-  },
-  summaryStrip: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  summaryTitle: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  summaryUsed: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  summaryStatsWrap: {
-    gap: Spacing.sm,
-  },
-  summaryItem: {
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  summaryLabel: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  summaryValue: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  summaryFooter: {
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  mixedCurrencyHint: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    flex: 1,
-  },
-  nearLimitPill: {
-    minHeight: 28,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: WARNING_COLOR + '20',
-    paddingHorizontal: Spacing.sm,
-    justifyContent: 'center',
-  },
-  nearLimitText: {
-    color: WARNING_COLOR,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  skeletonList: {
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  skeletonRow: {
-    height: 116,
-    borderRadius: Spacing.borderRadius.lg,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  listContent: {
-    paddingBottom: 100,
-    paddingTop: Spacing.sm,
-    paddingHorizontal: Spacing.xs,
-    gap: Spacing.sm,
-  },
-});
+const createStyles = (colors: {
+  text: string;
+  textMuted: string;
+  surface: string;
+  surface2: string;
+  border: string;
+  accent: string;
+  warning: string;
+  warningSoft: string;
+}) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: Spacing.xs,
+      marginBottom: Spacing.sm,
+    },
+    topBarButton: {
+      width: 44,
+      height: 44,
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    titleWrap: {
+      flex: 1,
+      marginLeft: Spacing.sm,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    controlsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.sm,
+    },
+    monthChip: {
+      minHeight: 36,
+      paddingHorizontal: Spacing.md,
+      borderRadius: Spacing.borderRadius.round,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface2,
+      justifyContent: 'center',
+    },
+    monthChipText: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    sortLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+    },
+    summaryStrip: {
+      padding: Spacing.md,
+      marginBottom: Spacing.sm,
+    },
+    summaryHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    summaryTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    summaryUsed: {
+      color: colors.accent,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    summaryStatsWrap: {
+      gap: Spacing.sm,
+    },
+    summaryItem: {
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    summaryLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginBottom: 2,
+    },
+    summaryValue: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    summaryFooter: {
+      marginTop: Spacing.sm,
+      paddingTop: Spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    mixedCurrencyHint: {
+      color: colors.textMuted,
+      fontSize: 12,
+      flex: 1,
+    },
+    nearLimitPill: {
+      minHeight: 28,
+      borderRadius: Spacing.borderRadius.round,
+      backgroundColor: colors.warningSoft,
+      paddingHorizontal: Spacing.sm,
+      justifyContent: 'center',
+    },
+    nearLimitText: {
+      color: colors.warning,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    skeletonList: {
+      gap: Spacing.sm,
+      marginTop: Spacing.sm,
+    },
+    skeletonRow: {
+      height: 116,
+      borderRadius: Spacing.borderRadius.lg,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    listContent: {
+      paddingBottom: 100,
+      paddingTop: Spacing.sm,
+      paddingHorizontal: Spacing.xs,
+      gap: Spacing.sm,
+    },
+  });

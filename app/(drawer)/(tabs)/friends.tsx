@@ -1,15 +1,16 @@
 import { FilteredFriends } from '@/components/friend/FilteredFriends';
+import { AppCard } from '@/components/ui/AppCard';
+import { AppChip } from '@/components/ui/AppChip';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useFriendsList } from '@/hooks/useFriendsList';
 import { FILTER_OPTIONS, formatCurrency, SORT_OPTIONS } from '@/lib/utils';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { FriendsFilterBy, FriendsListItem, FriendsSortBy } from '@/types/friend';
 import { useRouter } from 'expo-router';
 import { LayoutGrid, List, Menu, Search, SlidersHorizontal, Users } from 'lucide-react-native';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FlatList,
@@ -23,6 +24,8 @@ import {
 
 export default function FriendsList() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const {
     friendRows,
     summary,
@@ -51,11 +54,12 @@ export default function FriendsList() {
 
   const router = useRouter();
 
-  const netTone = useMemo(() => {
-    if (summary.netBalance > 0) return styles.positive;
-    if (summary.netBalance < 0) return styles.negative;
-    return styles.neutral;
-  }, [summary.netBalance]);
+  const netTone =
+    summary.netBalance > 0
+      ? styles.positive
+      : summary.netBalance < 0
+        ? styles.negative
+        : styles.neutral;
 
   return (
     <View style={styles.wrapper}>
@@ -66,7 +70,7 @@ export default function FriendsList() {
             style={styles.topBarButton}
             accessibilityRole="button"
             accessibilityLabel={t('friends.accessibility.openMenu')}>
-            <Menu color={Colors.text} size={20} />
+            <Menu color={colors.text} size={20} />
           </TouchableOpacity>
           <Text style={styles.title}>{t('friends.title')}</Text>
           <View style={styles.topActions}>
@@ -77,7 +81,7 @@ export default function FriendsList() {
                 accessibilityRole="button"
                 accessibilityLabel={t('friends.accessibility.listView')}
                 accessibilityState={{ selected: !isGrid }}>
-                <List color={!isGrid ? Colors.background : Colors.textSecondary} size={14} />
+                <List color={!isGrid ? colors.surface : colors.textMuted} size={14} />
                 <Text style={[styles.topToggleText, !isGrid && styles.topToggleTextActive]}>
                   {t('friends.viewModes.list')}
                 </Text>
@@ -88,7 +92,7 @@ export default function FriendsList() {
                 accessibilityRole="button"
                 accessibilityLabel={t('friends.accessibility.gridView')}
                 accessibilityState={{ selected: isGrid }}>
-                <LayoutGrid color={isGrid ? Colors.background : Colors.textSecondary} size={14} />
+                <LayoutGrid color={isGrid ? colors.surface : colors.textMuted} size={14} />
                 <Text style={[styles.topToggleText, isGrid && styles.topToggleTextActive]}>
                   {t('friends.viewModes.grid')}
                 </Text>
@@ -100,20 +104,20 @@ export default function FriendsList() {
               accessibilityRole="button"
               accessibilityState={{ selected: showControls }}
               accessibilityLabel={t('friends.accessibility.toggleFilters')}>
-              <SlidersHorizontal color={Colors.textSecondary} size={18} />
+              <SlidersHorizontal color={colors.textMuted} size={18} />
             </TouchableOpacity>
           </View>
         </View>
         {showControls && (
           <View style={styles.controlsSection}>
             <View style={styles.searchContainer}>
-              <Search size={16} color={Colors.textSecondary} />
+              <Search size={16} color={colors.textMuted} />
               <TextInput
                 style={styles.searchInput}
                 value={search}
                 onChangeText={setSearch}
                 placeholder={t('friends.search.placeholder')}
-                placeholderTextColor={Colors.textSecondary}
+                placeholderTextColor={colors.textMuted}
                 accessibilityLabel={t('friends.accessibility.searchFriends')}
               />
             </View>
@@ -121,45 +125,30 @@ export default function FriendsList() {
             <View style={styles.controlRow}>
               <View style={styles.chipsWrap}>
                 {SORT_OPTIONS.map((option) => (
-                  <Pressable
+                  <AppChip
                     key={option.key}
-                    style={[styles.chip, sortBy === option.key && styles.chipActive]}
+                    label={t(`friends.sortOptions.${option.key}`)}
+                    selected={sortBy === option.key}
                     onPress={() => setSortBy(option.key as FriendsSortBy)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('friends.accessibility.sortBy', {
-                      label: t(`friends.sortOptions.${option.key}`),
-                    })}
-                    accessibilityState={{ selected: sortBy === option.key }}>
-                    <Text style={[styles.chipText, sortBy === option.key && styles.chipTextActive]}>
-                      {t(`friends.sortOptions.${option.key}`)}
-                    </Text>
-                  </Pressable>
+                  />
                 ))}
               </View>
 
               <View style={styles.chipsWrap}>
                 {FILTER_OPTIONS.map((option) => (
-                  <Pressable
+                  <AppChip
                     key={option.key}
-                    style={[styles.chip, filterBy === option.key && styles.chipActive]}
+                    label={t(`friends.filterOptions.${option.key}`)}
+                    selected={filterBy === option.key}
                     onPress={() => setFilterBy(option.key as FriendsFilterBy)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('friends.accessibility.filterBy', {
-                      label: t(`friends.filterOptions.${option.key}`),
-                    })}
-                    accessibilityState={{ selected: filterBy === option.key }}>
-                    <Text
-                      style={[styles.chipText, filterBy === option.key && styles.chipTextActive]}>
-                      {t(`friends.filterOptions.${option.key}`)}
-                    </Text>
-                  </Pressable>
+                  />
                 ))}
               </View>
             </View>
           </View>
         )}
 
-        <View style={styles.summaryRow}>
+        <AppCard style={styles.summaryRow}>
           <View style={styles.summaryHeader}>
             <Text style={styles.summaryHeaderText}>
               {t('friends.summary.title', { currencyLabel: summaryCurrencyLabel })}
@@ -201,7 +190,7 @@ export default function FriendsList() {
               </Text>
             </View>
           </View>
-        </View>
+        </AppCard>
 
         <FlatList<FriendsListItem>
           data={listData}
@@ -232,7 +221,7 @@ export default function FriendsList() {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <View style={styles.emptyIconContainer}>
-                <Users size={40} color={Colors.primary} />
+                <Users size={40} color={colors.accent} />
               </View>
               <Text style={styles.emptyTitle}>
                 {search ? t('friends.empty.searchTitle') : t('friends.empty.defaultTitle')}
@@ -266,269 +255,256 @@ export default function FriendsList() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.sm,
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    flex: 1,
-  },
-  topActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  topSegmentedToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 2,
-    marginRight: Spacing.xs,
-  },
-  topToggleItem: {
-    minHeight: 36,
-    minWidth: 52,
-    borderRadius: Spacing.borderRadius.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: Spacing.sm,
-  },
-  topToggleItemActive: {
-    backgroundColor: Colors.primary,
-  },
-  topToggleText: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  topToggleTextActive: {
-    color: Colors.background,
-  },
-  topBarButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginRight: Spacing.xs,
-  },
-  controlsSection: {
-    gap: Spacing.sm,
-  },
-  searchContainer: {
-    minHeight: 44,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 14,
-    paddingVertical: Spacing.sm,
-  },
-  controlRow: {
-    gap: Spacing.sm,
-  },
-  chipsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  chip: {
-    minHeight: 36,
-    paddingHorizontal: Spacing.md,
-    justifyContent: 'center',
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  chipActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.card,
-  },
-  chipText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  chipTextActive: {
-    color: Colors.primary,
-  },
-  summaryRow: {
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
-    borderRadius: Spacing.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  summaryHeaderText: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  currencyButton: {
-    minHeight: 32,
-    minWidth: 44,
-    borderRadius: Spacing.borderRadius.round,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.sm,
-  },
-  currencyButtonText: {
-    color: Colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  summaryStatsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: Spacing.sm,
-  },
-  summaryItem: {
-    width: '32%',
-    gap: 2,
-  },
-  summaryLabel: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  summaryValue: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  listContent: {
-    paddingBottom: 100,
-    paddingTop: Spacing.xs,
-    gap: Spacing.sm,
-  },
-  emptyListContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  gridRow: {
-    gap: Spacing.xs,
-  },
-  skeletonCard: {
-    backgroundColor: Colors.surface,
-    minHeight: 78,
-    borderRadius: Spacing.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: Spacing.sm,
-  },
-  skeletonGridCard: {
-    flex: 1,
-    minHeight: 180,
-    marginHorizontal: 2,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.xl * 2,
-    paddingHorizontal: Spacing.lg,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  emptyText: {
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: Spacing.md,
-  },
-  emptyCta: {
-    minHeight: 44,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  emptyCtaText: {
-    color: Colors.background,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  fabHint: {
-    position: 'absolute',
-    right: Spacing.xl + 64,
-    bottom: Spacing.xl + 14,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: Spacing.borderRadius.round,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-  },
-  fabHintText: {
-    color: Colors.text,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  positive: {
-    color: Colors.success,
-  },
-  negative: {
-    color: Colors.error,
-  },
-  neutral: {
-    color: Colors.text,
-  },
-  topBarButtonActive: {
-    borderColor: Colors.primary,
-  },
-});
+const createStyles = (colors: {
+  text: string;
+  textMuted: string;
+  border: string;
+  surface: string;
+  surface2: string;
+  accent: string;
+  accentSoft: string;
+  background: string;
+  success: string;
+  danger: string;
+}) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: Spacing.xs,
+      marginBottom: Spacing.sm,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 24,
+      fontWeight: '700',
+      flex: 1,
+    },
+    topActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.xs,
+    },
+    topSegmentedToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface2,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 2,
+      marginRight: Spacing.xs,
+    },
+    topToggleItem: {
+      minHeight: 36,
+      minWidth: 52,
+      borderRadius: Spacing.borderRadius.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingHorizontal: Spacing.sm,
+    },
+    topToggleItemActive: {
+      backgroundColor: colors.accent,
+    },
+    topToggleText: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    topToggleTextActive: {
+      color: colors.surface,
+    },
+    topBarButton: {
+      width: 44,
+      height: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginRight: Spacing.xs,
+    },
+    controlsSection: {
+      gap: Spacing.sm,
+    },
+    searchContainer: {
+      minHeight: 44,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.md,
+      gap: Spacing.sm,
+    },
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 14,
+      paddingVertical: Spacing.sm,
+    },
+    controlRow: {
+      gap: Spacing.sm,
+    },
+    chipsWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.sm,
+    },
+    summaryRow: {
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.sm,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.sm,
+      gap: Spacing.sm,
+    },
+    summaryHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    summaryHeaderText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    currencyButton: {
+      minHeight: 32,
+      minWidth: 44,
+      borderRadius: Spacing.borderRadius.round,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.surface2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.sm,
+    },
+    currencyButtonText: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    summaryStatsWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      rowGap: Spacing.sm,
+    },
+    summaryItem: {
+      width: '32%',
+      gap: 2,
+    },
+    summaryLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    summaryValue: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    listContent: {
+      paddingBottom: 100,
+      paddingTop: Spacing.xs,
+      gap: Spacing.sm,
+    },
+    emptyListContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    gridRow: {
+      gap: Spacing.xs,
+    },
+    skeletonCard: {
+      backgroundColor: colors.surface,
+      minHeight: 78,
+      borderRadius: Spacing.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: Spacing.sm,
+    },
+    skeletonGridCard: {
+      flex: 1,
+      minHeight: 180,
+      marginHorizontal: 2,
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: Spacing.xl * 2,
+      paddingHorizontal: Spacing.lg,
+    },
+    emptyIconContainer: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.surface2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Spacing.lg,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: Spacing.sm,
+    },
+    emptyText: {
+      color: colors.textMuted,
+      textAlign: 'center',
+      fontSize: 14,
+      lineHeight: 20,
+      marginBottom: Spacing.md,
+    },
+    emptyCta: {
+      minHeight: 44,
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.lg,
+    },
+    emptyCtaText: {
+      color: colors.surface,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    fabHint: {
+      position: 'absolute',
+      right: Spacing.xl + 64,
+      bottom: Spacing.xl + 14,
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: Spacing.borderRadius.round,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 6,
+    },
+    fabHintText: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    positive: {
+      color: colors.success,
+    },
+    negative: {
+      color: colors.danger,
+    },
+    neutral: {
+      color: colors.text,
+    },
+    topBarButtonActive: {
+      borderColor: colors.accent,
+    },
+  });

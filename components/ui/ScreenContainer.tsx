@@ -2,16 +2,19 @@ import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { IScreenContainerProps } from '@/types/common';
 
 
 export const ScreenContainer = ({ children, scrollable = true }: IScreenContainerProps) =>
 {
+  const { colors, activeTheme } = useTheme();
+  const styles = createStyles(colors.background);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
-      <ExpoStatusBar style="light" />
+      <ExpoStatusBar style={activeTheme === 'dark' ? 'light' : 'dark'} />
       {scrollable ? (
         <ScrollView
           style={styles.container}
@@ -28,16 +31,17 @@ export const ScreenContainer = ({ children, scrollable = true }: IScreenContaine
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xl,
-  },
-});
+const createStyles = (backgroundColor: string) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor,
+    },
+    container: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: Spacing.md,
+      paddingBottom: Spacing.xl,
+    },
+  });

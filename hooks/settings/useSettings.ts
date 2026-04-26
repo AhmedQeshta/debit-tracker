@@ -1,6 +1,7 @@
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToast';
 import { setLanguage } from '@/i18n/languageService';
 import { useBudgetStore } from '@/store/budgetStore';
@@ -13,12 +14,14 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
+import { ThemeMode } from '@/theme/types';
 
 const SETTINGS_LOAD_TIMEOUT_MS = 10000;
 
 export const useSettings = () => {
   const [loadTimedOut, setLoadTimedOut] = useState(false);
   const { t, i18n } = useTranslation();
+  const { themeMode, setThemeMode } = useTheme();
 
   const { openDrawer } = useDrawerContext();
   const { isLoaded, isSignedIn } = useAuth();
@@ -125,6 +128,10 @@ export const useSettings = () => {
     );
   };
 
+  const handleThemeChange = (mode: ThemeMode) => {
+    void setThemeMode(mode);
+  };
+
   useEffect(() => {
     if (isLoaded) {
       setLoadTimedOut(false);
@@ -164,6 +171,8 @@ export const useSettings = () => {
     showAuthSkeleton,
     currentLanguage,
     handleLanguageChange,
+    themeMode,
+    handleThemeChange,
     t,
   };
 };

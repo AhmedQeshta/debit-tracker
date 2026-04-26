@@ -1,4 +1,4 @@
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { OtpInputProps } from '@/types/common';
 import React from 'react';
@@ -14,6 +14,8 @@ export const OtpInput = ({
   length = 6,
 }: OtpInputProps) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const inputRef = React.useRef<TextInput>(null);
   const digits = value.slice(0, length).split('');
 
@@ -62,56 +64,65 @@ export const OtpInput = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.lg,
-  },
-  label: {
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  boxesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  box: {
-    flex: 1,
-    minHeight: 52,
-    borderRadius: Spacing.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  boxActive: {
-    borderColor: Colors.primary,
-  },
-  boxError: {
-    borderColor: Colors.error,
-  },
-  boxText: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  hiddenInput: {
-    position: 'absolute',
-    opacity: 0,
-    width: 1,
-    height: 1,
-  },
-  errorText: {
-    color: Colors.error,
-    fontSize: 13,
-    marginTop: Spacing.sm,
-  },
-  helperText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    marginTop: Spacing.sm,
-  },
-});
+const createStyles = (colors: {
+  text: string;
+  border: string;
+  inputBg: string;
+  inputText: string;
+  accent: string;
+  danger: string;
+  textMuted: string;
+}) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: Spacing.lg,
+    },
+    label: {
+      color: colors.text,
+      marginBottom: Spacing.sm,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    boxesRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: Spacing.sm,
+    },
+    box: {
+      flex: 1,
+      minHeight: 52,
+      borderRadius: Spacing.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.inputBg,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    boxActive: {
+      borderColor: colors.accent,
+    },
+    boxError: {
+      borderColor: colors.danger,
+    },
+    boxText: {
+      color: colors.inputText,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    hiddenInput: {
+      position: 'absolute',
+      opacity: 0,
+      width: 1,
+      height: 1,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 13,
+      marginTop: Spacing.sm,
+    },
+    helperText: {
+      color: colors.textMuted,
+      fontSize: 13,
+      marginTop: Spacing.sm,
+    },
+  });

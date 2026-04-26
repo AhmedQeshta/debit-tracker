@@ -1,5 +1,5 @@
 import { StepItem } from '@/components/home/StepItem';
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { HomeGetStartedCardProps } from '@/types/common';
 import { CircleCheckBig } from 'lucide-react-native';
@@ -12,11 +12,13 @@ export const HomeGetStartedCard = ({
   onCreateBudget,
 }: HomeGetStartedCardProps) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <CircleCheckBig size={20} color={Colors.primary} />
+        <CircleCheckBig size={20} color={colors.accent} />
         <Text style={styles.title}>{t('dashboard.getStarted.title')}</Text>
       </View>
       <Text style={styles.description}>{t('homeSummary.getStartedDescription')}</Text>
@@ -46,32 +48,33 @@ export const HomeGetStartedCard = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.lg,
-    padding: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  description: {
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-    fontSize: 14,
-  },
-  steps: {
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-});
+const createStyles = (colors: { surface: string; border: string; text: string; textMuted: string }) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.lg,
+      padding: Spacing.md,
+      marginTop: Spacing.md,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    description: {
+      color: colors.textMuted,
+      marginTop: Spacing.xs,
+      fontSize: 14,
+    },
+    steps: {
+      marginTop: Spacing.md,
+      gap: Spacing.sm,
+    },
+  });

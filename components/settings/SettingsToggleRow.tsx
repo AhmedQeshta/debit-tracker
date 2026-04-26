@@ -1,4 +1,4 @@
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { SettingsToggleRowProps } from '@/types/common';
 import React, { FC } from 'react';
@@ -13,6 +13,9 @@ export const SettingsToggleRow: FC<SettingsToggleRowProps> = ({
   disabled = false,
   showDivider = true,
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <View
       style={[styles.row, disabled && styles.rowDisabled]}
@@ -21,7 +24,7 @@ export const SettingsToggleRow: FC<SettingsToggleRowProps> = ({
       accessibilityState={{ checked: value, disabled }}>
       <View style={styles.leftGroup}>
         <View style={styles.iconWrap}>
-          <Icon size={18} color={Colors.primary} />
+          <Icon size={18} color={colors.primary} />
         </View>
         <View style={styles.textWrap}>
           <Text style={styles.title}>{title}</Text>
@@ -33,8 +36,8 @@ export const SettingsToggleRow: FC<SettingsToggleRowProps> = ({
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: Colors.border, true: Colors.primary }}
-        thumbColor="#fff"
+        trackColor={{ false: colors.border, true: colors.primary }}
+        thumbColor={colors.surface}
       />
 
       {showDivider ? <View style={styles.divider} /> : null}
@@ -42,7 +45,14 @@ export const SettingsToggleRow: FC<SettingsToggleRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: {
+  primary: string;
+  surface: string;
+  border: string;
+  text: string;
+  textSecondary: string;
+}) =>
+  StyleSheet.create({
   row: {
     minHeight: 56,
     paddingHorizontal: Spacing.md,
@@ -65,9 +75,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -77,12 +87,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: colors.text,
   },
   subtitle: {
     marginTop: 2,
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   divider: {
     position: 'absolute',
@@ -90,6 +100,6 @@ const styles = StyleSheet.create({
     right: Spacing.md,
     bottom: 0,
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
   },
 });

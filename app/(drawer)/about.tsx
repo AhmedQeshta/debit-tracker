@@ -1,7 +1,7 @@
 import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToast';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
@@ -9,9 +9,192 @@ import { Github, Globe, Linkedin, Mail, MapPin, Phone } from 'lucide-react-nativ
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Spacing.lg,
+    },
+    menuButton: {
+      marginRight: Spacing.md,
+      padding: Spacing.xs,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    appHeader: {
+      alignItems: 'center',
+      marginBottom: Spacing.xl,
+      marginTop: Spacing.md,
+      paddingVertical: Spacing.lg,
+    },
+    logo: {
+      width: 100,
+      height: 100,
+      borderRadius: 20,
+      marginBottom: Spacing.md,
+    },
+    appName: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: Spacing.xs,
+    },
+    appVersion: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontWeight: '500',
+    },
+    section: {
+      marginBottom: Spacing.xl,
+      paddingHorizontal: Spacing.md,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.accent,
+      marginBottom: Spacing.md,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    infoLabel: {
+      fontSize: 16,
+      color: colors.textMuted,
+      fontWeight: '500',
+    },
+    infoValue: {
+      fontSize: 16,
+      color: colors.text,
+      fontWeight: '600',
+    },
+    description: {
+      fontSize: 16,
+      color: colors.text,
+      lineHeight: 24,
+      textAlign: 'justify',
+    },
+    featureList: {
+      marginTop: Spacing.sm,
+    },
+    featureItem: {
+      fontSize: 16,
+      color: colors.text,
+      marginBottom: Spacing.sm,
+      lineHeight: 24,
+    },
+    developerCard: {
+      backgroundColor: colors.surface,
+      padding: Spacing.md,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    developerName: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: Spacing.xs,
+    },
+    developerTitle: {
+      fontSize: 16,
+      color: colors.accent,
+      fontWeight: '600',
+      marginBottom: Spacing.md,
+    },
+    contactInfo: {
+      marginBottom: Spacing.md,
+    },
+    contactItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+      gap: Spacing.sm,
+    },
+    contactText: {
+      fontSize: 14,
+      color: colors.text,
+      flex: 1,
+    },
+    socialLinks: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.sm,
+      marginBottom: Spacing.md,
+      paddingTop: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    socialButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface2,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.sm,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      gap: Spacing.sm,
+    },
+    socialText: {
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: '600',
+    },
+    developerInfo: {
+      marginTop: Spacing.md,
+      paddingTop: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    developerSubtitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.accent,
+      marginTop: Spacing.md,
+      marginBottom: Spacing.sm,
+    },
+    developerDescription: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+      marginBottom: Spacing.sm,
+      textAlign: 'justify',
+    },
+    footer: {
+      marginTop: Spacing.xl,
+      paddingTop: Spacing.xl,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      alignItems: 'center',
+    },
+    footerText: {
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+  });
+
 export default function About() {
   const { t } = useTranslation();
   const { toastError } = useToast();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const appVersion = Constants.expoConfig?.version || '1.0.0';
   const appName = Constants.expoConfig?.name || 'DebitTracker';
 
@@ -88,7 +271,7 @@ export default function About() {
                 style={styles.contactItem}
                 onPress={handleEmailPress}
                 activeOpacity={0.7}>
-                <Mail size={18} color={Colors.primary} />
+                <Mail size={18} color={colors.accent} />
                 <Text style={styles.contactText}>ahmed.qeshta.dev@gmail.com</Text>
               </TouchableOpacity>
 
@@ -96,12 +279,12 @@ export default function About() {
                 style={styles.contactItem}
                 onPress={handlePhonePress}
                 activeOpacity={0.7}>
-                <Phone size={18} color={Colors.primary} />
+                <Phone size={18} color={colors.accent} />
                 <Text style={styles.contactText}>+970592157001</Text>
               </TouchableOpacity>
 
               <View style={styles.contactItem}>
-                <MapPin size={18} color={Colors.primary} />
+                <MapPin size={18} color={colors.accent} />
                 <Text style={styles.contactText}>Palestine, Gaza Strip, Gaza</Text>
               </View>
             </View>
@@ -111,7 +294,7 @@ export default function About() {
                 style={styles.socialButton}
                 onPress={() => handleLinkPress('https://www.linkedin.com/in/ahmed-qeshta')}
                 activeOpacity={0.7}>
-                <Linkedin size={16} color={Colors.primary} />
+                <Linkedin size={16} color={colors.accent} />
                 <Text style={styles.socialText}>
                   {t('about.sections.developer.social.linkedin')}
                 </Text>
@@ -121,7 +304,7 @@ export default function About() {
                 style={styles.socialButton}
                 onPress={() => handleLinkPress('https://github.com/ahmed-qeshta')}
                 activeOpacity={0.7}>
-                <Github size={16} color={Colors.primary} />
+                <Github size={16} color={colors.accent} />
                 <Text style={styles.socialText}>{t('about.sections.developer.social.github')}</Text>
               </TouchableOpacity>
 
@@ -129,7 +312,7 @@ export default function About() {
                 style={styles.socialButton}
                 onPress={() => handleLinkPress('https://ahmed.qeshta.dev')}
                 activeOpacity={0.7}>
-                <Globe size={16} color={Colors.primary} />
+                <Globe size={16} color={colors.accent} />
                 <Text style={styles.socialText}>
                   {t('about.sections.developer.social.website')}
                 </Text>
@@ -170,178 +353,3 @@ export default function About() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  menuButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  appHeader: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-    marginTop: Spacing.md,
-    paddingVertical: Spacing.lg,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    marginBottom: Spacing.md,
-  },
-  appName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  appVersion: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  section: {
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginBottom: Spacing.md,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  description: {
-    fontSize: 16,
-    color: Colors.text,
-    lineHeight: 24,
-    textAlign: 'justify',
-  },
-  featureList: {
-    marginTop: Spacing.sm,
-  },
-  featureItem: {
-    fontSize: 16,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    lineHeight: 24,
-  },
-  developerCard: {
-    backgroundColor: Colors.card,
-    padding: Spacing.md,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  developerName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  developerTitle: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginBottom: Spacing.md,
-  },
-  contactInfo: {
-    marginBottom: Spacing.md,
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  contactText: {
-    fontSize: 14,
-    color: Colors.text,
-    flex: 1,
-  },
-  socialLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.sm,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.sm,
-  },
-  socialText: {
-    fontSize: 14,
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  developerInfo: {
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  developerSubtitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  developerDescription: {
-    fontSize: 14,
-    color: Colors.text,
-    lineHeight: 20,
-    marginBottom: Spacing.sm,
-    textAlign: 'justify',
-  },
-  footer: {
-    marginTop: Spacing.xl,
-    paddingTop: Spacing.xl,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-});
