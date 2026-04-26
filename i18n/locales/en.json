@@ -19,6 +19,7 @@
     "sections": {
       "account": "Account",
       "sync": "Sync",
+      "appearance": "Appearance",
       "app": "App",
       "danger": "Danger Zone"
     },
@@ -54,7 +55,7 @@
       "syncNowLoading": "Sync in progress",
       "syncNowSub": "Force a sync now",
       "exportDataSub": "Save or share friends and budgets as CSV or JSON",
-      "themeSub": "Dark mode is currently active",
+      "themeSub": "Choose how the app appearance is applied",
       "aboutSub": "App details and developer info",
       "privacySub": "How your data is handled",
       "termsSub": "Terms and conditions",
@@ -81,6 +82,13 @@
       "arabic": "Arabic",
       "pickerTitle": "Choose language",
       "pickerMessage": "App direction will update automatically when needed."
+    },
+    "themeOptions": {
+      "system": "System (recommended)",
+      "light": "Light",
+      "dark": "Dark",
+      "pickerTitle": "Choose theme",
+      "pickerMessage": "The app updates instantly and your choice is saved."
     },
     "clearDataConfirm": {
       "title": "Clear local data?",

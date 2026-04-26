@@ -1,4 +1,4 @@
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { HomeSectionHeaderProps } from '@/types/common';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -9,6 +9,9 @@ export const HomeSectionHeader = ({
   seeAllLabel = 'See all',
   onSeeAll,
 }: HomeSectionHeaderProps) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -16,9 +19,9 @@ export const HomeSectionHeader = ({
         <Pressable style={styles.linkButton} onPress={onSeeAll} hitSlop={8}>
           <Text style={styles.linkLabel}>{seeAllLabel}</Text>
           {I18nManager.isRTL ? (
-            <ChevronLeft size={16} color={Colors.primary} />
+            <ChevronLeft size={16} color={colors.accent} />
           ) : (
-            <ChevronRight size={16} color={Colors.primary} />
+            <ChevronRight size={16} color={colors.accent} />
           )}
         </Pressable>
       ) : null}
@@ -26,7 +29,8 @@ export const HomeSectionHeader = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: { text: string; accent: string }) =>
+  StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -35,7 +39,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   title: {
-    color: Colors.text,
+    color: colors.text,
     fontSize: 30 / 1.5,
     fontWeight: '700',
   },
@@ -47,8 +51,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
   },
   linkLabel: {
-    color: Colors.primary,
+    color: colors.accent,
     fontSize: 14,
     fontWeight: '600',
   },
-});
+  });

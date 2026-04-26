@@ -1,10 +1,11 @@
 import { RenderSkeleton } from '@/components/transaction/RenderSkeleton';
 import { TransactionScreenItem } from '@/components/transaction/TransactionScreenItem';
+import { AppCard } from '@/components/ui/AppCard';
 import NavigateTo from '@/components/ui/NavigateTo';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useTransaction } from '@/hooks/transaction/useTransaction';
 import { formatCurrency } from '@/lib/utils';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Search, SlidersHorizontal } from 'lucide-react-native';
@@ -23,6 +24,8 @@ import {
 
 export default function TransactionsScreen() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const {
     openDrawer,
     groupedSections,
@@ -56,7 +59,7 @@ export default function TransactionsScreen() {
           style={styles.topBarButton}
           accessibilityRole="button"
           accessibilityLabel={t('transactions.accessibility.openMenu')}>
-          <Menu color={Colors.text} size={20} />
+          <Menu color={colors.text} size={20} />
         </TouchableOpacity>
         <View style={styles.titleWrap}>
           <Text style={styles.title}>{t('transactions.title')}</Text>
@@ -68,28 +71,26 @@ export default function TransactionsScreen() {
           accessibilityRole="button"
           accessibilityState={{ selected: showControls }}
           accessibilityLabel={t('transactions.accessibility.toggleFilters')}>
-          <SlidersHorizontal color={Colors.textSecondary} size={18} />
+          <SlidersHorizontal color={colors.textMuted} size={18} />
         </TouchableOpacity>
       </View>
 
       {showControls ? (
-        <>
-          <View style={styles.searchRow}>
-            <Search size={16} color={Colors.textSecondary} />
-            <TextInput
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder={t('transactions.search.placeholder')}
-              placeholderTextColor={Colors.textSecondary}
-              style={styles.searchInput}
-              accessibilityLabel={t('transactions.accessibility.searchTransactions')}
-            />
-          </View>
-        </>
+        <View style={styles.searchRow}>
+          <Search size={16} color={colors.textMuted} />
+          <TextInput
+            ref={searchInputRef}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={t('transactions.search.placeholder')}
+            placeholderTextColor={colors.textMuted}
+            style={styles.searchInput}
+            accessibilityLabel={t('transactions.accessibility.searchTransactions')}
+          />
+        </View>
       ) : null}
 
-      <View style={styles.summaryStrip}>
+      <AppCard style={styles.summaryStrip}>
         <View style={styles.summaryHeader}>
           <Text style={styles.summaryHeaderText}>
             {t('transactions.summary.title', { currencyLabel: summaryCurrencyLabel })}
@@ -125,7 +126,7 @@ export default function TransactionsScreen() {
             </Text>
           </View>
         </View>
-      </View>
+      </AppCard>
 
       <Text style={styles.statusLegend}>{t('transactions.statusLegend')}</Text>
 
@@ -155,7 +156,7 @@ export default function TransactionsScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={Colors.primary}
+              tintColor={colors.accent}
             />
           }
           contentContainerStyle={[styles.listContent, !hasData && styles.emptyListContent]}
@@ -199,232 +200,237 @@ export default function TransactionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.sm,
-  },
-  titleWrap: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  monthLabel: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  topBarButton: {
-    width: 44,
-    height: 44,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.xs,
-  },
-  topBarButtonActive: {
-    borderColor: Colors.primary,
-  },
-  searchRow: {
-    minHeight: 44,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    marginBottom: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 14,
-    paddingVertical: Spacing.sm,
-  },
-  chipsContainer: {
-    gap: Spacing.sm,
-    paddingBottom: Spacing.sm,
-  },
-  chip: {
-    minHeight: 36,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    justifyContent: 'center',
-  },
-  chipActive: {
-    borderColor: Colors.primary,
-  },
-  chipText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  chipTextActive: {
-    color: Colors.primary,
-  },
-  sortContainer: {
-    gap: Spacing.sm,
-    paddingBottom: Spacing.sm,
-  },
-  sortChip: {
-    minHeight: 36,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    gap: 6,
-  },
-  sortChipActive: {
-    borderColor: Colors.primary,
-  },
-  sortChipText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  sortChipTextActive: {
-    color: Colors.primary,
-  },
-  summaryStrip: {
-    borderRadius: Spacing.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  summaryHeaderText: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  currencyButton: {
-    minHeight: 32,
-    minWidth: 44,
-    borderRadius: Spacing.borderRadius.round,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.sm,
-  },
-  currencyButtonText: {
-    color: Colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  summaryStatsWrap: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statusLegend: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    marginBottom: Spacing.xs,
-  },
-  summaryItem: {
-    width: '32%',
-  },
-  summaryLabel: {
-    color: Colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  summaryValue: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  listContent: {
-    paddingTop: Spacing.xs,
-    paddingBottom: 100,
-  },
-  sectionHeaderWrap: {
-    backgroundColor: Colors.background,
-    paddingTop: Spacing.xs,
-    paddingBottom: Spacing.xs,
-  },
-  sectionHeader: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  skeletonList: {
-    paddingTop: Spacing.xs,
-    gap: Spacing.sm,
-  },
-  skeletonRow: {
-    minHeight: 80,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    marginBottom: Spacing.sm,
-  },
-  emptyListContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  emptyTitle: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: Spacing.sm,
-  },
-  emptyText: {
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    fontSize: 14,
-    marginBottom: Spacing.md,
-  },
-  emptyButton: {
-    minHeight: 44,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyButtonText: {
-    color: Colors.background,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  positive: {
-    color: Colors.success,
-  },
-  negative: {
-    color: Colors.error,
-  },
-});
+const createStyles = (colors: {
+  text: string;
+  textMuted: string;
+  surface: string;
+  border: string;
+  accent: string;
+  success: string;
+  danger: string;
+}) =>
+  StyleSheet.create({
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: Spacing.xs,
+      marginBottom: Spacing.sm,
+    },
+    titleWrap: {
+      flex: 1,
+      marginLeft: Spacing.sm,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    monthLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    topBarButton: {
+      width: 44,
+      height: 44,
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: Spacing.xs,
+    },
+    topBarButtonActive: {
+      borderColor: colors.accent,
+    },
+    searchRow: {
+      minHeight: 44,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.md,
+      marginBottom: Spacing.sm,
+      gap: Spacing.sm,
+    },
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 14,
+      paddingVertical: Spacing.sm,
+    },
+    chipsContainer: {
+      gap: Spacing.sm,
+      paddingBottom: Spacing.sm,
+    },
+    chip: {
+      minHeight: 36,
+      paddingHorizontal: Spacing.md,
+      borderRadius: Spacing.borderRadius.round,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: 'center',
+    },
+    chipActive: {
+      borderColor: colors.accent,
+    },
+    chipText: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    chipTextActive: {
+      color: colors.accent,
+    },
+    sortContainer: {
+      gap: Spacing.sm,
+      paddingBottom: Spacing.sm,
+    },
+    sortChip: {
+      minHeight: 36,
+      borderRadius: Spacing.borderRadius.round,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.md,
+      gap: 6,
+    },
+    sortChipActive: {
+      borderColor: colors.accent,
+    },
+    sortChipText: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    sortChipTextActive: {
+      color: colors.accent,
+    },
+    summaryStrip: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.sm,
+      gap: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    summaryHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    summaryHeaderText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    currencyButton: {
+      minHeight: 32,
+      minWidth: 44,
+      borderRadius: Spacing.borderRadius.round,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.sm,
+    },
+    currencyButtonText: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    summaryStatsWrap: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    statusLegend: {
+      color: colors.textMuted,
+      fontSize: 11,
+      marginBottom: Spacing.xs,
+    },
+    summaryItem: {
+      width: '32%',
+    },
+    summaryLabel: {
+      color: colors.textMuted,
+      fontSize: 10,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    summaryValue: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    listContent: {
+      paddingTop: Spacing.xs,
+      paddingBottom: 100,
+    },
+    sectionHeaderWrap: {
+      backgroundColor: 'transparent',
+      paddingTop: Spacing.xs,
+      paddingBottom: Spacing.xs,
+    },
+    sectionHeader: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    skeletonList: {
+      paddingTop: Spacing.xs,
+      gap: Spacing.sm,
+    },
+    skeletonRow: {
+      minHeight: 80,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      marginBottom: Spacing.sm,
+    },
+    emptyListContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.lg,
+    },
+    emptyTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '700',
+      marginBottom: Spacing.sm,
+    },
+    emptyText: {
+      color: colors.textMuted,
+      textAlign: 'center',
+      fontSize: 14,
+      marginBottom: Spacing.md,
+    },
+    emptyButton: {
+      minHeight: 44,
+      paddingHorizontal: Spacing.lg,
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyButtonText: {
+      color: colors.surface,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    positive: {
+      color: colors.success,
+    },
+    negative: {
+      color: colors.danger,
+    },
+  });

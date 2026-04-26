@@ -6,8 +6,9 @@ import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
 import { useSignOut } from '@/hooks/auth/useSignOut';
 import { useSettings } from '@/hooks/settings/useSettings';
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
+import { ThemeMode } from '@/theme/types';
 import {
   Cloud,
   Download,
@@ -21,7 +22,7 @@ import {
   Trash2,
   User,
 } from 'lucide-react-native';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Settings() {
   const {
@@ -46,9 +47,44 @@ export default function Settings() {
     showAuthSkeleton,
     currentLanguage,
     handleLanguageChange,
+    themeMode,
+    handleThemeChange,
     t,
   } = useSettings();
   const { handleAuthAction, isSigningOut } = useSignOut();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
+  const getThemeLabel = (mode: ThemeMode) => {
+    switch (mode) {
+      case 'light':
+        return t('settings.themeOptions.light');
+      case 'dark':
+        return t('settings.themeOptions.dark');
+      default:
+        return t('settings.themeOptions.system');
+    }
+  };
+
+  const handleThemePicker = () => {
+    const options: ThemeMode[] = ['system', 'light', 'dark'];
+    const actionList = options.map((mode) => ({
+      text: `${themeMode === mode ? '✓ ' : ''}${getThemeLabel(mode)}`,
+      onPress: () => handleThemeChange(mode),
+    }));
+
+    Alert.alert(
+      t('settings.themeOptions.pickerTitle'),
+      t('settings.themeOptions.pickerMessage'),
+      [
+        ...actionList,
+        {
+          text: t('common.actions.cancel'),
+          style: 'cancel',
+        },
+      ],
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -61,7 +97,7 @@ export default function Settings() {
 
         {showAuthSkeleton ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={Colors.primary} />
+            <ActivityIndicator size="small" color={colors.primary} />
             <Text style={styles.loadingText}>{t('settings.descriptions.loadingAccount')}</Text>
           </View>
         ) : null}
@@ -95,7 +131,7 @@ export default function Settings() {
                     style={styles.avatarPlaceholder}
                     accessibilityRole="image"
                     accessibilityLabel="Profile avatar">
-                    <User size={20} color={Colors.textSecondary} />
+                    <User size={20} color={colors.textSecondary} />
                   </View>
                 )}
                 <View style={styles.profileTextWrap}>
@@ -206,6 +242,16 @@ export default function Settings() {
           ) : null}
         </SettingsSection>
 
+        <SettingsSection title={t('settings.sections.appearance')}>
+          <SettingsRow
+            icon={Palette}
+            title={t('settings.rows.theme')}
+            value={getThemeLabel(themeMode)}
+            subtitle={t('settings.descriptions.themeSub')}
+            onPress={handleThemePicker}
+          />
+        </SettingsSection>
+
         <SettingsSection title={t('settings.sections.app')}>
           <SettingsRow
             icon={Download}
@@ -229,13 +275,6 @@ export default function Settings() {
             }
             subtitle={t('settings.languageOptions.pickerMessage')}
             onPress={handleLanguageChange}
-          />
-          <SettingsRow
-            icon={Palette}
-            title={t('settings.rows.theme')}
-            value="Dark"
-            subtitle={t('settings.descriptions.themeSub')}
-            showChevron={false}
           />
           <SettingsRow
             icon={Info}
@@ -274,119 +313,126 @@ export default function Settings() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  loadingContainer: {
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-  },
-  loadingText: {
-    marginTop: Spacing.xs,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  warningContainer: {
-    marginBottom: Spacing.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  warningText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  placeholderRow: {
-    minHeight: 64,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  placeholderAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  placeholderTextWrap: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  placeholderLineLarge: {
-    width: '65%',
-    height: 12,
-    borderRadius: Spacing.borderRadius.sm,
-    backgroundColor: Colors.surface,
-  },
-  placeholderLineSmall: {
-    width: '45%',
-    height: 10,
-    borderRadius: Spacing.borderRadius.sm,
-    backgroundColor: Colors.surface,
-  },
-  profileRow: {
-    minHeight: 64,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  rowPressed: {
-    backgroundColor: Colors.surface,
-  },
-  profileLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingRight: Spacing.md,
-    gap: Spacing.sm + 2,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: Colors.surface,
-  },
-  avatarPlaceholder: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  profileTextWrap: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  profileMeta: {
-    marginTop: 2,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  divider: {
-    position: 'absolute',
-    left: Spacing.md,
-    right: Spacing.md,
-    bottom: 0,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-});
+const createStyles = (colors: {
+  primary: string;
+  textSecondary: string;
+  border: string;
+  surface: string;
+  text: string;
+}) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    loadingContainer: {
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      paddingVertical: Spacing.md,
+    },
+    loadingText: {
+      marginTop: Spacing.xs,
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    warningContainer: {
+      marginBottom: Spacing.md,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    warningText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    placeholderRow: {
+      minHeight: 64,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm + 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    placeholderAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: Spacing.borderRadius.round,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    placeholderTextWrap: {
+      flex: 1,
+      marginLeft: Spacing.sm,
+      gap: Spacing.xs,
+    },
+    placeholderLineLarge: {
+      width: '65%',
+      height: 12,
+      borderRadius: Spacing.borderRadius.sm,
+      backgroundColor: colors.surface,
+    },
+    placeholderLineSmall: {
+      width: '45%',
+      height: 10,
+      borderRadius: Spacing.borderRadius.sm,
+      backgroundColor: colors.surface,
+    },
+    profileRow: {
+      minHeight: 64,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm + 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    rowPressed: {
+      backgroundColor: colors.surface,
+    },
+    profileLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      paddingRight: Spacing.md,
+      gap: Spacing.sm + 2,
+    },
+    avatar: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.surface,
+    },
+    avatarPlaceholder: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    profileTextWrap: {
+      flex: 1,
+    },
+    profileName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    profileMeta: {
+      marginTop: 2,
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    divider: {
+      position: 'absolute',
+      left: Spacing.md,
+      right: Spacing.md,
+      bottom: 0,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+  });

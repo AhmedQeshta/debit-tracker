@@ -1,6 +1,6 @@
 import { useSyncLoading } from '@/hooks/sync/useSyncLoading';
 import { getProgressText } from '@/lib/utils';
-import { Colors } from '@/theme/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { AlertCircle, WifiOff } from 'lucide-react-native';
 import React from 'react';
@@ -9,6 +9,8 @@ import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } fr
 
 export const SyncLoadingOverlay = () => {
   const { t } = useTranslation();
+  const { colors, activeTheme } = useTheme();
+  const styles = createStyles(colors, activeTheme);
 
   const {
     lastError,
@@ -28,7 +30,7 @@ export const SyncLoadingOverlay = () => {
         <View style={styles.container}>
           {hasError ? (
             <>
-              <AlertCircle size={48} color={Colors.error} style={styles.icon} />
+              <AlertCircle size={48} color={colors.error} style={styles.icon} />
               <Text style={styles.title}>{t('sync.loading.errorTitle')}</Text>
               <Text style={styles.message}>
                 {lastError?.message || t('sync.loading.errorFallbackMessage')}
@@ -36,7 +38,7 @@ export const SyncLoadingOverlay = () => {
 
               {!isOnline && (
                 <View style={styles.networkWarning}>
-                  <WifiOff size={16} color={Colors.error} />
+                  <WifiOff size={16} color={colors.error} />
                   <Text style={styles.networkWarningText}>{t('sync.loading.noInternet')}</Text>
                 </View>
               )}
@@ -58,7 +60,7 @@ export const SyncLoadingOverlay = () => {
             </>
           ) : (
             <>
-              <ActivityIndicator size="large" color={Colors.primary} style={styles.loader} />
+              <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
               <Text style={styles.title}>{t('sync.loading.downloadingData')}</Text>
               <Text style={styles.progressText}>{getProgressText(pullProgress)}</Text>
             </>
@@ -69,94 +71,105 @@ export const SyncLoadingOverlay = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+const createStyles = (
+  colors: {
+    error: string;
+    primary: string;
+    surface: string;
+    text: string;
+    textSecondary: string;
+    border: string;
   },
-  container: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: Spacing.lg,
-    minWidth: 280,
-    maxWidth: '80%',
-    alignItems: 'center',
-  },
-  loader: {
-    marginBottom: Spacing.md,
-  },
-  icon: {
-    marginBottom: Spacing.md,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-    lineHeight: 20,
-  },
-  progressText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
-  },
-  networkWarning: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    backgroundColor: Colors.error + '15',
-    padding: Spacing.xs,
-    borderRadius: 4,
-    marginBottom: Spacing.md,
-  },
-  networkWarningText: {
-    fontSize: 12,
-    color: Colors.error,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    width: '100%',
-    marginTop: Spacing.sm,
-  },
-  retryButton: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    alignItems: 'center',
-    opacity: 1,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  retryButtonTextDisabled: {
-    opacity: 0.5,
-  },
-  continueButton: {
-    flex: 1,
-    backgroundColor: Colors.border,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+  activeTheme: 'light' | 'dark',
+) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: activeTheme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(18, 18, 18, 0.35)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    container: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: Spacing.lg,
+      minWidth: 280,
+      maxWidth: '80%',
+      alignItems: 'center',
+    },
+    loader: {
+      marginBottom: Spacing.md,
+    },
+    icon: {
+      marginBottom: Spacing.md,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: Spacing.sm,
+      textAlign: 'center',
+    },
+    message: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: Spacing.md,
+      lineHeight: 20,
+    },
+    progressText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: Spacing.xs,
+    },
+    networkWarning: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.xs,
+      backgroundColor: activeTheme === 'dark' ? 'rgba(207, 102, 121, 0.2)' : 'rgba(176, 0, 32, 0.1)',
+      padding: Spacing.xs,
+      borderRadius: 4,
+      marginBottom: Spacing.md,
+    },
+    networkWarningText: {
+      fontSize: 12,
+      color: colors.error,
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      gap: Spacing.sm,
+      width: '100%',
+      marginTop: Spacing.sm,
+    },
+    retryButton: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderRadius: 8,
+      alignItems: 'center',
+      opacity: 1,
+    },
+    retryButtonText: {
+      color: colors.surface,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    retryButtonTextDisabled: {
+      opacity: 0.5,
+    },
+    continueButton: {
+      flex: 1,
+      backgroundColor: colors.border,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    continueButtonText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

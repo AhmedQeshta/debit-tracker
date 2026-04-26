@@ -1,8 +1,8 @@
 import { MenuItemDrawer } from '@/components/drawer/MenuItemDrawer';
 import { SyncStatus } from '@/components/sync/SyncStatus';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useSignOut } from '@/hooks/auth/useSignOut';
 import { getMainMenuItems } from '@/lib/menu';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Info, LogIn, LogOut, X } from 'lucide-react-native';
@@ -12,6 +12,8 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 
 export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const menuItems = useMemo(() => getMainMenuItems(t), [t]);
   const { isSignedIn } = useAuth();
   const { user } = useUser();
@@ -22,7 +24,7 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
       <View style={styles.drawerHeader}>
         <Text style={styles.drawerTitle}>{t('navigation.drawer.menu')}</Text>
         <TouchableOpacity onPress={closeDrawer} style={styles.closeButton}>
-          <X size={24} color={Colors.text} />
+          <X size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -59,12 +61,12 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
               style={styles.logoutButton}
               disabled={isSigningOut}
               activeOpacity={isSigningOut ? 1 : 0.7}>
-              <LogOut size={20} color={Colors.error} />
+              <LogOut size={20} color={colors.danger} />
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity onPress={handleAuthAction} style={styles.loginButton}>
-            <LogIn size={20} color={Colors.primary} />
+            <LogIn size={20} color={colors.accent} />
             <Text style={styles.loginButtonText}>{t('settings.rows.signIn')}</Text>
           </TouchableOpacity>
         )}
@@ -73,67 +75,75 @@ export const DrawerContent = ({ insets, closeDrawer, isActive, navigateTo }: any
   );
 };
 
-const styles = StyleSheet.create({
-  drawerContent: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-  },
-  drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  drawerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: Spacing.xs,
-  },
-  drawerMenu: {
-    flex: 1,
-    paddingTop: Spacing.md,
-  },
-  footer: {
-    padding: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.card,
-  },
-  loginButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm,
-  },
-  loginButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  profileEmail: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  logoutButton: {
-    padding: Spacing.sm,
-  },
-});
+const createStyles = (colors: {
+  surface: string;
+  surface2: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  accent: string;
+}) =>
+  StyleSheet.create({
+    drawerContent: {
+      flex: 1,
+      backgroundColor: colors.surface,
+    },
+    drawerHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    drawerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    closeButton: {
+      padding: Spacing.xs,
+    },
+    drawerMenu: {
+      flex: 1,
+      paddingTop: Spacing.md,
+    },
+    footer: {
+      padding: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.surface2,
+    },
+    loginButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.md,
+      padding: Spacing.sm,
+    },
+    loginButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.accent,
+    },
+    profileSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: Spacing.sm,
+    },
+    profileInfo: {
+      flex: 1,
+    },
+    profileName: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    profileEmail: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    logoutButton: {
+      padding: Spacing.sm,
+    },
+  });

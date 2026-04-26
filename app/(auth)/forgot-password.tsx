@@ -2,8 +2,8 @@ import { OtpInput } from '@/components/auth/OtpInput';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,8 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'rea
 
 export default function ForgotPasswordScreen() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const {
     step,
     email,
@@ -34,7 +36,7 @@ export default function ForgotPasswordScreen() {
     return (
       <ScreenContainer>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>{t('common.states.loading')}</Text>
         </View>
       </ScreenContainer>
@@ -58,7 +60,7 @@ export default function ForgotPasswordScreen() {
             </Text>
           </View>
           <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-            <X size={18} color={Colors.textSecondary} />
+            <X size={18} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -135,76 +137,85 @@ export default function ForgotPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.xl,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Spacing.xl * 2,
-  },
-  loadingText: {
-    marginTop: Spacing.md,
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  headerTextBlock: {
-    flex: 1,
-    paddingRight: Spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: Colors.text,
-    letterSpacing: 0.2,
-  },
-  closeButton: {
-    marginTop: 2,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.round,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 30,
-    height: 30,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    marginTop: Spacing.sm,
-    lineHeight: 21,
-  },
-  errorText: {
-    color: Colors.error,
-    marginBottom: Spacing.md,
-    fontSize: 13,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.lg,
-  },
-  inlineLinkContainer: {
-    marginTop: Spacing.md,
-    alignItems: 'center',
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  inlineLink: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: {
+  accent: string;
+  text: string;
+  textMuted: string;
+  surface: string;
+  surface2: string;
+  border: string;
+  danger: string;
+}) =>
+  StyleSheet.create({
+    container: {
+      paddingTop: Spacing.xl,
+      paddingBottom: Spacing.xl,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: Spacing.xl * 2,
+    },
+    loadingText: {
+      marginTop: Spacing.md,
+      fontSize: 16,
+      color: colors.textMuted,
+    },
+    headerTextBlock: {
+      flex: 1,
+      paddingRight: Spacing.md,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.lg,
+    },
+    title: {
+      fontSize: 30,
+      fontWeight: 'bold',
+      color: colors.text,
+      letterSpacing: 0.2,
+    },
+    closeButton: {
+      marginTop: 2,
+      backgroundColor: colors.surface2,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.round,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 30,
+      height: 30,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: colors.textMuted,
+      marginTop: Spacing.sm,
+      lineHeight: 21,
+    },
+    errorText: {
+      color: colors.danger,
+      marginBottom: Spacing.md,
+      fontSize: 13,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: Spacing.lg,
+    },
+    inlineLinkContainer: {
+      marginTop: Spacing.md,
+      alignItems: 'center',
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    inlineLink: {
+      color: colors.accent,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

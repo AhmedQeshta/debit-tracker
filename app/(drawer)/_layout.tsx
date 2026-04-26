@@ -1,9 +1,9 @@
 import { DrawerContent } from '@/components/drawer/DrawerContent';
+import { useTheme } from '@/contexts/ThemeContext';
 import { DRAWER_WIDTH, useDrawer } from '@/hooks/drawer/useDrawer';
 import { DrawerContext } from '@/hooks/drawer/useDrawerContext';
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
 import { Slot } from 'expo-router';
+import { useMemo } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function DrawerLayoutWrapper() {
@@ -19,9 +19,15 @@ export default function DrawerLayoutWrapper() {
     slideAnim,
     isRTL,
   } = useDrawer();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const drawerContextValue = useMemo(
+    () => ({ openDrawer, closeDrawer, toggleDrawer }),
+    [openDrawer, closeDrawer, toggleDrawer],
+  );
 
   return (
-    <DrawerContext.Provider value={{ openDrawer, closeDrawer, toggleDrawer }}>
+    <DrawerContext.Provider value={drawerContextValue}>
       <View style={styles.container}>
         <View style={styles.content}>
           <Slot />
@@ -61,93 +67,50 @@ export default function DrawerLayoutWrapper() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 999,
-  },
-  overlayAnimated: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  drawer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: DRAWER_WIDTH,
-    zIndex: 1000,
-    backgroundColor: Colors.surface,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  drawerLtr: {
-    left: 0,
-    shadowOffset: {
-      width: 2,
-      height: 0,
+const createStyles = (colors: { surface: string; shadow: string; overlay: string }) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
     },
-  },
-  drawerRtl: {
-    right: 0,
-    shadowOffset: {
-      width: -2,
-      height: 0,
+    content: {
+      flex: 1,
     },
-  },
-  drawerContent: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-  },
-  drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  drawerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: Spacing.xs,
-  },
-  drawerMenu: {
-    flex: 1,
-    paddingTop: Spacing.md,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    marginHorizontal: Spacing.sm,
-    marginVertical: Spacing.xs,
-    borderRadius: Spacing.borderRadius.md,
-    gap: Spacing.md,
-  },
-  menuItemActive: {
-    backgroundColor: Colors.card,
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  menuItemTextActive: {
-    color: Colors.primary,
-  },
-});
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 999,
+    },
+    overlayAnimated: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+    },
+    drawer: {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      width: DRAWER_WIDTH,
+      zIndex: 1000,
+      backgroundColor: colors.surface,
+      shadowColor: colors.shadow,
+      shadowOpacity: 1,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    drawerLtr: {
+      left: 0,
+      shadowOffset: {
+        width: 2,
+        height: 0,
+      },
+    },
+    drawerRtl: {
+      right: 0,
+      shadowOffset: {
+        width: -2,
+        height: 0,
+      },
+    },
+  });

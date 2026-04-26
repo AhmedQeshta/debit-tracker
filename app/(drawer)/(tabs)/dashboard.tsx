@@ -1,10 +1,10 @@
-import { HomeSectionHeader } from '@/components/home/HomeSectionHeader';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useSummaryCurrency } from '@/hooks/useSummaryCurrency';
 import { formatCurrency, RANGE_OPTIONS } from '@/lib/utils';
-import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
 import { useRouter } from 'expo-router';
 import { Menu, Settings, Wifi, WifiOff } from 'lucide-react-native';
@@ -13,6 +13,8 @@ import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { summaryCurrency, summaryCurrencyLabel, handleSummaryCurrencyToggle } =
     useSummaryCurrency();
   const {
@@ -49,7 +51,7 @@ export default function Dashboard() {
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel={t('dashboard.accessibility.openMenu')}>
-              <Menu size={20} color={Colors.text} />
+              <Menu size={20} color={colors.text} />
             </Pressable>
           ) : null}
           <Text style={styles.title}>{t('dashboard.title')}</Text>
@@ -69,7 +71,7 @@ export default function Dashboard() {
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={t('dashboard.accessibility.openSettings')}>
-            <Settings size={20} color={Colors.text} />
+            <Settings size={20} color={colors.text} />
           </Pressable>
         </View>
       </View>
@@ -77,9 +79,9 @@ export default function Dashboard() {
       <View style={styles.topMetaRow}>
         <View style={styles.statusPill}>
           {isOnline ? (
-            <Wifi size={13} color={Colors.textSecondary} />
+            <Wifi size={13} color={colors.textMuted} />
           ) : (
-            <WifiOff size={13} color={Colors.textSecondary} />
+            <WifiOff size={13} color={colors.textMuted} />
           )}
           <Text style={styles.statusText}>
             {isOnline ? t('dashboard.status.online') : t('dashboard.status.offline')}
@@ -192,10 +194,10 @@ export default function Dashboard() {
         </View>
       ) : null}
 
-      <HomeSectionHeader
+      <SectionHeader
         title={t('dashboard.sections.settleUp')}
-        seeAllLabel={t('dashboard.actions.seeAll')}
-        onSeeAll={() => router.push('/friends')}
+        actionLabel={t('dashboard.actions.seeAll')}
+        onActionPress={() => router.push('/friends')}
       />
 
       <View style={styles.sectionCard}>
@@ -212,7 +214,7 @@ export default function Dashboard() {
                 <Text style={styles.settleName} numberOfLines={1}>
                   {item.friend.name}
                 </Text>
-                <Text style={[styles.settleAmount, { color: Colors.error }]}>
+                <Text style={[styles.settleAmount, { color: colors.danger }]}>
                   {formatCurrency(Math.abs(item.balance), item.friend.currency || '$')}
                 </Text>
               </View>
@@ -241,7 +243,7 @@ export default function Dashboard() {
                 <Text style={styles.settleName} numberOfLines={1}>
                   {item.friend.name}
                 </Text>
-                <Text style={[styles.settleAmount, { color: Colors.success }]}>
+                <Text style={[styles.settleAmount, { color: colors.success }]}>
                   {formatCurrency(item.balance, item.friend.currency || '$')}
                 </Text>
               </View>
@@ -258,10 +260,10 @@ export default function Dashboard() {
 
       {activeBudgetCount > 0 ? (
         <>
-          <HomeSectionHeader
+          <SectionHeader
             title={t('dashboard.sections.budgetSnapshot')}
-            seeAllLabel={t('dashboard.actions.seeAllBudgets')}
-            onSeeAll={() => router.push('/budget')}
+            actionLabel={t('dashboard.actions.seeAllBudgets')}
+            onActionPress={() => router.push('/budget')}
           />
 
           <View style={styles.sectionCard}>
@@ -296,7 +298,7 @@ export default function Dashboard() {
                         styles.progressFill,
                         {
                           width: `${progress}%`,
-                          backgroundColor: item.percentUsed >= 100 ? Colors.error : Colors.primary,
+                          backgroundColor: item.percentUsed >= 100 ? colors.danger : colors.accent,
                         },
                       ]}
                     />
@@ -305,7 +307,7 @@ export default function Dashboard() {
                   <Text
                     style={[
                       styles.remainingText,
-                      { color: item.remaining < 0 ? Colors.error : Colors.textSecondary },
+                      { color: item.remaining < 0 ? colors.danger : colors.textMuted },
                     ]}>
                     {item.remaining < 0
                       ? t('dashboard.budget.overspentBy', {
@@ -329,356 +331,367 @@ export default function Dashboard() {
   );
 }
 
-const styles = StyleSheet.create({
-  appBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  appBarActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: Colors.text,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: Spacing.borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  rangeChip: {
-    minHeight: 44,
-    borderRadius: Spacing.borderRadius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.md,
-  },
-  rangeChipText: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  topMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
-    gap: Spacing.sm,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 30,
-    borderRadius: Spacing.borderRadius.round,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.sm,
-    gap: 4,
-    backgroundColor: Colors.surface,
-  },
-  statusText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  rangeSelectorRow: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.md,
-    padding: 2,
-  },
-  rangeSelectorItem: {
-    minHeight: 30,
-    minWidth: 72,
-    borderRadius: Spacing.borderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.sm,
-  },
-  rangeSelectorItemActive: {
-    backgroundColor: Colors.primary,
-  },
-  rangeSelectorText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  rangeSelectorTextActive: {
-    color: Colors.background,
-  },
-  summaryCard: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.lg,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    marginBottom: Spacing.md,
-    gap: Spacing.sm,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  summaryHeaderText: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  currencyButton: {
-    minHeight: 32,
-    minWidth: 44,
-    borderRadius: Spacing.borderRadius.round,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.sm,
-  },
-  currencyButtonText: {
-    color: Colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  summaryLabel: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  summaryValue: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  summaryStatsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: Spacing.sm,
-  },
-  summaryItem: {
-    width: '32%',
-    gap: 2,
-  },
-  positive: {
-    color: Colors.success,
-  },
-  negative: {
-    color: Colors.error,
-  },
-  neutral: {
-    color: Colors.text,
-  },
-  quickInsightsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  insightChip: {
-    flexGrow: 1,
-    minWidth: '30%',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  insightLabel: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-  },
-  insightValue: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  insightValueEmphasized: {
-    color: Colors.primary,
-  },
-  getStartedCard: {
-    backgroundColor: Colors.card,
-    borderRadius: Spacing.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  getStartedTitle: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  getStartedText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  getStartedActions: {
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  getStartedAction: {
-    minHeight: 44,
-    borderRadius: Spacing.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.md,
-  },
-  getStartedActionText: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  sectionCard: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Spacing.borderRadius.lg,
-    padding: Spacing.md,
-  },
-  listTitle: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: Spacing.sm,
-  },
-  emptyText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    marginBottom: Spacing.sm,
-  },
-  settleRow: {
-    minHeight: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: Spacing.borderRadius.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginRight: Spacing.sm,
-  },
-  avatarText: {
-    color: Colors.text,
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  settleMain: {
-    flex: 1,
-  },
-  settleName: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  settleAmount: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  rowActionButton: {
-    minHeight: 44,
-    minWidth: 70,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: Spacing.borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  rowActionLabel: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  listDivider: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    marginVertical: Spacing.sm,
-  },
-  budgetRow: {
-    marginBottom: Spacing.md,
-  },
-  budgetHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  budgetTitle: {
-    color: Colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  budgetUsage: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  budgetAmountLine: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    marginBottom: Spacing.sm,
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: Spacing.borderRadius.round,
-    backgroundColor: Colors.surface,
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: Spacing.borderRadius.round,
-  },
-  remainingText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  insightInlineNotice: {
-    marginTop: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Spacing.md,
-  },
-  insightInlineText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-  },
-});
+const createStyles = (colors: {
+  text: string;
+  textMuted: string;
+  surface: string;
+  surface2: string;
+  border: string;
+  accent: string;
+  accentSoft: string;
+  success: string;
+  danger: string;
+}) =>
+  StyleSheet.create({
+    appBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    appBarActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.xs,
+    },
+    title: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    iconButton: {
+      width: 44,
+      height: 44,
+      borderRadius: Spacing.borderRadius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    rangeChip: {
+      minHeight: 44,
+      borderRadius: Spacing.borderRadius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.md,
+    },
+    rangeChipText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    topMetaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.md,
+      gap: Spacing.sm,
+    },
+    statusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 30,
+      borderRadius: Spacing.borderRadius.round,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: Spacing.sm,
+      gap: 4,
+      backgroundColor: colors.surface2,
+    },
+    statusText: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    rangeSelectorRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.md,
+      padding: 2,
+    },
+    rangeSelectorItem: {
+      minHeight: 30,
+      minWidth: 72,
+      borderRadius: Spacing.borderRadius.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.sm,
+    },
+    rangeSelectorItemActive: {
+      backgroundColor: colors.accent,
+    },
+    rangeSelectorText: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    rangeSelectorTextActive: {
+      color: colors.surface,
+    },
+    summaryCard: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.lg,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.sm,
+      marginBottom: Spacing.md,
+      gap: Spacing.sm,
+    },
+    summaryHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    summaryHeaderText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    currencyButton: {
+      minHeight: 32,
+      minWidth: 44,
+      borderRadius: Spacing.borderRadius.round,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.surface2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.sm,
+    },
+    currencyButtonText: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    summaryLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    summaryValue: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    summaryStatsWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      rowGap: Spacing.sm,
+    },
+    summaryItem: {
+      width: '32%',
+      gap: 2,
+    },
+    positive: {
+      color: colors.success,
+    },
+    negative: {
+      color: colors.danger,
+    },
+    neutral: {
+      color: colors.text,
+    },
+    quickInsightsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    insightChip: {
+      flexGrow: 1,
+      minWidth: '30%',
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+    },
+    insightLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+    },
+    insightValue: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '700',
+      marginTop: 2,
+    },
+    insightValueEmphasized: {
+      color: colors.accent,
+    },
+    getStartedCard: {
+      backgroundColor: colors.surface,
+      borderRadius: Spacing.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: Spacing.md,
+      marginBottom: Spacing.sm,
+    },
+    getStartedTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    getStartedText: {
+      color: colors.textMuted,
+      fontSize: 14,
+      marginTop: 4,
+    },
+    getStartedActions: {
+      marginTop: Spacing.md,
+      gap: Spacing.sm,
+    },
+    getStartedAction: {
+      minHeight: 44,
+      borderRadius: Spacing.borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.md,
+    },
+    getStartedActionText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    sectionCard: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Spacing.borderRadius.lg,
+      padding: Spacing.md,
+    },
+    listTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: Spacing.sm,
+    },
+    emptyText: {
+      color: colors.textMuted,
+      fontSize: 13,
+      marginBottom: Spacing.sm,
+    },
+    settleRow: {
+      minHeight: 56,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    avatar: {
+      width: 36,
+      height: 36,
+      borderRadius: Spacing.borderRadius.round,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface2,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginRight: Spacing.sm,
+    },
+    avatarText: {
+      color: colors.text,
+      fontWeight: '700',
+      fontSize: 14,
+    },
+    settleMain: {
+      flex: 1,
+    },
+    settleName: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    settleAmount: {
+      fontSize: 13,
+      fontWeight: '600',
+      marginTop: 2,
+    },
+    rowActionButton: {
+      minHeight: 44,
+      minWidth: 70,
+      paddingHorizontal: Spacing.sm,
+      borderRadius: Spacing.borderRadius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    rowActionLabel: {
+      color: colors.accent,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    listDivider: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      marginVertical: Spacing.sm,
+    },
+    budgetRow: {
+      marginBottom: Spacing.md,
+    },
+    budgetHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 2,
+    },
+    budgetTitle: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '700',
+      flex: 1,
+      marginRight: Spacing.sm,
+    },
+    budgetUsage: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    budgetAmountLine: {
+      color: colors.textMuted,
+      fontSize: 13,
+      marginBottom: Spacing.sm,
+    },
+    progressTrack: {
+      height: 8,
+      borderRadius: Spacing.borderRadius.round,
+      backgroundColor: colors.surface2,
+      overflow: 'hidden',
+      marginBottom: 6,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: Spacing.borderRadius.round,
+    },
+    remainingText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    insightInlineNotice: {
+      marginTop: Spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: Spacing.md,
+    },
+    insightInlineText: {
+      color: colors.textMuted,
+      fontSize: 12,
+    },
+  });
