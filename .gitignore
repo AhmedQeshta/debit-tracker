@@ -48,10 +48,6 @@ app-example
 
 .cursor/
 
-
-.package-lock.json
-yarn.lock
-.vscode/
 .idea/
 *.log
 *.bak
