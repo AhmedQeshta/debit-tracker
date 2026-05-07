@@ -1,12 +1,11 @@
-import { SettingsRow } from '@/components/settings/SettingsRow';
-import { SettingsSection } from '@/components/settings/SettingsSection';
+import { SettingsRow } from '@/components/settings/SettingsRow';import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SettingsToggleRow } from '@/components/settings/SettingsToggleRow';
 import { StatusPill } from '@/components/settings/StatusPill';
 import Header from '@/components/ui/Header';
 import { ScreenContainer } from '@/components/ui/ScreenContainer';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useSignOut } from '@/hooks/auth/useSignOut';
 import { useSettings } from '@/hooks/settings/useSettings';
-import { useTheme } from '@/contexts/ThemeContext';
 import { Spacing } from '@/theme/spacing';
 import { ThemeMode } from '@/theme/types';
 import {
@@ -40,6 +39,7 @@ export default function Settings() {
     syncStatus,
     lastSync,
     isSyncing,
+    pullProgress,
     lastError,
     handleSync,
     router,
@@ -73,17 +73,13 @@ export default function Settings() {
       onPress: () => handleThemeChange(mode),
     }));
 
-    Alert.alert(
-      t('settings.themeOptions.pickerTitle'),
-      t('settings.themeOptions.pickerMessage'),
-      [
-        ...actionList,
-        {
-          text: t('common.actions.cancel'),
-          style: 'cancel',
-        },
-      ],
-    );
+    Alert.alert(t('settings.themeOptions.pickerTitle'), t('settings.themeOptions.pickerMessage'), [
+      ...actionList,
+      {
+        text: t('common.actions.cancel'),
+        style: 'cancel',
+      },
+    ]);
   };
 
   return (
@@ -232,7 +228,7 @@ export default function Settings() {
                 title={t('settings.rows.syncNow')}
                 subtitle={
                   isSyncing
-                    ? t('settings.descriptions.syncNowLoading')
+                    ? pullProgress || t('settings.descriptions.syncNowLoading')
                     : t('settings.descriptions.syncNowSub')
                 }
                 onPress={handleSync}

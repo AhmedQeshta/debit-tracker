@@ -1,12 +1,12 @@
-import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
+import { useTheme } from '@/contexts/ThemeContext';import { useDrawerContext } from '@/hooks/drawer/useDrawerContext';
 import { useSyncStatus } from '@/hooks/sync/useSyncStatus';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToast';
 import { setLanguage } from '@/i18n/languageService';
 import { useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
+import { ThemeMode } from '@/theme/types';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -14,7 +14,6 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { ThemeMode } from '@/theme/types';
 
 const SETTINGS_LOAD_TIMEOUT_MS = 10000;
 
@@ -36,7 +35,8 @@ export const useSettings = () => {
     isOnline,
     isSyncing,
     lastError,
-    handleSync,
+    pullProgress,
+    syncQueueNow,
   } = useSyncStatus();
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
@@ -72,6 +72,22 @@ export const useSettings = () => {
 
   const handleSignIn = () => {
     router.push('/(auth)/sign-in');
+  };
+
+  const handleSync = async () => {
+    const result = await syncQueueNow();
+
+    if (result?.blockedReason === 'offline') {
+      toastError('No internet. Connect and try again.');
+      return;
+    }
+
+    if ((result?.failedCount || 0) > 0) {
+      toastError(`Some items failed to sync (${result.failedCount}).`);
+      return;
+    }
+
+    toastSuccess('All changes synced');
   };
 
   const formatLastSync = (timestamp: number | null) => {
@@ -165,6 +181,7 @@ export const useSettings = () => {
     isOnline,
     isSyncing,
     lastError,
+    pullProgress,
     handleSync,
     openDrawer,
     loadTimedOut,

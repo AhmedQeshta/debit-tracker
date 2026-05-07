@@ -1,5 +1,4 @@
-import { selectPendingCount } from '@/lib/dashboardSelectors';
-import { getFreshSupabaseJwt } from '@/services/authSync';
+import { selectPendingCount } from '@/lib/dashboardSelectors';import { getFreshSupabaseJwt } from '@/services/authSync';
 import { getNetworkSnapshot, isNetworkReachable, pingSupabase } from '@/services/net';
 import { getSyncErrorCode } from '@/services/syncErrors';
 import { syncService } from '@/services/syncService';
@@ -253,7 +252,27 @@ export const useCloudSync = () => {
       useSyncStore.getState().setPullProgress('syncing 0 of 0');
 
       try {
-        const summary = await syncService.syncQueueFlush(cloudUserId, userId, getToken, {
+        const budgetSummary = await syncService.syncBudgetQueue(cloudUserId, userId, getToken, {
+          chunkSize: 30,
+          onProgress: (processed: number, total: number) => {
+            useSyncStore.getState().setPullProgress(`syncing ${processed} of ${total}`);
+            options?.onProgress?.(processed, total, '');
+          },
+        });
+
+        if (budgetSummary.blockedReason) {
+          useSyncStore.getState().setSyncStatus('error');
+          useSyncStore.getState().setLastError({
+            code: getSyncErrorCode(budgetSummary.blockedReason),
+            message:
+              budgetSummary.lastErrorMessage ||
+              syncErrorMessageFromReason(budgetSummary.blockedReason),
+            at: Date.now(),
+          });
+          return budgetSummary;
+        }
+
+        const queueSummary = await syncService.syncQueueFlush(cloudUserId, userId, getToken, {
           chunkSize: 30,
           concurrency: 2,
           onProgress: (processed, total, itemId) => {
@@ -261,6 +280,15 @@ export const useCloudSync = () => {
             options?.onProgress?.(processed, total, itemId);
           },
         });
+
+        const summary = {
+          total: (budgetSummary.total || 0) + (queueSummary.total || 0),
+          successCount: (budgetSummary.synced || 0) + (queueSummary.successCount || 0),
+          failedCount: (budgetSummary.failed || 0) + (queueSummary.failedCount || 0),
+          blockedReason: queueSummary.blockedReason,
+          lastErrorCode: queueSummary.lastErrorCode,
+          lastErrorMessage: queueSummary.lastErrorMessage,
+        };
 
         if (summary.failedCount === 0 && !summary.blockedReason) {
           useSyncStore.getState().setSyncStatus('success');

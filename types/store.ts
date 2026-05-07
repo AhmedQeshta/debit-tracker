@@ -129,6 +129,38 @@ export interface IBudgetState {
   getDirtyBudgets: () => Budget[];
   getDirtyBudgetItems: () => BudgetItem[];
   markItemAsSynced: (budgetId: string, itemId: string) => void;
+  markItemAsSyncedV2: (
+    budgetId: string,
+    itemId: string,
+    canonicalRecord?: Partial<BudgetItem>,
+  ) => void;
+  markItemAsPending: (budgetId: string, itemId: string) => void;
+  markItemAsFailed: (budgetId: string, itemId: string, errorMessage: string) => void;
+  getPendingBudgetItems: () => BudgetItem[];
+  getFailedBudgetItems: () => BudgetItem[];
+  addBudgetItemOnline: (
+    budgetId: string,
+    title: string,
+    amount: number,
+    type?: string,
+    userId?: string,
+    ownerId?: string,
+  ) => Promise<BudgetItem>;
+  addBudgetItemOffline: (
+    budgetId: string,
+    title: string,
+    amount: number,
+    type?: string,
+  ) => BudgetItem;
+  addBudgetItemSmart: (
+    budgetId: string,
+    title: string,
+    amount: number,
+    type?: string,
+    userId?: string,
+    ownerId?: string,
+    forceOffline?: boolean,
+  ) => Promise<{ item: BudgetItem; isOnline: boolean }>;
   getDeletedBudgets: () => Budget[];
   getDeletedBudgetItems: () => BudgetItem[];
   removeDeletedBudget: (id: string) => void;

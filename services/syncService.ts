@@ -1,11 +1,11 @@
-import { supabase } from '@/lib/supabase';
-import { getBudgetItemType } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';import { getBudgetItemType } from '@/lib/utils';
 import {
   GetTokenFunction,
   getFreshSupabaseJwt,
   isJwtExpiredError,
   retryOnceOnJwtExpired,
 } from '@/services/authSync';
+import { pingSupabase } from '@/services/net';
 import { classifySyncError, getSyncErrorCode, isRetryableSyncError } from '@/services/syncErrors';
 import { ensureAppUser } from '@/services/userService';
 import { useBudgetStore } from '@/store/budgetStore';
@@ -84,7 +84,7 @@ const runWithRetry = async <T>(
 
       if (!retryable || attempt >= MAX_SYNC_RETRIES) {
         if (error && typeof error === 'object') {
-          (error as any).syncCategory = category;
+          error.syncCategory = category;
         }
         throw error;
       }
@@ -117,6 +117,17 @@ const mapWithConcurrency = async <T>(
     runWorker(),
   );
   await Promise.all(workers);
+};
+
+const chunkArray = <T>(items: T[], chunkSize: number): T[][] => {
+  const chunks: T[][] = [];
+  const safeChunkSize = Math.max(1, chunkSize);
+
+  for (let index = 0; index < items.length; index += safeChunkSize) {
+    chunks.push(items.slice(index, index + safeChunkSize));
+  }
+
+  return chunks;
 };
 
 export const syncService = {
@@ -906,6 +917,136 @@ export const syncService = {
     }
   },
 
+  syncBudgetQueue: async (
+    cloudUserId: string,
+    clerkUserId: string,
+    getToken: GetTokenFunction,
+    options?: {
+      onProgress?: (processed: number, total: number) => void;
+      chunkSize?: number;
+    },
+  ) => {
+    const { syncEnabled } = useSyncStore.getState();
+
+    if (!syncEnabled) {
+      return { total: 0, synced: 0, failed: 0, blockedReason: 'unknown' as QueueBlockedReason };
+    }
+
+    const ping = await pingSupabase();
+    if (!ping.ok) {
+      return {
+        total: 0,
+        synced: 0,
+        failed: 0,
+        blockedReason: (ping.errorType === 'timeout' ? 'timeout' : 'offline') as QueueBlockedReason,
+        lastErrorMessage: ping.message,
+      };
+    }
+
+    const pendingItems = useBudgetStore.getState().getPendingBudgetItems();
+    const total = pendingItems.length;
+
+    if (total === 0) {
+      return { total: 0, synced: 0, failed: 0 };
+    }
+
+    const chunkSize = Math.max(1, options?.chunkSize ?? DEFAULT_SYNC_CHUNK_SIZE);
+    const chunks = chunkArray(pendingItems, chunkSize);
+    let processed = 0;
+    let synced = 0;
+    let failed = 0;
+    const affectedBudgetIds = new Set<string>();
+
+    for (const chunk of chunks) {
+      const payload = chunk.map((item) => mapBudgetItemToDb(item, cloudUserId, clerkUserId));
+      const result = await retryOnceOnJwtExpired(
+        async () =>
+          await supabase.from('budget_items').upsert(payload, { onConflict: 'id,owner_id' }),
+        getToken,
+      );
+
+      if (result.error) {
+        const message = result.error.message || 'Failed to sync budget items';
+        chunk.forEach((item) => {
+          useBudgetStore.getState().markItemAsFailed(item.budgetId, item.id, message);
+          const queueItem = useSyncStore
+            .getState()
+            .queue.find((entry) => entry.entityId === item.id);
+          if (queueItem) {
+            useSyncStore.getState().updateQueueItem(queueItem.id, {
+              status: 'failed',
+              lastError: message,
+            });
+          }
+          failed += 1;
+          processed += 1;
+        });
+        options?.onProgress?.(processed, total);
+        continue;
+      }
+
+      chunk.forEach((item) => {
+        useBudgetStore.getState().markItemAsSyncedV2(item.budgetId, item.id, {
+          synced: true,
+          sync_status: 'synced',
+          lastError: undefined,
+        });
+        const queueItem = useSyncStore.getState().queue.find((entry) => entry.entityId === item.id);
+        if (queueItem) {
+          useSyncStore
+            .getState()
+            .updateQueueItem(queueItem.id, { status: 'synced', lastError: undefined });
+          useSyncStore.getState().removeFromQueue(queueItem.id);
+        }
+        affectedBudgetIds.add(item.budgetId);
+        synced += 1;
+        processed += 1;
+      });
+
+      options?.onProgress?.(processed, total);
+    }
+
+    for (const budgetId of affectedBudgetIds) {
+      const rpcResult = await retryOnceOnJwtExpired(
+        async () =>
+          await supabase.rpc('recompute_budget_totals', {
+            p_budget_id: budgetId,
+            p_user_id: clerkUserId,
+          }),
+        getToken,
+      );
+
+      if (rpcResult.error) {
+        console.error(
+          '[Sync] Failed to recompute budget totals after budget queue sync:',
+          rpcResult.error,
+        );
+      }
+
+      const { data: budgetData } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('id', budgetId)
+        .single();
+      if (budgetData) {
+        useBudgetStore.setState((state) => ({
+          budgets: state.budgets.map((budget) =>
+            budget.id === budgetId
+              ? {
+                  ...budget,
+                  ...toBudgetTotals(budgetData),
+                  synced: true,
+                  updatedAt: Date.now(),
+                }
+              : budget,
+          ),
+        }));
+      }
+    }
+
+    return { total, synced, failed };
+  },
+
   updateFriendCurrency: async (
     friendId: string,
     currency: string,
@@ -1308,7 +1449,7 @@ const safeTimestampToISO = (timestamp: number | undefined | null): string => {
 
   const date = new Date(timestamp);
   // Check if date is valid
-  if (isNaN(date.getTime())) return new Date().toISOString();
+  if (Number.isNaN(date.getTime())) return new Date().toISOString();
 
   return date.toISOString();
 };
@@ -1320,7 +1461,7 @@ const safeDateToTimestamp = (dateValue: string | null | undefined): number => {
 
   const date = new Date(dateValue);
   // Check if date is valid
-  if (isNaN(date.getTime())) return Date.now();
+  if (Number.isNaN(date.getTime())) return Date.now();
   return date.getTime();
 };
 

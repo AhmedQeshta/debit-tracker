@@ -64,6 +64,8 @@ export interface SyncQueueItem {
   payload: any;
 }
 
+export type SyncStatus = 'synced' | 'pending' | 'failed';
+
 export type BudgetItemType = 'expense' | 'income';
 
 export interface BudgetMetrics {
@@ -86,6 +88,8 @@ export interface BudgetItem {
   createdAt: number;
   updatedAt?: number;
   synced?: boolean;
+  sync_status?: SyncStatus;
+  lastError?: string;
   deletedAt?: number; // Timestamp when marked for deletion (pending sync)
 }
 
