@@ -1,5 +1,4 @@
-import { useCloudSync } from '@/hooks/sync/useCloudSync';
-import { useSyncStore } from '@/store/syncStore';
+import { useCloudSync } from '@/hooks/sync/useCloudSync';import { useSyncStore } from '@/store/syncStore';
 
 export const useSyncStatus = () => {
   const {
@@ -12,13 +11,14 @@ export const useSyncStatus = () => {
     network,
     pullProgress,
   } = useSyncStore();
-  const { isOnline, isLoggedIn, syncNow, pullAllDataForNewDevice, isNewDevice } = useCloudSync();
+  const { isOnline, isLoggedIn, pullAllDataForNewDevice, isNewDevice, syncQueueNow } =
+    useCloudSync();
 
   const handleSync = () => {
     if (isNewDevice) {
       pullAllDataForNewDevice(false, { blocking: true });
     } else {
-      syncNow();
+      syncQueueNow();
     }
   };
 
@@ -28,7 +28,7 @@ export const useSyncStatus = () => {
     if (isNewDevice) {
       pullAllDataForNewDevice(true, { blocking: true }); // Pass true to indicate manual retry
     } else {
-      syncNow();
+      syncQueueNow();
     }
   };
 
@@ -44,6 +44,7 @@ export const useSyncStatus = () => {
     isSyncing,
     syncStatus,
     handleSync,
+    syncQueueNow,
     isOnline,
     isNetworkWeak,
     pullProgress,
