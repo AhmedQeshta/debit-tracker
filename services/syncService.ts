@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';import { getBudgetItemType } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { getBudgetItemType } from '@/lib/utils';
 import {
   GetTokenFunction,
   getFreshSupabaseJwt,
@@ -8,7 +9,7 @@ import {
 import { pingSupabase } from '@/services/net';
 import { classifySyncError, getSyncErrorCode, isRetryableSyncError } from '@/services/syncErrors';
 import { ensureAppUser } from '@/services/userService';
-import { useBudgetStore } from '@/store/budgetStore';
+import { toBudgetTotals, useBudgetStore } from '@/store/budgetStore';
 import { useFriendsStore } from '@/store/friendsStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useTransactionsStore } from '@/store/transactionsStore';

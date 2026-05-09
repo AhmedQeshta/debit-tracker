@@ -65,7 +65,7 @@ export const useBudgetDetail = () => {
     };
   }, [rawBudget]);
   const {
-    addItem,
+    addBudgetItemSmart,
     updateItem,
     markItemAsSynced,
     removeItem,
@@ -83,6 +83,7 @@ export const useBudgetDetail = () => {
   const { mutate } = useSyncMutation();
   const { getToken, userId } = useAuth();
   const syncStatus = useSyncStore((state) => state.syncStatus);
+  const cloudUserId = useSyncStore((state) => state.cloudUserId);
   const { handleBudgetResetPeriod } = useBudgetPeriod();
   // Calculate from budget object to make it reactive to changes (exclude deleted items)
   const metrics = budget
@@ -101,6 +102,7 @@ export const useBudgetDetail = () => {
   const displayNetSpent = clampNetSpentForDisplay(rawNetSpent);
   const remaining = metrics.remaining;
 
+  // save new Add Item
   const handleAddItem = async (): Promise<void> => {
     const titleError = validateTitle(itemTitle);
     if (titleError) {
@@ -116,18 +118,24 @@ export const useBudgetDetail = () => {
     }
     setItemAmountError('');
 
-    const amount = parseFloat(itemAmount);
-    addItem(budgetId, itemTitle.trim(), amount, itemType);
-    setItemTitle('');
-    setItemAmount('');
-    setItemType('expense');
-    toastSuccess(t('budgetHooks.items.addSuccess'));
-
-    // Trigger sync to push addition to Supabase
+    const amount = Number.parseFloat(itemAmount);
     try {
-      await syncNow();
-    } catch (error) {
-      console.error('[Sync] Failed to sync after add item:', error);
+      await addBudgetItemSmart(
+        budgetId,
+        itemTitle.trim(),
+        amount,
+        itemType,
+        userId ?? undefined,
+        cloudUserId ?? undefined,
+      );
+      setItemTitle('');
+      setItemAmount('');
+      setItemType('expense');
+      toastSuccess(t('budgetHooks.items.addSuccess'));
+    } catch (error: any) {
+      const message = error?.message || 'Failed to add budget item';
+      console.error('[Budget] Failed to add budget item:', message);
+      toastError(message);
     }
   };
 
@@ -180,7 +188,7 @@ export const useBudgetDetail = () => {
   const hasEditItemChanges =
     !!selectedEditItem &&
     (selectedEditItem.title.trim() !== editItemTitle.trim() ||
-      Math.abs(selectedEditItem.amount) !== Math.abs(parseFloat(editItemAmount || '0')) ||
+      Math.abs(selectedEditItem.amount) !== Math.abs(Number.parseFloat(editItemAmount || '0')) ||
       getBudgetItemType(selectedEditItem) !== editItemType);
   const canSaveEditItem =
     !isEditItemLinked &&
@@ -188,6 +196,7 @@ export const useBudgetDetail = () => {
     !validateTitle(editItemTitle.trim()) &&
     !validateAmount(editItemAmount, 1);
 
+  //  on save edit
   const handleSaveEditedItem = async (): Promise<void> => {
     if (!budget || !selectedEditItem) return;
 
@@ -213,7 +222,7 @@ export const useBudgetDetail = () => {
     }
 
     const safeTitle = editItemTitle.trim();
-    const safeAmount = Math.abs(parseFloat(editItemAmount));
+    const safeAmount = Math.abs(Number.parseFloat(editItemAmount));
     const now = Date.now();
 
     setIsSavingEditItem(true);

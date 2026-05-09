@@ -1,4 +1,5 @@
-import { selectPendingCount } from '@/lib/dashboardSelectors';import { getFreshSupabaseJwt } from '@/services/authSync';
+import { selectPendingCount } from '@/lib/dashboardSelectors';
+import { getFreshSupabaseJwt } from '@/services/authSync';
 import { getNetworkSnapshot, isNetworkReachable, pingSupabase } from '@/services/net';
 import { getSyncErrorCode } from '@/services/syncErrors';
 import { syncService } from '@/services/syncService';
@@ -269,7 +270,15 @@ export const useCloudSync = () => {
               syncErrorMessageFromReason(budgetSummary.blockedReason),
             at: Date.now(),
           });
-          return budgetSummary;
+          // Convert budgetSummary to standard summary format
+          return {
+            total: budgetSummary.total || 0,
+            successCount: budgetSummary.synced || 0,
+            failedCount: budgetSummary.failed || 0,
+            blockedReason: budgetSummary.blockedReason,
+            lastErrorCode: getSyncErrorCode(budgetSummary.blockedReason),
+            lastErrorMessage: budgetSummary.lastErrorMessage,
+          };
         }
 
         const queueSummary = await syncService.syncQueueFlush(cloudUserId, userId, getToken, {

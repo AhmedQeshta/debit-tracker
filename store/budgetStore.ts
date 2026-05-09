@@ -29,7 +29,7 @@ const migrateBudgetItems = (budgets: Budget[]): Budget[] => {
 
 const createBudgetItemId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
-const toBudgetTotals = (budgetData: any) => ({
+export const toBudgetTotals = (budgetData: any) => ({
   totalSpent: budgetData?.total_spent ?? 0,
   totalIncome: budgetData?.total_income ?? 0,
   netSpent: budgetData?.net_spent ?? 0,
