@@ -35,6 +35,8 @@ export const useBudgetDetail = () => {
   const [itemTitleError, setItemTitleError] = useState('');
   const [itemAmountError, setItemAmountError] = useState('');
 
+  const [isAddingItem, setIsAddingItem] = useState(false);
+
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItemId, setEditingItemId] = useState('');
   const [editItemTitle, setEditItemTitle] = useState('');
@@ -119,6 +121,7 @@ export const useBudgetDetail = () => {
     setItemAmountError('');
 
     const amount = Number.parseFloat(itemAmount);
+    setIsAddingItem(true);
     try {
       await addBudgetItemSmart(
         budgetId,
@@ -136,6 +139,8 @@ export const useBudgetDetail = () => {
       const message = error?.message || 'Failed to add budget item';
       console.error('[Budget] Failed to add budget item:', message);
       toastError(message);
+    } finally {
+      setIsAddingItem(false);
     }
   };
 
@@ -381,6 +386,7 @@ export const useBudgetDetail = () => {
     itemAmountError,
     setItemAmountError,
     handleAddItem,
+    isAddingItem,
     handleDeleteItem,
     rawNetSpent,
     displayNetSpent,
