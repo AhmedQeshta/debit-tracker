@@ -26,6 +26,7 @@ import {
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   I18nManager,
   Pressable,
   StyleSheet,
@@ -54,6 +55,7 @@ export default function BudgetDetail() {
     itemAmountError,
     setItemAmountError,
     handleAddItem,
+    isAddingItem,
     handleDeleteItem,
     rawNetSpent,
     displayNetSpent,
@@ -411,10 +413,20 @@ export default function BudgetDetail() {
             <TouchableOpacity
               style={styles.addButton}
               onPress={handleAddItem}
-              activeOpacity={0.8}
+              disabled={isAddingItem}
+              activeOpacity={isAddingItem ? 1 : 0.8}
               accessibilityRole="button"
               accessibilityLabel={t('budgetDetail.quickAdd.addItem')}>
-              <Text style={styles.addButtonText}>{t('budgetDetail.quickAdd.addItem')}</Text>
+              {isAddingItem ? (
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.background}
+                  accessible={true}
+                  accessibilityLabel={t('budgetDetail.quickAdd.adding')}
+                />
+              ) : (
+                <Text style={styles.addButtonText}>{t('budgetDetail.quickAdd.addItem')}</Text>
+              )}
             </TouchableOpacity>
           </View>
 
