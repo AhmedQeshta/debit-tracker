@@ -134,6 +134,14 @@ export const useBudgetDetail = () => {
       setItemTitle('');
       setItemAmount('');
       setItemType('expense');
+      // if has data not synced, trigger sync immediately to push to Supabase
+      if (isOnline && isLoggedIn && userId) {
+        try {
+          await syncNow();
+        } catch (error) {
+          console.error('[Sync] Failed to sync after adding item:', error);
+        }
+      }
       toastSuccess(t('budgetHooks.items.addSuccess'));
     } catch (error: any) {
       const message = error?.message || 'Failed to add budget item';
@@ -153,10 +161,12 @@ export const useBudgetDetail = () => {
         toastSuccess(t('budgetHooks.items.deleteSuccess'));
 
         // Trigger sync to push deletion to Supabase
-        try {
-          await syncNow();
-        } catch (error) {
-          console.error('[Sync] Failed to sync after delete:', error);
+        if (isOnline && isLoggedIn && userId) {
+          try {
+            await syncNow();
+          } catch (error) {
+            console.error('[Sync] Failed to sync after delete:', error);
+          }
         }
       },
       { confirmText: t('common.actions.delete') },
